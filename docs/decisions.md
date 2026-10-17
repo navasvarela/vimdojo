@@ -257,3 +257,35 @@ the player's mappings nor their plugins apply, unless they choose
   codemirror-vim's register controller, verified in Chromium against the
   fixture levels. Mark presets and options aren't emulated; such levels
   can't pass the emulation gate, so they never get flagged `web_demo`.
+
+## Motions wave 1 (M9)
+
+- **Four packs, 22 levels:** Visual Mode (5), Search (5), Text Objects (6),
+  Transform (6). PLAN-v2 sketched 24 levels.
+- **Levels were dropped or changed to keep the par rule honest.** A level only
+  teaches well if its new key is the shortest route among the taught keys.
+  - Plain `v` + operator, `V` + `>`, and `o` lose to an operator + motion or a
+    count (`df)`, `>2j`), so Visual teaches block mode (`<C-v>` with `I`, `$A`,
+    `d`, `c`) and pasting over a selection (`viwp`).
+  - Search targets sit mid-line on far lines, because counts are cheap (`16j`
+    is 3 keys).
+  - "Whole words" (`\<\>`) and the search-offset level were dropped: every
+    variant had a shorter trick with what's already taught.
+- **The par finder searches too:** `/xx<CR>` and `?xx<CR>` for buffer
+  substrings up to 4 characters, plus `*`, `#`, and `j`/`k` counts up to the
+  level's length. `n` isn't modeled (it depends on the last search), so the
+  `n` level's par is worked out by hand.
+- **Clever pars are fine.** "Change gang" has par 13 via
+  `w#cgnuser<Esc>...`: `#` wraps to the last match, so `.` skips the line to
+  leave alone without needing `n`. A straightforward `/tmp<CR>cgn...nn.` (18)
+  still earns 2 stars.
+- **The emulation gate now presses real keys** (`userEvent.keyboard` through
+  Playwright) instead of calling `Vim.handleKey`. Typing into the search
+  prompt, Insert mode and Replace mode now go through the browser exactly as
+  they would for a player. That turned the search levels and `R` from "fail"
+  into "ok".
+- **Real emulation gaps found** (these levels stay Neovim-only): `<C-v>`
+  block mode doesn't engage, `p` over a visual selection pastes after it,
+  `cit`, `g<C-a>`, linewise `yi{`, and `#` + `cgn` match selection. Of the 13
+  new levels that pass, six are flagged `web_demo`: `/`, `*`, `ci(`, `daw`,
+  `<C-a>` and `R`.

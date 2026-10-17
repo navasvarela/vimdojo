@@ -80,7 +80,7 @@ can always get 3 stars with what the game has shown them. Players who know
 more motions can beat par, which is half the fun.
 
 For `cursor_at` levels, `make par` searches every level with real Neovim
-motions and prints the taught-motion optimum (which should equal
+motions (including `/`, `?`, `*` and `#` searches) and prints the taught-motion optimum (which should equal
 `par_keys`) next to the any-motion optimum:
 
 ```
@@ -119,7 +119,9 @@ To flag a level for the web demo, run the emulation test in real Chromium:
 cd web && npx vitest run --project browser --silent=false
 ```
 
-It prints `ok`/`FAIL` for every level. Any level marked `web_demo` must pass.
+It presses the solution's keys in real Chromium and prints `ok`/`FAIL` for every
+level. Any level marked `web_demo` must pass. Some features aren't emulated
+(see the M9 notes in `docs/decisions.md`), so check before flagging.
 
 ## Adding a pack
 

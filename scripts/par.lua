@@ -18,8 +18,28 @@ vim.o.swapfile = false
 local challenges = require("vimdojo.challenges")
 local keys = require("vimdojo.keys")
 
-local SIMPLE_MOTIONS =
-  { "h", "j", "k", "l", "w", "b", "e", "W", "B", "E", "0", "^", "$", "gg", "G", "{", "}", "%" }
+local SIMPLE_MOTIONS = {
+  "h",
+  "j",
+  "k",
+  "l",
+  "w",
+  "b",
+  "e",
+  "W",
+  "B",
+  "E",
+  "0",
+  "^",
+  "$",
+  "gg",
+  "G",
+  "{",
+  "}",
+  "%",
+  "*",
+  "#",
+}
 local FIND_MOTIONS = { "f", "t", "F", "T" }
 local COUNTABLE = {
   h = true,
@@ -36,6 +56,13 @@ local COUNTABLE = {
   ["}"] = true,
 }
 local MAX_COUNT = 9
+-- Search patterns tried: every substring of the buffer up to this length.
+-- Longer patterns are rarely the shortest route, and the search space grows
+-- with every extra character.
+local MAX_PATTERN = 4
+-- Characters with a special meaning in a search pattern; substrings
+-- containing them are skipped rather than escaped.
+local PATTERN_SPECIALS = "[%.%*%[%]%^%$\\/~?]"
 
 ---@param lines string[]
 ---@return string[]
@@ -50,6 +77,24 @@ local function distinct_chars(lines)
     end
   end
   return chars
+end
+
+---@param lines string[]
+---@return string[] Distinct buffer substrings usable as plain search patterns.
+local function search_patterns(lines)
+  local seen, patterns = {}, {}
+  for _, line in ipairs(lines) do
+    for start = 1, #line do
+      for length = 1, MAX_PATTERN do
+        local pattern = line:sub(start, start + length - 1)
+        if #pattern == length and not pattern:find(PATTERN_SPECIALS) and not seen[pattern] then
+          seen[pattern] = true
+          table.insert(patterns, pattern)
+        end
+      end
+    end
+  end
+  return patterns
 end
 
 ---@param allowed fun(motion: string): boolean
@@ -67,9 +112,26 @@ local function alphabet(allowed, lines)
       end
     end
   end
-  if allowed("G") and allowed("count") then
-    for line = 1, #lines do
-      table.insert(tokens, line .. "G")
+  if allowed("count") then
+    -- j/k counts beyond 9 matter in long levels (logs, configs).
+    for _, motion in ipairs({ "j", "k" }) do
+      if allowed(motion) then
+        for count = MAX_COUNT + 1, #lines do
+          table.insert(tokens, count .. motion)
+        end
+      end
+    end
+    if allowed("G") then
+      for line = 1, #lines do
+        table.insert(tokens, line .. "G")
+      end
+    end
+  end
+  for _, search in ipairs({ "/", "?" }) do
+    if allowed(search) then
+      for _, pattern in ipairs(search_patterns(lines)) do
+        table.insert(tokens, search .. pattern .. "<CR>")
+      end
     end
   end
   for _, motion in ipairs(FIND_MOTIONS) do
@@ -87,7 +149,8 @@ end
 ---@return integer[]
 local function move(position, token)
   vim.api.nvim_win_set_cursor(0, position)
-  pcall(vim.cmd, "normal! " .. token)
+  -- silent!: failed or wrapping searches would print messages (and errors).
+  vim.cmd("silent! normal! " .. vim.api.nvim_replace_termcodes(token, true, false, true))
   return vim.api.nvim_win_get_cursor(0)
 end
 

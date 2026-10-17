@@ -1,0 +1,126 @@
+{
+  "$schema": "./schema.json",
+  "pack": "search",
+  "title": "Search",
+  "description": "Jump anywhere by content: / and ?, * under the cursor, n for the next match, and cgn to change matches one by one.",
+  "order": 5,
+  "levels": [
+    {
+      "id": "search-01",
+      "title": "Needle, haystack",
+      "description": "Something timed out. Put the cursor on the 'p' of 'provider' without scrolling through the whole log.",
+      "start_text": [
+        "08:00:01 INFO  boot sequence started",
+        "08:00:02 INFO  loading config",
+        "08:00:02 WARN  config has 3 TODOs",
+        "08:00:03 INFO  connecting to db",
+        "08:00:04 INFO  db connected",
+        "08:00:05 INFO  warming caches",
+        "08:00:07 INFO  cache warm-ish",
+        "08:00:09 INFO  listening on :8080",
+        "08:01:13 INFO  GET /health 200",
+        "08:01:14 INFO  GET /health 200",
+        "08:01:15 INFO  GET /health 200",
+        "08:02:40 ERROR payment provider timeout",
+        "08:02:41 INFO  retrying payment",
+        "08:02:44 INFO  GET /health 200",
+        "08:03:00 INFO  coffee break",
+        "08:04:30 INFO  GET /health 200",
+        "08:05:12 FATAL out of coffee",
+        "08:05:13 INFO  shutting down"
+      ],
+      "cursor_start": [1, 0],
+      "goal": { "type": "cursor_at", "line": 12, "col": 23 },
+      "par_keys": 4,
+      "par_seconds": 9,
+      "hint": "/ followed by a few letters and <CR> jumps to the next match. The fewer letters that still match uniquely, the better.",
+      "solution": "/pr<CR>",
+      "teaches": ["/"],
+      "web_demo": true
+    },
+    {
+      "id": "search-02",
+      "title": "Look back in anger",
+      "description": "You're at the bottom of the file. Jump back up to the @ in the contact address.",
+      "start_text": [
+        "[project]",
+        "name = \"vimdojo\"",
+        "owner = \"someone, probably\"",
+        "contact = \"help@vimdojo.invalid\"",
+        "deadline = \"yesterday\"",
+        "budget = \"what budget\"",
+        "team = [\"me\", \"also me\", \"a rubber duck\"]",
+        "status = \"fine\"",
+        "morale = \"coffee-dependent\""
+      ],
+      "cursor_start": [9, 0],
+      "goal": { "type": "cursor_at", "line": 4, "col": 15 },
+      "par_keys": 3,
+      "par_seconds": 8,
+      "hint": "? searches backwards, like / but up. One distinctive character is often enough.",
+      "solution": "?@<CR>",
+      "teaches": ["?"]
+    },
+    {
+      "id": "search-03",
+      "title": "Under the cursor",
+      "description": "Find the next use of the variable count. Not account, not counter: count.",
+      "start_text": [
+        "local count = 0",
+        "for _, account in ipairs(accounts) do",
+        "  local counter = account.counter or 0",
+        "  count = count + counter",
+        "end"
+      ],
+      "cursor_start": [1, 6],
+      "goal": { "type": "cursor_at", "line": 4, "col": 2 },
+      "par_keys": 1,
+      "par_seconds": 5,
+      "hint": "* searches for the whole word under the cursor (# searches backwards).",
+      "solution": "*",
+      "teaches": ["*", "#"],
+      "web_demo": true
+    },
+    {
+      "id": "search-04",
+      "title": "I before E",
+      "description": "Fix every 'recieve'. Find the first misspelling, fix it, and let n take you to the next one.",
+      "start_text": [
+        "We recieve emails. Did you recieve mine? I never recieve answers. Please recieve this."
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "We receive emails. Did you receive mine? I never receive answers. Please receive this."
+        ]
+      },
+      "par_keys": 15,
+      "par_seconds": 22,
+      "hint": "Search for /ie, swap the two letters with xp, then n jumps to the next match. Repeat.",
+      "solution": "/ie<CR>xpnxpnxpnxp",
+      "teaches": ["n"]
+    },
+    {
+      "id": "search-05",
+      "title": "Change gang",
+      "description": "Rename tmp to user everywhere except the print, which is about to be deleted anyway.",
+      "start_text": ["local tmp = fetch_user()", "tmp = normalize(tmp)", "print(tmp)", "return tmp"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "local user = fetch_user()",
+          "user = normalize(user)",
+          "print(tmp)",
+          "return user"
+        ]
+      },
+      "par_keys": 13,
+      "par_seconds": 20,
+      "hint": "With a search pattern set (try * or #), cgn changes the next match and . repeats it on the following one. n skips a match.",
+      "solution": "w#cgnuser<Esc>...",
+      "teaches": ["cgn", "."]
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "$schema": "./schema.json",
+  "pack": "text-objects",
+  "title": "Text Objects",
+  "description": "Operate on structure from anywhere inside it: parentheses, brackets, tags, words and sentences.",
+  "order": 6,
+  "levels": [
+    {
+      "id": "textobj-01",
+      "title": "Argument clinic",
+      "description": "Pass one profile instead of three loose fields: the call should read print(profile).",
+      "start_text": ["print(name, age, email)"],
+      "cursor_start": [1, 12],
+      "goal": { "type": "buffer_equals", "value": ["print(profile)"] },
+      "par_keys": 11,
+      "par_seconds": 17,
+      "hint": "ci( changes everything inside the parentheses around the cursor.",
+      "solution": "ci(profile<Esc>",
+      "teaches": ["ci("],
+      "web_demo": true
+    },
+    {
+      "id": "textobj-02",
+      "title": "Empty the bins",
+      "description": "Take out the trash. Leave the brackets.",
+      "start_text": ["const bins = [1, 2, 3, \"banana\"];"],
+      "cursor_start": [1, 17],
+      "goal": { "type": "buffer_equals", "value": ["const bins = [];"] },
+      "par_keys": 3,
+      "par_seconds": 8,
+      "hint": "di[ deletes inside the square brackets around the cursor.",
+      "solution": "di[",
+      "teaches": ["di["]
+    },
+    {
+      "id": "textobj-03",
+      "title": "Tag, you're it",
+      "description": "The page is closing down. Change the heading to Goodbye, keeping the tags.",
+      "start_text": ["<h1>Hello World</h1>"],
+      "cursor_start": [1, 10],
+      "goal": { "type": "buffer_equals", "value": ["<h1>Goodbye</h1>"] },
+      "par_keys": 11,
+      "par_seconds": 17,
+      "hint": "it is the text inside an HTML tag: cit changes it.",
+      "solution": "citGoodbye<Esc>",
+      "teaches": ["cit"]
+    },
+    {
+      "id": "textobj-04",
+      "title": "Clean cut",
+      "description": "One Vim is enough. Delete the second one along with its space.",
+      "start_text": ["I love Vim Vim"],
+      "cursor_start": [1, 12],
+      "goal": { "type": "buffer_equals", "value": ["I love Vim"] },
+      "par_keys": 3,
+      "par_seconds": 8,
+      "hint": "aw is 'a word' including surrounding space, so daw leaves no double or trailing space behind.",
+      "solution": "daw",
+      "teaches": ["daw"],
+      "web_demo": true
+    },
+    {
+      "id": "textobj-05",
+      "title": "Copy the body",
+      "description": "wave() should do exactly what greet() does. Copy the body over.",
+      "start_text": [
+        "function greet() {",
+        "  print(\"hello\")",
+        "  print(\"how are you\")",
+        "  print(\"bye\")",
+        "}",
+        "function wave() {",
+        "}"
+      ],
+      "cursor_start": [3, 2],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "function greet() {",
+          "  print(\"hello\")",
+          "  print(\"how are you\")",
+          "  print(\"bye\")",
+          "}",
+          "function wave() {",
+          "  print(\"hello\")",
+          "  print(\"how are you\")",
+          "  print(\"bye\")",
+          "}"
+        ]
+      },
+      "par_keys": 6,
+      "par_seconds": 11,
+      "hint": "yi{ yanks everything inside the braces, from anywhere inside them. Then p below wave's opening line.",
+      "solution": "yi{4jp",
+      "teaches": ["yi{"]
+    },
+    {
+      "id": "textobj-06",
+      "title": "One sentence too many",
+      "description": "That middle sentence was a mistake. Delete it.",
+      "start_text": ["I love Vim. Emacs is fine too. Just kidding."],
+      "cursor_start": [1, 21],
+      "goal": { "type": "buffer_equals", "value": ["I love Vim. Just kidding."] },
+      "par_keys": 3,
+      "par_seconds": 8,
+      "hint": "as is 'a sentence', including the space after it.",
+      "solution": "das",
+      "teaches": ["das"]
+    }
+  ]
+}

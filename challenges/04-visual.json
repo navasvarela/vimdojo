@@ -1,0 +1,105 @@
+{
+  "$schema": "./schema.json",
+  "pack": "visual",
+  "title": "Visual Mode",
+  "description": "Select first, act second: block selections that edit many lines at once, and pasting over a selection.",
+  "order": 4,
+  "levels": [
+    {
+      "id": "visual-01",
+      "title": "Comment it out",
+      "description": "Four debug logs, zero dignity. Prefix every line with '// ' in one go.",
+      "start_text": [
+        "console.log(\"here\")",
+        "console.log(\"here 2\")",
+        "console.log(\"why\")",
+        "console.log(\"WHY\")"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "// console.log(\"here\")",
+          "// console.log(\"here 2\")",
+          "// console.log(\"why\")",
+          "// console.log(\"WHY\")"
+        ]
+      },
+      "par_keys": 8,
+      "par_seconds": 14,
+      "hint": "<C-v> starts a block selection. Extend it down, press I, type, and <Esc> copies the insert to every line.",
+      "solution": "<C-v>3jI// <Esc>",
+      "teaches": ["<C-v>", "I"]
+    },
+    {
+      "id": "visual-02",
+      "title": "Ragged edge",
+      "description": "The linter wants semicolons. Append ';' to every line, however long it is.",
+      "start_text": ["let a = 1", "let bb = 22", "let ccc = 333", "let dddd = 4444"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["let a = 1;", "let bb = 22;", "let ccc = 333;", "let dddd = 4444;"]
+      },
+      "par_keys": 7,
+      "par_seconds": 12,
+      "hint": "In a block selection, $ stretches every line to its own end. Then A appends after each one.",
+      "solution": "<C-v>3j$A;<Esc>",
+      "teaches": ["<C-v>$", "A"]
+    },
+    {
+      "id": "visual-03",
+      "title": "Column cleanup",
+      "description": "The numbers add nothing. Delete the 'NN ' column from every line.",
+      "start_text": ["01 Wake up", "02 Check Slack", "03 Panic", "04 Coffee", "05 Pretend to work"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["Wake up", "Check Slack", "Panic", "Coffee", "Pretend to work"]
+      },
+      "par_keys": 6,
+      "par_seconds": 11,
+      "hint": "Select a block three columns wide down all five lines, then d.",
+      "solution": "<C-v>4j2ld",
+      "teaches": ["<C-v>d"]
+    },
+    {
+      "id": "visual-04",
+      "title": "Block change",
+      "description": "Production says otherwise. Change every 200 to 503.",
+      "start_text": ["GET  /users     200", "GET  /orders    200", "GET  /invoices  200"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["GET  /users     503", "GET  /orders    503", "GET  /invoices  503"]
+      },
+      "par_keys": 10,
+      "par_seconds": 16,
+      "hint": "The numbers line up in a column: select them as a block and c changes them all at once.",
+      "solution": "$<C-v>2jbc503<Esc>",
+      "teaches": ["<C-v>c"]
+    },
+    {
+      "id": "visual-05",
+      "title": "Paste over",
+      "description": "Replace loadPrefs with the real function name from the comment. Typing it is allowed. It is also 43 characters.",
+      "start_text": [
+        "const prefs = loadPrefs();",
+        "// the real one is getUserPreferencesFromLocalStorageOrDefault"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "const prefs = getUserPreferencesFromLocalStorageOrDefault();",
+          "// the real one is getUserPreferencesFromLocalStorageOrDefault"
+        ]
+      },
+      "par_keys": 10,
+      "par_seconds": 16,
+      "hint": "Yank the long name with yiw, then select loadPrefs with viw and p pastes over the selection.",
+      "solution": "j$yiwkviwp",
+      "teaches": ["v", "p over a selection"]
+    }
+  ]
+}

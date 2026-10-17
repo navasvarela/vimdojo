@@ -1,0 +1,95 @@
+{
+  "$schema": "./schema.json",
+  "pack": "transform",
+  "title": "Transform",
+  "description": "Change text without retyping it: case, numbers, joining lines, swapping and overwriting characters.",
+  "order": 7,
+  "levels": [
+    {
+      "id": "transform-01",
+      "title": "Caps lock",
+      "description": "It's a constant now. Make the name SHOUT.",
+      "start_text": ["local max_retries = 5"],
+      "cursor_start": [1, 10],
+      "goal": { "type": "buffer_equals", "value": ["local MAX_RETRIES = 5"] },
+      "par_keys": 4,
+      "par_seconds": 9,
+      "hint": "gU is the uppercase operator. Give it a text object.",
+      "solution": "gUiw",
+      "teaches": ["gU"]
+    },
+    {
+      "id": "transform-02",
+      "title": "Version bump",
+      "description": "Ship the patch release: 1.9.9 becomes 1.9.10. It's not string math, and Vim knows it.",
+      "start_text": ["version = 1.9.9"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "buffer_equals", "value": ["version = 1.9.10"] },
+      "par_keys": 2,
+      "par_seconds": 6,
+      "hint": "<C-a> adds one to the number under or after the cursor.",
+      "solution": "$<C-a>",
+      "teaches": ["<C-a>"],
+      "web_demo": true
+    },
+    {
+      "id": "transform-03",
+      "title": "Count me in",
+      "description": "Someone numbered this list lazily. Make it 1, 2, 3, 4.",
+      "start_text": ["1. eggs", "1. milk", "1. bread", "1. more eggs"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["1. eggs", "2. milk", "3. bread", "4. more eggs"]
+      },
+      "par_keys": 6,
+      "par_seconds": 11,
+      "hint": "Select lines 2 to 4 and press g<C-a>: each line goes up by one more than the line above.",
+      "solution": "j<C-v>2jg<C-a>",
+      "teaches": ["g<C-a>"]
+    },
+    {
+      "id": "transform-04",
+      "title": "Join the club",
+      "description": "Join all three lines into one. The password must stay in one piece.",
+      "start_text": ["The password is hunter", "2, obviously.", "Don't tell anyone."],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["The password is hunter2, obviously. Don't tell anyone."]
+      },
+      "par_keys": 3,
+      "par_seconds": 8,
+      "hint": "J joins lines with a space; gJ joins them without one.",
+      "solution": "gJJ",
+      "teaches": ["J", "gJ"]
+    },
+    {
+      "id": "transform-05",
+      "title": "Teh typo",
+      "description": "Fix 'Teh' with as few keys as possible.",
+      "start_text": ["Teh quick brown fox"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "buffer_equals", "value": ["The quick brown fox"] },
+      "par_keys": 3,
+      "par_seconds": 8,
+      "hint": "x deletes a character and p puts it back after the cursor: xp swaps two characters.",
+      "solution": "lxp",
+      "teaches": ["x", "xp"]
+    },
+    {
+      "id": "transform-06",
+      "title": "Overwrite",
+      "description": "Approve it and bump the priority to 1, keeping the field width.",
+      "start_text": ["Status: [PENDING ]", "Priority: 3"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "buffer_equals", "value": ["Status: [APPROVED]", "Priority: 1"] },
+      "par_keys": 15,
+      "par_seconds": 22,
+      "hint": "R types over existing text; r replaces a single character.",
+      "solution": "fPRAPPROVED<Esc>jr1",
+      "teaches": ["R", "r"],
+      "web_demo": true
+    }
+  ]
+}

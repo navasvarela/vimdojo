@@ -3,7 +3,6 @@ import { EditorView, drawSelection, highlightActiveLine, lineNumbers } from "@co
 import { Vim, getCM, vim } from "@replit/codemirror-vim"
 import type { Level, Preset } from "../challenges"
 import { registersFor, type Register, type Snapshot } from "../goals"
-import { splitNotation } from "../keys"
 import { byteColToIndex, indexToByteCol } from "../text"
 
 // A CodeMirror 6 editor running the Vim emulation, plus conversions between
@@ -140,24 +139,4 @@ export function vimMode(view: EditorView): VimMode {
 
 export function isNormalMode(view: EditorView): boolean {
   return vimMode(view) === VimMode.Normal
-}
-
-/**
- * Feeds Vim key notation ("ciwfoo<Esc>") to the emulation, one key at a time.
- * In Insert mode a browser delivers printable characters through DOM input
- * rather than the Vim key handler, so they are inserted directly here.
- */
-export function typeKeys(view: EditorView, notation: string): void {
-  const cm = getCM(view)
-  if (cm === null) {
-    throw new Error("Vim emulation is not attached to this editor")
-  }
-  for (const key of splitNotation(notation)) {
-    const isText = !key.startsWith("<") || key === "<"
-    if (cm.state.vim?.insertMode === true && isText) {
-      view.dispatch(view.state.replaceSelection(key))
-    } else {
-      Vim.handleKey(cm, key, "user")
-    }
-  }
 }
