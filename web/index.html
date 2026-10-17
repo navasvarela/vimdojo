@@ -3,26 +3,108 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Learn Vim motions by solving tiny puzzles, scored on keystrokes, time and par." />
-    <title>vimdojo</title>
+    <meta
+      name="description"
+      content="vimdojo: learn Vim motions by solving tiny puzzles in Neovim, scored on keystrokes, time and par."
+    />
+    <meta name="theme-color" content="#0f0e0c" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%230f0e0c'/%3E%3Crect x='4' y='3' width='7' height='10' fill='%23ffb000'/%3E%3C/svg%3E"
+    />
+    <title>vimdojo · learn Vim motions by solving puzzles</title>
   </head>
   <body>
+    <a class="skip-link" href="#play">Skip to the demo</a>
     <main>
       <header class="hero">
-        <p class="prompt">~/dojo $ <span class="cursor">vim</span></p>
-        <h1>vimdojo</h1>
-        <p class="tagline">Learn Vim motions by solving tiny puzzles. Fewer keys, more stars.</p>
+        <div class="hero-copy">
+          <p class="prompt">~/dojo $ <span class="cursor">nvim +VimDojo</span></p>
+          <h1>vimdojo</h1>
+          <p class="tagline">
+            Learn Vim motions by solving tiny puzzles in real Neovim. Every key counts: beat par
+            for three stars.
+          </p>
+          <p class="cta">
+            <a class="button primary" href="#play">Play the demo</a>
+            <a class="button" href="#install">Install the plugin</a>
+          </p>
+        </div>
+        <figure class="hero-demo-frame">
+          <div id="hero-demo" class="hero-demo" aria-hidden="true"></div>
+          <figcaption class="visually-hidden">
+            Animation: a level is solved by typing f f d w to delete a typo, then d i quote to
+            empty a string.
+          </figcaption>
+        </figure>
       </header>
+
+      <section class="section" aria-labelledby="how-title">
+        <h2 id="how-title">How it works</h2>
+        <ol class="steps">
+          <li>
+            <h3><span class="step-number">1</span> Get a puzzle</h3>
+            <p>A short snippet of code or prose, and a goal: fix the typo, land on the bug.</p>
+          </li>
+          <li>
+            <h3><span class="step-number">2</span> Solve it with motions</h3>
+            <p>Use real Vim keys. The timer starts on your first keystroke, and every key is counted.</p>
+          </li>
+          <li>
+            <h3><span class="step-number">3</span> Beat par</h3>
+            <p>Match the level's par in keys and time for three stars. Then find a shorter way.</p>
+          </li>
+        </ol>
+      </section>
+
       <section id="play" class="section" aria-labelledby="play-title">
         <h2 id="play-title">Try it</h2>
+        <p class="touch-note">The demo needs a physical keyboard.</p>
         <div id="demo" class="demo"></div>
       </section>
+
       <section id="install" class="section" aria-labelledby="install-title">
         <h2 id="install-title">Install</h2>
-        <p>Requires Neovim 0.10+. No dependencies.</p>
-        <pre><code>{ "navasvarela/vimdojo", cmd = "VimDojo", opts = {} }</code></pre>
+        <p>Neovim 0.10 or newer. No dependencies. Then run <code>:VimDojo</code>.</p>
+        <div class="install-grid">
+          <div>
+            <h3>lazy.nvim</h3>
+            <pre data-copy="lazy.nvim snippet"><code>{ "%VITE_REPO%", cmd = "VimDojo", opts = {} }</code></pre>
+          </div>
+          <div>
+            <h3>packer.nvim</h3>
+            <pre data-copy="packer.nvim snippet"><code>use({ "%VITE_REPO%" })</code></pre>
+          </div>
+          <div>
+            <h3>vim-plug</h3>
+            <pre data-copy="vim-plug snippet"><code>Plug '%VITE_REPO%'</code></pre>
+          </div>
+        </div>
+        <p class="aside">
+          <code>setup()</code> is optional; see the
+          <a href="https://github.com/%VITE_REPO%#configuration">configuration options</a>.
+        </p>
+      </section>
+
+      <section id="curriculum" class="section" aria-labelledby="curriculum-title">
+        <h2 id="curriculum-title">Curriculum</h2>
+        <!-- curriculum -->
+        <p class="aside">
+          Coming next: a Neovim setup track (make <code>&lt;leader&gt;w</code> save the file, turn on
+          relative numbers), then visual mode, search, registers, macros and <code>:s</code>.
+        </p>
       </section>
     </main>
+
+    <footer class="footer">
+      <p>
+        <a href="https://github.com/%VITE_REPO%">GitHub</a> ·
+        <a href="https://github.com/%VITE_REPO%/blob/main/LICENSE">MIT license</a> · Demo powered by
+        <a href="https://codemirror.net/">CodeMirror</a> and
+        <a href="https://github.com/replit/codemirror-vim">codemirror-vim</a>.
+      </p>
+      <p>No tracking, no cookies. Demo progress stays in your browser.</p>
+    </footer>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

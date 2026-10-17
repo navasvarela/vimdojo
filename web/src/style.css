@@ -68,10 +68,131 @@ pre {
   white-space: nowrap;
 }
 
+.skip-link {
+  position: absolute;
+  left: 16px;
+  top: -40px;
+  padding: 4px 8px;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.skip-link:focus {
+  top: 8px;
+}
+
+.button {
+  display: inline-block;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.button:hover {
+  border-color: var(--muted);
+}
+
+.button.primary {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.aside {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+code {
+  color: var(--accent);
+}
+
+pre code {
+  color: inherit;
+}
+
 /* Hero */
 
 .hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 32px;
+  align-items: center;
   padding: 72px 0 32px;
+}
+
+@media (max-width: 860px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: 40px;
+  }
+}
+
+.cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.hero-demo-frame {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.hero-demo-frame::before {
+  content: "● ● ●";
+  display: block;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--border);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+}
+
+.hero-demo {
+  padding: 12px 16px 16px;
+  min-height: 170px;
+}
+
+.hero-demo-title {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.hero-demo-line {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--bg);
+  white-space: pre;
+}
+
+.hero-cursor {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.hero-demo-keys {
+  display: flex;
+  gap: 6px;
+  min-height: 1.9em;
+  margin: 12px 0 4px;
+}
+
+.hero-demo-status {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.hero-demo-status.is-solved {
+  color: var(--accent);
 }
 
 .prompt {
@@ -112,7 +233,7 @@ h1 {
 
 .tagline {
   margin: 0;
-  max-width: 40ch;
+  max-width: 44ch;
   font-size: 1.1rem;
   color: var(--muted);
 }
@@ -144,13 +265,13 @@ h2::before {
 
 .demo-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 260px) 1fr;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
   gap: 16px;
 }
 
 @media (max-width: 760px) {
   .demo-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -424,4 +545,135 @@ h2::before {
 .demo-message {
   color: var(--muted);
   font-size: 0.85rem;
+}
+
+.touch-note {
+  display: none;
+  color: var(--muted);
+}
+
+@media (pointer: coarse) {
+  .touch-note {
+    display: block;
+  }
+}
+
+/* How it works */
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (max-width: 760px) {
+  .steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.steps li,
+.pack {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.steps h3,
+.pack h3,
+.install-grid h3 {
+  margin: 0 0 6px;
+  font-size: 1rem;
+}
+
+.steps p,
+.pack p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.step-number,
+.pack-number {
+  color: var(--accent);
+  margin-right: 4px;
+}
+
+/* Install */
+
+.install-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+
+.snippet {
+  position: relative;
+}
+
+pre[data-copy] {
+  margin: 0;
+  padding-right: 72px;
+}
+
+.copy-button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 2px 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface-raised);
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.copy-button:hover {
+  color: var(--text);
+}
+
+/* Curriculum */
+
+.packs {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pack .pack-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.pack-keys kbd {
+  color: var(--text);
+}
+
+.pack .pack-count {
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+
+/* Footer */
+
+.footer {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.footer a {
+  color: var(--text);
 }

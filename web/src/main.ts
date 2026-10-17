@@ -1,4 +1,6 @@
 import "./style.css"
+import { mountCopyButtons } from "./landing/copy-buttons"
+import { mountHeroDemo } from "./landing/hero-demo"
 
 // The demo (CodeMirror + Vim emulation) is most of the bundle, so it loads
 // only when its section approaches the viewport. The landing page stays light.
@@ -30,12 +32,19 @@ function whenNearViewport(element: HTMLElement, callback: () => void): void {
   observer.observe(element)
 }
 
-const root = document.querySelector<HTMLElement>("#demo")
-if (root !== null) {
-  root.textContent = "Loading the demo…"
-  whenNearViewport(root, () => {
-    mountDemo(root).catch((error: unknown) => {
-      root.textContent = "The demo failed to load. Try reloading the page."
+const hero = document.querySelector<HTMLElement>("#hero-demo")
+if (hero !== null) {
+  mountHeroDemo(hero)
+}
+
+mountCopyButtons(document)
+
+const demo = document.querySelector<HTMLElement>("#demo")
+if (demo !== null) {
+  demo.textContent = "Loading the demo…"
+  whenNearViewport(demo, () => {
+    mountDemo(demo).catch((error: unknown) => {
+      demo.textContent = "The demo failed to load. Try reloading the page."
       console.error(error)
     })
   })

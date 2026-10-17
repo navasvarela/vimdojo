@@ -1,5 +1,10 @@
+import { fileURLToPath } from "node:url"
 import { playwright } from "@vitest/browser-playwright"
 import { defineConfig } from "vitest/config"
+import { curriculumPlugin } from "./build/curriculum"
+
+const CHALLENGES_DIR = fileURLToPath(new URL("../challenges", import.meta.url))
+const INDEX_HTML = fileURLToPath(new URL("index.html", import.meta.url))
 
 // GitHub Pages serves the site from /<repo-name>/. Override with VITE_BASE
 // (e.g. "/" for a custom domain).
@@ -7,6 +12,7 @@ const DEFAULT_BASE = "/vimdojo/"
 
 export default defineConfig({
   base: process.env["VITE_BASE"] ?? DEFAULT_BASE,
+  plugins: [curriculumPlugin(CHALLENGES_DIR, INDEX_HTML)],
   build: {
     // The lazily loaded demo chunk (CodeMirror + Vim emulation) is ~500 kB
     // minified (~160 kB gzip). It is off the critical path, so allow it.
@@ -24,7 +30,7 @@ export default defineConfig({
         test: {
           name: "unit",
           environment: "jsdom",
-          include: ["src/**/*.test.ts"],
+          include: ["src/**/*.test.ts", "build/**/*.test.ts"],
           exclude: ["src/**/*.browser.test.ts"],
         },
       },

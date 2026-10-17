@@ -7,6 +7,8 @@ cursor on the last word"). Solve it with Vim keystrokes and you are scored on
 keystrokes, time, and a per-level par.
 
 > Status: early development. See [PLAN.md](PLAN.md) for the roadmap.
+>
+> Website and browser demo: https://navasvarela.github.io/vimdojo/ (deployed by `.github/workflows/pages.yml`).
 
 ## Install
 

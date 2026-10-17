@@ -144,3 +144,24 @@ a custom mapping changes is the player's config, not a bug in the level.
 - **Bundle:** the demo chunk (CodeMirror + Vim, ~134 kB gzip) loads lazily
   when its section nears the viewport. The landing page's initial JS is
   ~1.5 kB gzip.
+
+## Landing page and deploy (M5)
+
+- **Curriculum is rendered at build time.** A small Vite plugin
+  (`web/build/curriculum.ts`) reads `challenges/*.json` and writes the pack
+  list into `index.html`. The page stays in sync with the data without
+  shipping the packs or zod in the initial load. It only transforms the site's
+  own `index.html`. An earlier version also hit Vitest's browser-runner page,
+  which silently stopped the emulation tests from running.
+- **Hero animation** is a scripted replay in plain DOM (`landing/hero-demo.ts`)
+  rather than a GIF or the real editor. It is crisp at any size, tiny, and
+  respects `prefers-reduced-motion` with a static solved frame. It is
+  `aria-hidden` with a text description.
+- **Repo links** come from `VITE_REPO` (`web/.env`; CI sets it from
+  `github.repository`). `index.html` uses Vite's `%VITE_REPO%` replacement,
+  and the Pages build sets `VITE_BASE=/<repo-name>/`.
+- The **install snippets** omit `setup()`: the plugin works with defaults, and
+  every `:VimDojo` entry point lazy-loads it. Copy buttons fall back to
+  selecting the text when the Clipboard API is unavailable.
+- Grid tracks use `minmax(0, 1fr)` so long `<pre>` snippets scroll inside
+  their box instead of widening the page on phones.
