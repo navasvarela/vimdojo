@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Learn Vim motions by solving tiny puzzles, scored on keystrokes, time and par." />
+    <title>vimdojo</title>
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <p class="prompt">~/dojo $ <span class="cursor">vim</span></p>
+        <h1>vimdojo</h1>
+        <p class="tagline">Learn Vim motions by solving tiny puzzles. Fewer keys, more stars.</p>
+      </header>
+      <section id="play" class="section" aria-labelledby="play-title">
+        <h2 id="play-title">Try it</h2>
+        <div id="demo" class="demo"></div>
+      </section>
+      <section id="install" class="section" aria-labelledby="install-title">
+        <h2 id="install-title">Install</h2>
+        <p>Requires Neovim 0.10+. No dependencies.</p>
+        <pre><code>{ "navasvarela/vimdojo", cmd = "VimDojo", opts = {} }</code></pre>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

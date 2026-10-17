@@ -107,3 +107,40 @@ a custom mapping changes is the player's config, not a bug in the level.
   the first non-blank.
 - `web_demo` flags were removed from the sample levels. M4 sets them only
   after each level is checked in the CodeMirror emulation.
+
+## Web demo (M4)
+
+- **Stack:** Vite + TypeScript, plain DOM (no framework), CodeMirror 6 with
+  `@replit/codemirror-vim`. Pack JSON is imported straight from
+  `../challenges` with `import.meta.glob`, so the data is never copied. zod
+  parses it at the boundary (the JSON Schema stays the contract).
+- **Ports:** `goals.ts`, `scoring.ts`, `progress.ts` and `game/session.ts`
+  mirror the Lua modules. `tests/fixtures/*.json` drive both test suites.
+- **Coordinates:** level data uses Neovim byte columns. `text.ts` converts to
+  and from CodeMirror's UTF-16 offsets at the editor boundary.
+- **Emulation gate:** `src/emulation.browser.test.ts` runs every level's
+  reference solution through the emulation in real Chromium (Vitest browser
+  mode + Playwright). Every `web_demo` level must pass. jsdom can't do this:
+  the emulation moves vertically by measuring layout, which jsdom doesn't
+  implement, so `j`/`k` broke there. All 20 levels pass in Chromium. Nine
+  (three per pack) are flagged `web_demo`, so the demo stays a taste rather
+  than the whole game.
+- **Insert mode in tests:** in a browser, typed characters reach Insert mode
+  through DOM input, not the Vim key handler. `typeKeys()` inserts them
+  directly to match.
+- **Key counting:** a capture-phase `keydown` listener on the editor counts
+  every key except modifier-only, empty and Cmd/Meta events. Counts can
+  differ from Neovim in edge cases (IME composition, OS key repeat rates), so
+  web scores are indicative.
+- **Controls:** `Alt+H` hint, `Alt+R` reset, `Alt+N` next. Alt combos never
+  reach Vim and are not counted. `KeyboardEvent.code` is used because
+  Alt+letter types a different character on macOS. The results card takes
+  focus, with `N`/Enter for next and `R` to retry.
+- **Unlocking:** every demo level is unlocked. The demo is a sampler, so
+  progression gating would only hide content. Stars and bests are still kept.
+- **Progress:** `localStorage` key `vimdojo.progress`, in the same shape as
+  the plugin's `progress.json`. Export/Import use that file. Every storage
+  access is guarded, and a disabled or full storage only shows a notice.
+- **Bundle:** the demo chunk (CodeMirror + Vim, ~134 kB gzip) loads lazily
+  when its section nears the viewport. The landing page's initial JS is
+  ~1.5 kB gzip.

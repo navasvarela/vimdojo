@@ -16,7 +16,8 @@
       "par_seconds": 5,
       "hint": "f followed by a character jumps to its next occurrence on the line.",
       "solution": "f;",
-      "teaches": ["f"]
+      "teaches": ["f"],
+      "web_demo": true
     },
     {
       "id": "find-and-jump-02",
@@ -42,7 +43,8 @@
       "par_seconds": 6,
       "hint": "Find the first comma with f, then ; repeats the last find (and , repeats it backwards).",
       "solution": "f,;;",
-      "teaches": [";", ","]
+      "teaches": [";", ","],
+      "web_demo": true
     },
     {
       "id": "find-and-jump-04",
@@ -86,7 +88,8 @@
       "par_seconds": 6,
       "hint": "% jumps to the bracket matching the one under (or after) the cursor.",
       "solution": "j$%",
-      "teaches": ["%"]
+      "teaches": ["%"],
+      "web_demo": true
     },
     {
       "id": "find-and-jump-06",

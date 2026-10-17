@@ -55,6 +55,18 @@ make lint      # stylua --check and selene
 make validate  # validate challenges/*.json against challenges/schema.json
 ```
 
+The web demo lives in `web/` (Vite + TypeScript + CodeMirror 6 with
+`@replit/codemirror-vim`):
+
+```sh
+cd web
+npm install
+npx playwright install chromium  # once, for the emulation tests
+npm run dev    # http://localhost:5173/vimdojo/
+npm test       # unit tests (jsdom) + emulation tests (Chromium)
+npm run build
+```
+
 Design decisions are logged in [docs/decisions.md](docs/decisions.md).
 
 ## License

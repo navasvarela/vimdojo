@@ -16,7 +16,8 @@
       "par_seconds": 8,
       "hint": "j moves down a line, l moves right a character.",
       "solution": "jjjll",
-      "teaches": ["j", "l"]
+      "teaches": ["j", "l"],
+      "web_demo": true
     },
     {
       "id": "basic-motions-02",
@@ -29,7 +30,8 @@
       "par_seconds": 8,
       "hint": "w jumps to the start of the next word.",
       "solution": "wwwww",
-      "teaches": ["w"]
+      "teaches": ["w"],
+      "web_demo": true
     },
     {
       "id": "basic-motions-03",
@@ -55,7 +57,8 @@
       "par_seconds": 6,
       "hint": "e jumps to the end of the current or next word.",
       "solution": "eee",
-      "teaches": ["e"]
+      "teaches": ["e"],
+      "web_demo": true
     },
     {
       "id": "basic-motions-05",

@@ -16,7 +16,8 @@
       "par_seconds": 8,
       "hint": "Jump to the typo with f, then delete the word with dw.",
       "solution": "ffdw",
-      "teaches": ["dw"]
+      "teaches": ["dw"],
+      "web_demo": true
     },
     {
       "id": "operate-02",
@@ -64,7 +65,8 @@
       "par_seconds": 5,
       "hint": "di\" deletes inside the quotes, and finds the next quoted string if you are not in one yet.",
       "solution": "di\"",
-      "teaches": ["di\""]
+      "teaches": ["di\""],
+      "web_demo": true
     },
     {
       "id": "operate-05",
@@ -90,7 +92,8 @@
       "par_seconds": 8,
       "hint": ". repeats the last change. Try dw, then j and . for each line.",
       "solution": "dwj.j.",
-      "teaches": ["."]
+      "teaches": ["."],
+      "web_demo": true
     },
     {
       "id": "operate-07",

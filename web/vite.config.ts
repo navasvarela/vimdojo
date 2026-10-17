@@ -1,0 +1,48 @@
+import { playwright } from "@vitest/browser-playwright"
+import { defineConfig } from "vitest/config"
+
+// GitHub Pages serves the site from /<repo-name>/. Override with VITE_BASE
+// (e.g. "/" for a custom domain).
+const DEFAULT_BASE = "/vimdojo/"
+
+export default defineConfig({
+  base: process.env["VITE_BASE"] ?? DEFAULT_BASE,
+  build: {
+    // The lazily loaded demo chunk (CodeMirror + Vim emulation) is ~500 kB
+    // minified (~160 kB gzip). It is off the critical path, so allow it.
+    chunkSizeWarningLimit: 600,
+  },
+  server: {
+    // challenges/ and tests/fixtures/ live outside web/ and are imported directly,
+    // so the data is never copied.
+    fs: { allow: [".."] },
+  },
+  test: {
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "unit",
+          environment: "jsdom",
+          include: ["src/**/*.test.ts"],
+          exclude: ["src/**/*.browser.test.ts"],
+        },
+      },
+      {
+        // The Vim emulation moves vertically by measuring layout, which jsdom
+        // does not implement, so emulation checks run in real Chromium.
+        extends: true,
+        test: {
+          name: "browser",
+          include: ["src/**/*.browser.test.ts"],
+          browser: {
+            enabled: true,
+            provider: playwright(),
+            headless: true,
+            instances: [{ browser: "chromium" }],
+          },
+        },
+      },
+    ],
+  },
+})

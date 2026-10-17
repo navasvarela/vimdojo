@@ -7,3 +7,6 @@ web/dist/
 
 .DS_Store
 *.swp
+
+# Local Claude Code launch configuration
+.claude/
