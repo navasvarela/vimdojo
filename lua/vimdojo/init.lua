@@ -3,6 +3,7 @@ local M = {}
 ---@class vimdojo.Config
 ---@field unlock_all boolean Unlock every pack and level regardless of progress.
 ---@field window "float"|"tab" Where a level is played.
+---@field config "clean"|"mine" Run levels in a stock Neovim (`--clean`), or with your own config.
 ---@field progress_path string|nil Override for the progress file location (used by tests).
 ---@field keymaps vimdojo.Controls Normal-mode game controls in the level buffer. Never counted as keystrokes.
 
@@ -10,6 +11,7 @@ local M = {}
 local defaults = {
   unlock_all = false,
   window = "float",
+  config = "clean",
   progress_path = nil,
   keymaps = {
     hint = "<leader>h",

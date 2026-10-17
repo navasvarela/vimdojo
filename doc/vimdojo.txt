@@ -51,9 +51,11 @@ Calling |vimdojo.setup()| is optional. Without it the defaults apply.
 
 Run |:VimDojo| to open the level menu. Move to a level and press <CR>.
 
-The level opens in a scratch buffer, in a floating window or a new tab (see
-|vimdojo-config|). A header above it shows the description, the goal and the
-par. For a cursor goal, the target character is highlighted. For a text
+Each level runs in its own Neovim: a stock `nvim --clean` started in a
+terminal window, either floating or in a new tab (see |vimdojo-config|). Your
+registers, windows, options and plugins are never touched, and every level
+behaves exactly as it did when its par was set. A header above it shows the
+description, the goal and the par. For a cursor goal, the target character is highlighted. For a text
 goal, the header shows the text to produce. The window bar shows a live
 timer and keystroke counter.
 
@@ -81,9 +83,9 @@ never counted as keystrokes, and all of them can be remapped with
   <leader>r   Reset the level: text, cursor, timer and counter.
   <Esc><Esc>  Leave the level.
 
-Levels are judged against stock Vim behavior. Your own mappings stay active
-in the game buffer, so if your config remaps a motion, the level sees the
-remapped behavior.
+Your Terminal-mode mappings are suspended while a level is open, so keys such
+as <Esc> always reach the level. They are restored when you leave. If you
+type `:q` inside a level, the level closes.
 
 ==============================================================================
 4. COMMANDS                                                 *vimdojo-commands*
@@ -112,6 +114,10 @@ require("vimdojo").setup({opts})
       unlock_all = false,
       -- Where a level is played: "float" or "tab".
       window = "float",
+      -- "clean": each level runs in `nvim --clean`.
+      -- "mine": each level loads your own config (plugins and mappings
+      -- may change how keys behave, so par may not match).
+      config = "clean",
       -- Progress file. nil means stdpath("data")/vimdojo/progress.json.
       progress_path = nil,
       -- Game controls in the level buffer (Normal mode).

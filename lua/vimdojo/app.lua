@@ -1,13 +1,15 @@
--- Orchestrates a play session: loads data, opens the level, wires key capture
--- and goal checks, and records the outcome. Holds the only mutable game state.
+-- Orchestrates a play session: loads data, opens the level in a clean room
+-- (room.lua), counts keys, and records the outcome. Holds the only mutable
+-- game state.
 local challenges = require("vimdojo.challenges")
 local game = require("vimdojo.game")
-local goals = require("vimdojo.goals")
 local keys = require("vimdojo.keys")
 local menu = require("vimdojo.menu")
 local progress = require("vimdojo.progress")
 local results = require("vimdojo.results")
+local room = require("vimdojo.room")
 local storage = require("vimdojo.storage")
+local tmaps = require("vimdojo.tmaps")
 local ui = require("vimdojo.ui")
 
 local uv = vim.uv or vim.loop
@@ -21,10 +23,13 @@ local STATUS_REFRESH_MS = 100
 ---@field level vimdojo.Level
 ---@field session vimdojo.Session
 ---@field layout vimdojo.Layout
+---@field room vimdojo.Room
+---@field ready boolean The room has loaded the level; keys count from now on.
 ---@field augroup integer
 ---@field stop_capture fun()|nil
 ---@field ticker uv.uv_timer_t|nil
 ---@field saved_mouse string|nil
+---@field restore_tmaps fun()|nil
 
 ---@type { packs: vimdojo.Pack[]|nil, progress: vimdojo.Progress|nil, play: vimdojo.Play|nil, results: vimdojo.Panel|nil }
 local state = { packs = nil, progress = nil, play = nil, results = nil }
@@ -110,6 +115,10 @@ local function release_input(play)
     vim.o.mouse = play.saved_mouse
     play.saved_mouse = nil
   end
+  if play.restore_tmaps then
+    play.restore_tmaps()
+    play.restore_tmaps = nil
+  end
 end
 
 local function close_results()
@@ -128,6 +137,7 @@ function M.quit()
   end
   state.play = nil
   release_input(play)
+  play.room:close()
   play.layout:close()
 end
 
@@ -145,7 +155,6 @@ local function complete(play)
   local outcome = play.session:finish()
   release_input(play)
   play.layout:set_status(status_text(play))
-  play.layout:freeze()
 
   progress.record(state.progress, play.level.id, outcome)
   local ok, err = storage.save(progress_path(), state.progress)
@@ -178,74 +187,111 @@ local function complete(play)
 end
 
 ---@param play vimdojo.Play
-local function check_goal(play)
-  if not play.session:is_playing() or vim.api.nvim_get_mode().mode ~= "n" then
-    return
-  end
-  local snapshot = {
-    lines = vim.api.nvim_buf_get_lines(play.layout.game_buf, 0, -1, false),
-    cursor = vim.api.nvim_win_get_cursor(play.layout.game_win),
-  }
-  if goals.is_met(play.level.goal, snapshot, play.level.start_text) then
-    complete(play)
+local function enter_room(play)
+  if play.ready and not play.session:is_finished() then
+    vim.cmd("startinsert")
   end
 end
 
 ---@param play vimdojo.Play
 local function watch(play)
-  local buf, win = play.layout.game_buf, play.layout.game_win
-  -- Goals are only checked in Normal mode: an edit counts as done once the
-  -- player leaves Insert mode, the same way the reference solutions run.
-  vim.api.nvim_create_autocmd({ "TextChanged", "CursorMoved" }, {
-    group = play.augroup,
-    buffer = buf,
-    callback = function()
-      check_goal(play)
-    end,
-  })
-  vim.api.nvim_create_autocmd("ModeChanged", {
-    group = play.augroup,
-    pattern = "*:n",
-    callback = function()
-      if vim.api.nvim_get_current_buf() == buf then
-        check_goal(play)
-      end
-    end,
-  })
   vim.api.nvim_create_autocmd("WinClosed", {
     group = play.augroup,
-    pattern = tostring(win),
+    pattern = tostring(play.layout.room_win),
     callback = function()
       vim.schedule(M.quit)
     end,
   })
+  -- Keys reach the child only in Terminal mode, so returning to the room
+  -- window resumes it.
+  vim.api.nvim_create_autocmd({ "BufEnter", "WinEnter" }, {
+    group = play.augroup,
+    buffer = play.room.buf,
+    callback = function()
+      enter_room(play)
+    end,
+  })
 end
 
---- Control keys are counted by the key capture before their mapping runs, so
---- each control takes its own keys back off the counter.
 ---@param play vimdojo.Play
-local function map_controls(play)
-  local maps = config().keymaps
-  local function control(lhs, action)
-    return function()
-      play.session:uncount_keys(keys.count(lhs))
-      action()
-    end
+---@return vimdojo.RoomSpec
+local function room_spec(play)
+  return {
+    level = play.level,
+    keymaps = config().keymaps,
+    leader = vim.g.mapleader or "\\",
+  }
+end
+
+---@type table<string, fun()>
+local control_actions = {
+  hint = function()
+    M.hint()
+  end,
+  reset = function()
+    M.reset()
+  end,
+  quit = function()
+    M.quit()
+  end,
+}
+
+--- Control keys are counted by the key capture before the child sees them,
+--- so each control takes its own keys back off the counter.
+---@param play vimdojo.Play
+---@param name string
+local function on_control(play, name)
+  local lhs = config().keymaps[name]
+  local action = control_actions[name]
+  if not lhs or not action then
+    return
   end
-  ui.map(play.layout.game_buf, {
-    [maps.hint] = control(maps.hint, M.hint),
-    [maps.reset] = control(maps.reset, M.reset),
-    [maps.quit] = control(maps.quit, M.quit),
-  })
+  play.session:uncount_keys(keys.count(lhs))
+  action()
+end
+
+---@param play vimdojo.Play
+---@return vimdojo.RoomHandlers
+local function room_handlers(play)
+  return {
+    on_ready = function(r)
+      r:load(room_spec(play))
+      play.ready = true
+      if vim.api.nvim_get_current_win() == play.layout.room_win then
+        enter_room(play)
+      end
+    end,
+    on_solved = function()
+      if state.play == play then
+        complete(play)
+      end
+    end,
+    on_control = function(_, name)
+      if state.play == play then
+        on_control(play, name)
+      end
+    end,
+    on_exit = function()
+      if state.play == play and not play.session:is_finished() then
+        notify("the level's Neovim exited, so the level was closed")
+        M.quit()
+      end
+    end,
+  }
 end
 
 ---@param play vimdojo.Play
 local function capture_input(play)
   play.saved_mouse = vim.o.mouse
-  -- A click could move the cursor onto a cursor_at target for free.
+  -- A click could focus away from the room mid-attempt; the child has the
+  -- mouse disabled too.
   vim.o.mouse = ""
+  play.restore_tmaps = tmaps.suspend()
   play.stop_capture = keys.capture(function()
-    return not play.session:is_finished() and vim.api.nvim_get_current_win() == play.layout.game_win
+    return play.ready
+      and not play.session:is_finished()
+      and vim.api.nvim_get_current_win() == play.layout.room_win
+      and vim.api.nvim_get_mode().mode == "t"
   end, function(count)
     play.session:count_keys(count)
   end)
@@ -281,11 +327,15 @@ function M.start(level_id)
     level = level,
     session = game.new(level, clock),
     layout = ui.open_level(level, { window = config().window, controls = config().keymaps }),
+    ready = false,
     augroup = vim.api.nvim_create_augroup("vimdojo.play", { clear = true }),
   }
+  play.room = room.open(play.layout.room_win, {
+    config = config().config,
+    handlers = room_handlers(play),
+  })
   state.play = play
   watch(play)
-  map_controls(play)
   capture_input(play)
 end
 
@@ -300,7 +350,7 @@ function M.reset()
   if hinted then
     play.session:use_hint()
   end
-  play.layout:load(play.level)
+  play.room:load(room_spec(play))
   play.layout:set_status(status_text(play))
 end
 

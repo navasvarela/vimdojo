@@ -45,6 +45,26 @@ jobs:
       - run: make doc
       - run: make test
 
+  # Exercises the clean room on Windows: named pipes for RPC and ConPTY
+  # terminals behave differently there.
+  plugin-tests-windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+      - uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: stable
+      - run: git clone --depth 1 https://github.com/nvim-lua/plenary.nvim .deps/plenary.nvim
+      - run: >
+          nvim --headless --noplugin -u tests/minimal_init.lua
+          -c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', sequential = true }"
+        env:
+          PLENARY_DIR: ${{ github.workspace }}/.deps/plenary.nvim
+
   web:
     runs-on: ubuntu-latest
     defaults:

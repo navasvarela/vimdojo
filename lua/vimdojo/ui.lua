@@ -1,5 +1,7 @@
 -- Window and buffer plumbing: scratch buffers, floating panels, and the level
--- layout (a header with the brief plus the buffer the player edits).
+-- layout (a header with the brief plus the window that hosts the clean room).
+local goal_views = require("vimdojo.goal_views")
+
 local M = {}
 
 M.namespace = vim.api.nvim_create_namespace("vimdojo.ui")
@@ -9,7 +11,6 @@ local HIGHLIGHTS = {
   VimDojoMuted = { link = "Comment" },
   VimDojoStar = { link = "DiagnosticWarn" },
   VimDojoLocked = { link = "NonText" },
-  VimDojoTarget = { link = "IncSearch" },
   VimDojoGood = { link = "DiagnosticOk" },
 }
 
@@ -151,40 +152,13 @@ function M.map(buf, mappings)
   end
 end
 
--- How each goal type is explained in the header and marked in the buffer.
--- Adding a goal type means adding an entry here and one in goals.lua.
----@type table<string, { describe: fun(goal: vimdojo.Goal): string[], decorate: fun(buf: integer, goal: vimdojo.Goal) }>
-local goal_views = {
-  cursor_at = {
-    describe = function()
-      return { "Goal: put the cursor on the highlighted character." }
-    end,
-    decorate = function(buf, goal)
-      M.apply_highlights(buf, {
-        { line = goal.line - 1, col = goal.col, end_col = goal.col + 1, group = "VimDojoTarget" },
-      })
-    end,
-  },
-  buffer_equals = {
-    describe = function(goal)
-      local lines = { "Goal: make the text read exactly:" }
-      for _, line in ipairs(goal.value) do
-        table.insert(lines, "  │ " .. line)
-      end
-      return lines
-    end,
-    decorate = function() end,
-  },
-}
-
 ---@class vimdojo.LevelSizes
 ---@field width integer
 ---@field header_height integer
----@field game_height integer
+---@field room_height integer
 
 ---@class vimdojo.Layout
----@field game_buf integer
----@field game_win integer
+---@field room_win integer Hosts the clean room's terminal buffer.
 ---@field header_buf integer
 ---@field header_win integer
 ---@field hint_line integer 0-based header line reserved for the hint.
@@ -195,8 +169,8 @@ Layout.__index = Layout
 
 ---@param text string
 function Layout:set_status(text)
-  if vim.api.nvim_win_is_valid(self.game_win) then
-    vim.wo[self.game_win].winbar = text:gsub("%%", "%%%%")
+  if vim.api.nvim_win_is_valid(self.room_win) then
+    vim.wo[self.room_win].winbar = text:gsub("%%", "%%%%")
   end
 end
 
@@ -214,42 +188,31 @@ function Layout:show_hint(hint)
   vim.bo[self.header_buf].modifiable = false
 end
 
---- Puts the level back to its starting text and cursor, clearing undo history.
----@param level vimdojo.Level
-function Layout:load(level)
-  M.replace_text(self.game_buf, level.start_text)
-  vim.api.nvim_buf_clear_namespace(self.game_buf, M.namespace, 0, -1)
-  goal_views[level.goal.type].decorate(self.game_buf, level.goal)
-  vim.bo[self.game_buf].modifiable = true
-  vim.api.nvim_win_set_cursor(self.game_win, level.cursor_start)
-end
-
-function Layout:freeze()
-  if vim.api.nvim_buf_is_valid(self.game_buf) then
-    vim.bo[self.game_buf].modifiable = false
-  end
-end
-
 function Layout:close()
-  for _, win in ipairs({ self.header_win, self.game_win }) do
+  for _, win in ipairs({ self.header_win, self.room_win }) do
     if vim.api.nvim_win_is_valid(win) then
-      -- Fails only when this is the last window of the last tab; the buffer
-      -- is frozen and the game is over, so leaving it open is harmless.
+      -- Fails only when this is the last window of the last tab; the room is
+      -- stopped and the game is over, so leaving it open is harmless.
       pcall(vim.api.nvim_win_close, win, true)
     end
   end
 end
 
+--- The child Neovim draws its own line numbers and cursor; the parent's
+--- window decorations would only steal columns from it.
 ---@param win integer
-local function style_game_window(win)
+local function style_room_window(win)
   local wo = vim.wo[win]
-  wo.number = true
-  wo.wrap = false
+  wo.number = false
+  wo.relativenumber = false
   wo.signcolumn = "no"
-  wo.foldenable = false
+  wo.foldcolumn = "0"
+  wo.cursorline = false
   wo.spell = false
   wo.list = false
   wo.colorcolumn = ""
+  wo.scrolloff = 0
+  wo.sidescrolloff = 0
 end
 
 ---@param win integer
@@ -265,10 +228,10 @@ local function style_header_window(win)
 end
 
 -- Where a level is played; selected by the `window` option.
----@type table<string, fun(game_buf: integer, header_buf: integer, sizes: vimdojo.LevelSizes, title: string): integer, integer>
+---@type table<string, fun(room_buf: integer, header_buf: integer, sizes: vimdojo.LevelSizes, title: string): integer, integer>
 local placements = {
-  float = function(game_buf, header_buf, sizes, title)
-    local total_height = sizes.header_height + sizes.game_height + 4
+  float = function(room_buf, header_buf, sizes, title)
+    local total_height = sizes.header_height + sizes.room_height + 4
     local row = math.max(0, math.floor((vim.o.lines - total_height) / 2) - 1)
     local col = math.max(0, math.floor((vim.o.columns - sizes.width - 2) / 2))
     local header_win = vim.api.nvim_open_win(header_buf, false, {
@@ -284,31 +247,31 @@ local placements = {
       focusable = false,
       zindex = 50,
     })
-    local game_win = vim.api.nvim_open_win(game_buf, true, {
+    local room_win = vim.api.nvim_open_win(room_buf, true, {
       relative = "editor",
       row = row + sizes.header_height + 2,
       col = col,
       width = sizes.width,
-      height = sizes.game_height,
+      height = sizes.room_height,
       border = "rounded",
       zindex = 50,
     })
-    return game_win, header_win
+    return room_win, header_win
   end,
 
-  tab = function(game_buf, header_buf, sizes)
+  tab = function(room_buf, header_buf, sizes)
     vim.cmd("tabnew")
     local placeholder = vim.api.nvim_get_current_buf()
-    local game_win = vim.api.nvim_get_current_win()
-    vim.api.nvim_win_set_buf(game_win, game_buf)
+    local room_win = vim.api.nvim_get_current_win()
+    vim.api.nvim_win_set_buf(room_win, room_buf)
     if vim.api.nvim_buf_is_valid(placeholder) then
       vim.api.nvim_buf_delete(placeholder, { force = true })
     end
     vim.cmd(("aboveleft %dsplit"):format(sizes.header_height))
     local header_win = vim.api.nvim_get_current_win()
     vim.api.nvim_win_set_buf(header_win, header_buf)
-    vim.api.nvim_set_current_win(game_win)
-    return game_win, header_win
+    vim.api.nvim_set_current_win(room_win)
+    return room_win, header_win
   end,
 }
 
@@ -323,7 +286,7 @@ local placements = {
 ---@return vimdojo.Header
 local function header_content(level, controls)
   local lines = { level.description, "" }
-  vim.list_extend(lines, goal_views[level.goal.type].describe(level.goal))
+  vim.list_extend(lines, goal_views.describe(level.goal))
   table.insert(lines, "")
   table.insert(lines, ("Par: %d keys · %gs"):format(level.par_keys, level.par_seconds))
   table.insert(
@@ -358,9 +321,10 @@ local function level_sizes(level, header)
       wrapped_height({ header.revealed_hint }, width)
         - wrapped_height({ header.lines[header.hint_line + 1] }, width)
     )
-  local game_height = math.max(#level.start_text + 1, 3)
-  game_height = math.min(game_height, math.max(3, vim.o.lines - header_height - 8))
-  return { width = width, header_height = header_height, game_height = game_height }
+  -- The text, plus the parent's winbar and the child's command line.
+  local room_height = math.max(#level.start_text + 2, 4)
+  room_height = math.min(room_height, math.max(4, vim.o.lines - header_height - 8))
+  return { width = width, header_height = header_height, room_height = room_height }
 end
 
 ---@class vimdojo.Controls
@@ -382,23 +346,20 @@ function M.open_level(level, opts)
   M.apply_highlights(header_buf, header.highlights)
   vim.bo[header_buf].modifiable = false
 
-  local game_buf = M.scratch_buf(level.start_text)
-  vim.bo[game_buf].filetype = "vimdojo"
+  -- Placeholder until the room replaces it with its terminal buffer.
+  local room_buf = M.scratch_buf({})
 
   local place = placements[opts.window] or placements.float
-  local game_win, header_win = place(game_buf, header_buf, level_sizes(level, header), level.title)
-  style_game_window(game_win)
+  local room_win, header_win = place(room_buf, header_buf, level_sizes(level, header), level.title)
+  style_room_window(room_win)
   style_header_window(header_win)
 
-  local layout = setmetatable({
-    game_buf = game_buf,
-    game_win = game_win,
+  return setmetatable({
+    room_win = room_win,
     header_buf = header_buf,
     header_win = header_win,
     hint_line = header.hint_line,
   }, Layout)
-  layout:load(level)
-  return layout
 end
 
 return M

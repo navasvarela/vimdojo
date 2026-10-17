@@ -1,154 +1,122 @@
--- End-to-end: drives a real child Neovim through RPC. nvim_input() feeds keys
--- as if typed, so key capture, mappings, and autocmds behave as for a player.
-local helpers = require("helpers")
+-- End-to-end: a player's Neovim (tests/player.lua) plays levels in the clean
+-- room, with keys fed through nvim_input() exactly as if typed.
+local player_mod = require("player")
 
-local TIMEOUT_MS = 3000
-
----@class Child
----@field chan integer
----@field progress_path string
-local Child = {}
-Child.__index = Child
-
----@return Child
-local function spawn()
-  local chan = vim.fn.jobstart({
-    vim.v.progpath,
-    "--embed",
-    "--headless",
-    "--noplugin",
-    "-u",
-    helpers.root .. "/tests/minimal_init.lua",
-  }, { rpc = true })
-  local child =
-    setmetatable({ chan = chan, progress_path = helpers.temp_dir() .. "/progress.json" }, Child)
-  child:lua("require('vimdojo').setup({ progress_path = ... })", child.progress_path)
-  return child
-end
-
----@param code string Lua chunk; `...` holds the extra arguments.
----@return any value With RPC's vim.NIL mapped back to nil.
-function Child:lua(code, ...)
-  local value = vim.rpcrequest(self.chan, "nvim_exec_lua", code, { ... })
-  if value == vim.NIL then
-    return nil
-  end
-  return value
-end
-
----@param keys string
-function Child:input(keys)
-  vim.rpcrequest(self.chan, "nvim_input", keys)
-end
-
----@param code string Lua expression evaluated in the child.
----@return any
-function Child:wait_for(code)
-  local value
-  vim.wait(TIMEOUT_MS, function()
-    value = self:lua("return " .. code)
-    return value ~= nil and value ~= false
-  end, 20)
-  return value
-end
-
-function Child:stop()
-  vim.fn.jobstop(self.chan)
-end
-
-local RECORD = "require('vimdojo.app').progress().levels['basic-motions-01']"
+local CURRENT = "require('vimdojo.app').current()"
 local CURRENT_LEVEL = "(require('vimdojo.app').current() or {}).level"
 
 describe("playing a level", function()
-  local child
-
-  before_each(function()
-    child = spawn()
-  end)
+  local player
 
   after_each(function()
-    child:stop()
+    player:stop()
   end)
 
-  it("records keys, time, and stars when the goal is reached, and saves them", function()
-    child:lua("require('vimdojo.app').start('basic-motions-01')")
-    child:input("jjjll")
+  describe("with default progression", function()
+    before_each(function()
+      player = player_mod.spawn()
+    end)
 
-    local record = child:wait_for(RECORD)
-    assert.are.equal(5, record.best_keys)
-    assert.are.equal(1, record.attempts)
-    local saved = vim.json.decode(table.concat(vim.fn.readfile(child.progress_path), "\n"))
-    assert.are.equal(5, saved.levels["basic-motions-01"].best_keys)
+    it("records keys, time, and stars when the goal is reached, and saves them", function()
+      assert.is_true(player:start("basic-motions-01"))
+      player:type("jjjll")
+
+      local record = player:wait_for_record("basic-motions-01")
+      assert.are.equal(5, record.best_keys)
+      assert.are.equal(1, record.attempts)
+      local saved = vim.json.decode(table.concat(vim.fn.readfile(player.progress_path), "\n"))
+      assert.are.equal(5, saved.levels["basic-motions-01"].best_keys)
+    end)
+
+    it("does not count the hint key and marks the attempt as hinted", function()
+      assert.is_true(player:start("basic-motions-01"))
+      player:type("\\h")
+      assert.is_true(player:wait_for(CURRENT .. ".session.hinted"))
+      player:type("jjjll")
+
+      local record = player:wait_for_record("basic-motions-01")
+      assert.are.equal(5, record.best_keys)
+      assert.are.equal(2, record.stars)
+    end)
+
+    it("resets the text, cursor, and counter in place", function()
+      assert.is_true(player:start("basic-motions-01"))
+      player:type("jjl")
+      assert.is_true(player:wait_for(CURRENT .. ".room:snapshot().cursor[1] == 3"))
+      assert.are.same({ 3, 1 }, player:snapshot().cursor)
+      player:type("\\r")
+      assert.is_true(player:wait_for(CURRENT .. ".room:snapshot().cursor[1] == 1"))
+      assert.are.equal(0, player:lua("return " .. CURRENT .. ".session.keys"))
+      player:type("jjjll")
+
+      assert.are.equal(5, player:wait_for_record("basic-motions-01").best_keys)
+    end)
+
+    it("quits with <Esc><Esc> and restores the mouse option", function()
+      local mouse = player:lua("return vim.o.mouse")
+      assert.is_true(player:start("basic-motions-01"))
+      assert.are.equal("", player:lua("return vim.o.mouse"))
+      player:type("j<Esc><Esc>")
+
+      assert.is_true(player:wait_for(CURRENT .. " == nil"))
+      assert.are.equal(mouse, player:lua("return vim.o.mouse"))
+      assert.is_nil(
+        player:lua("return require('vimdojo.app').progress().levels['basic-motions-01']")
+      )
+    end)
+
+    it("moves on to the next level from the results card", function()
+      assert.is_true(player:start("basic-motions-01"))
+      player:type("jjjll")
+      player:wait_for_record("basic-motions-01")
+      player:input("n")
+
+      assert.are.equal("basic-motions-02", player:wait_for(CURRENT_LEVEL).id)
+    end)
+
+    it("closes the level when the room's Neovim exits", function()
+      assert.is_true(player:start("basic-motions-01"))
+      player:type(":qa!<CR>")
+
+      assert.is_true(player:wait_for(CURRENT .. " == nil"))
+    end)
+
+    it("refuses to start a locked level", function()
+      player:lua("require('vimdojo.app').start('basic-motions-02')")
+      assert.is_nil(player:lua("return " .. CURRENT_LEVEL))
+    end)
+
+    it("opens the menu with :VimDojo", function()
+      player:lua("vim.cmd('VimDojo')")
+      local lines = player:lua("return vim.api.nvim_buf_get_lines(0, 0, -1, false)")
+      assert.is_truthy(table.concat(lines, "\n"):find("Baby steps", 1, true))
+    end)
   end)
 
-  it("does not count the hint key and marks the attempt as hinted", function()
-    child:lua("require('vimdojo.app').start('basic-motions-01')")
-    child:input("\\h")
-    assert.is_true(child:wait_for("require('vimdojo.app').current().session.hinted"))
-    child:input("jjjll")
+  describe("with every level unlocked", function()
+    before_each(function()
+      player = player_mod.spawn({ unlock_all = true })
+    end)
 
-    local record = child:wait_for(RECORD)
-    assert.are.equal(5, record.best_keys)
-    assert.are.equal(2, record.stars)
-  end)
+    it("finishes an Insert-mode edit only after <Esc>, counting it", function()
+      assert.is_true(player:start("operate-03"))
+      player:type("fmcwnaps")
+      assert.is_true(player:wait_for(CURRENT .. ".room:snapshot().lines[1] == 'I love naps'"))
+      assert.is_false(player:lua("return " .. CURRENT .. ".session:is_finished()"))
+      player:type("<Esc>")
 
-  it("resets the text, cursor, and counter in place", function()
-    child:lua("require('vimdojo.app').start('basic-motions-01')")
-    child:input("jjl\\r")
-    assert.are.same({ 1, 0 }, child:wait_for("vim.api.nvim_win_get_cursor(0)"))
-    assert.are.equal(0, child:lua("return require('vimdojo.app').current().session.keys"))
-    child:input("jjjll")
+      assert.are.equal(9, player:wait_for_record("operate-03").best_keys)
+    end)
 
-    assert.are.equal(5, child:wait_for(RECORD).best_keys)
-  end)
+    it("keeps <Esc> working when the player maps it in Terminal mode", function()
+      player:lua([[vim.keymap.set("t", "<Esc>", "<C-\\><C-n>")]])
+      assert.is_true(player:start("operate-03"))
+      player:type("fmcwnaps<Esc>")
 
-  it("quits with <Esc><Esc> and restores the mouse option", function()
-    local mouse = child:lua("return vim.o.mouse")
-    child:lua("require('vimdojo.app').start('basic-motions-01')")
-    assert.are.equal("", child:lua("return vim.o.mouse"))
-    child:input("j<Esc><Esc>")
-
-    assert.is_true(child:wait_for("require('vimdojo.app').current() == nil"))
-    assert.are.equal(mouse, child:lua("return vim.o.mouse"))
-    assert.is_nil(child:lua("return " .. RECORD))
-  end)
-
-  it("moves on to the next level from the results card", function()
-    child:lua("require('vimdojo.app').start('basic-motions-01')")
-    child:input("jjjll")
-    child:wait_for(RECORD)
-    child:input("n")
-
-    local level = child:wait_for(CURRENT_LEVEL)
-    assert.are.equal("basic-motions-02", level.id)
-  end)
-
-  it("finishes an Insert-mode edit only after <Esc>, counting it", function()
-    child:lua(
-      "require('vimdojo').setup({ unlock_all = true, progress_path = ... })",
-      child.progress_path
-    )
-    child:lua("require('vimdojo.app').start('operate-03')")
-    child:input("fmcwnaps")
-    assert.are.same(
-      { "I love naps" },
-      child:wait_for("vim.api.nvim_buf_get_lines(0, 0, -1, false)")
-    )
-    assert.is_false(child:lua("return require('vimdojo.app').current().session:is_finished()"))
-    child:input("<Esc>")
-
-    local record = child:wait_for("require('vimdojo.app').progress().levels['operate-03']")
-    assert.are.equal(9, record.best_keys)
-  end)
-
-  it("refuses to start a locked level", function()
-    child:lua("require('vimdojo.app').start('basic-motions-02')")
-    assert.is_nil(child:lua("return " .. CURRENT_LEVEL))
-  end)
-
-  it("opens the menu with :VimDojo", function()
-    child:lua("vim.cmd('VimDojo')")
-    local lines = child:lua("return vim.api.nvim_buf_get_lines(0, 0, -1, false)")
-    assert.is_truthy(table.concat(lines, "\n"):find("Baby steps", 1, true))
+      assert.are.equal(9, player:wait_for_record("operate-03").best_keys)
+      player:input("q")
+      assert.is_true(player:wait_for(CURRENT .. " == nil"))
+      assert.are.equal([[<C-\><C-N>]], player:lua([[return vim.fn.maparg("<Esc>", "t")]]))
+    end)
   end)
 end)

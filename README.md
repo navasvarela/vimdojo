@@ -15,7 +15,8 @@ install the plugin for the real thing.
 - 20 levels in three packs: Basic Motions, Find and Jump, and Operate
 - A live timer and key counter, with stars and points against par
 - Hints, instant reset, and progress saved across sessions
-- Runs in your own Neovim, with your own config
+- Every level runs in a clean, isolated Neovim (or with your own config, if
+  you prefer)
 - No dependencies, and near-zero startup cost (only the command is defined
   until you use it)
 
@@ -73,13 +74,15 @@ motions taught so far, so if you know more Vim, you can beat it.
 require("vimdojo").setup({
   unlock_all = false,  -- skip progression locks
   window = "float",    -- "float" | "tab"
+  config = "clean",    -- "clean": levels run in a stock Neovim; "mine": with your config
   progress_path = nil, -- defaults to stdpath("data")/vimdojo/progress.json
   keymaps = { hint = "<leader>h", reset = "<leader>r", quit = "<Esc><Esc>" },
 })
 ```
 
-Levels are judged against stock Vim behavior. If your config remaps a motion,
-it applies in the game buffer too.
+Each level runs in its own clean Neovim inside a terminal window, so your
+registers, windows and settings are never touched, and your plugins can't
+interfere with par. Set `config = "mine"` to practice with your own setup.
 
 ## Contributing
 
