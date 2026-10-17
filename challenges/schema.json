@@ -1,0 +1,123 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "vimdojo challenge pack",
+  "description": "A pack is an ordered group of levels. Packs are the single source of truth for both the Neovim plugin and the web demo.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["pack", "title", "order", "levels"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "pack": {
+      "description": "Stable pack identifier, kebab-case.",
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "description": { "type": "string" },
+    "order": {
+      "description": "Position of the pack in the curriculum. Pack N+1 unlocks when pack N is complete.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "levels": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/level" }
+    }
+  },
+  "$defs": {
+    "lines": {
+      "description": "Buffer contents as an array of lines, without trailing newlines. Avoids newline ambiguity between Lua and JS.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "level": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "description",
+        "start_text",
+        "cursor_start",
+        "goal",
+        "par_keys",
+        "par_seconds",
+        "hint",
+        "solution",
+        "teaches"
+      ],
+      "properties": {
+        "id": {
+          "description": "Globally unique level id. Progress is keyed by it, so never rename a published id.",
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "title": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "start_text": { "$ref": "#/$defs/lines" },
+        "cursor_start": {
+          "description": "[line, col]: 1-based line, 0-based byte column. Matches nvim_win_get_cursor().",
+          "type": "array",
+          "prefixItems": [
+            { "type": "integer", "minimum": 1 },
+            { "type": "integer", "minimum": 0 }
+          ],
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "goal": { "$ref": "#/$defs/goal" },
+        "par_keys": {
+          "description": "Keystroke par. Should equal (or be very close to) the best known solution length.",
+          "type": "integer",
+          "minimum": 1
+        },
+        "par_seconds": { "type": "number", "exclusiveMinimum": 0 },
+        "hint": { "type": "string", "minLength": 1 },
+        "solution": {
+          "description": "Reference solution in Vim key notation (e.g. \"ffdw\", \"ciwfoo<Esc>\"). Used only by tests, never shown to players.",
+          "type": "string",
+          "minLength": 1
+        },
+        "teaches": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "web_demo": {
+          "description": "Include this level in the browser demo. Only set it for levels verified to behave identically in the CodeMirror Vim emulation.",
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "goal": {
+      "oneOf": [
+        { "$ref": "#/$defs/goal_buffer_equals" },
+        { "$ref": "#/$defs/goal_cursor_at" }
+      ]
+    },
+    "goal_buffer_equals": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "value"],
+      "properties": {
+        "type": { "const": "buffer_equals" },
+        "value": { "$ref": "#/$defs/lines" }
+      }
+    },
+    "goal_cursor_at": {
+      "description": "Cursor must be at [line, col] (1-based line, 0-based col). The buffer must be unchanged unless allow_edit is true.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "line", "col"],
+      "properties": {
+        "type": { "const": "cursor_at" },
+        "line": { "type": "integer", "minimum": 1 },
+        "col": { "type": "integer", "minimum": 0 },
+        "allow_edit": { "type": "boolean", "default": false }
+      }
+    }
+  }
+}

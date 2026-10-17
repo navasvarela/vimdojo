@@ -1,0 +1,12 @@
+describe("vimdojo", function()
+  it("defines the :VimDojo command", function()
+    assert.is_true(vim.fn.exists(":VimDojo") == 2)
+  end)
+
+  it("merges setup options over the defaults", function()
+    local vimdojo = require("vimdojo")
+    vimdojo.setup({ unlock_all = true })
+    assert.is_true(vimdojo.config.unlock_all)
+    assert.are.equal("float", vimdojo.config.window)
+  end)
+end)

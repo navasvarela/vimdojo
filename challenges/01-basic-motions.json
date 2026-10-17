@@ -1,0 +1,42 @@
+{
+  "$schema": "./schema.json",
+  "pack": "basic-motions",
+  "title": "Basic Motions",
+  "description": "Move without the arrow keys: h j k l, word motions, line edges, and file edges.",
+  "order": 1,
+  "levels": [
+    {
+      "id": "basic-motions-01",
+      "title": "Baby steps",
+      "description": "Put the cursor on the 'q' of 'question'. Arrow keys are for tourists: use j and l.",
+      "start_text": [
+        "TODO:",
+        "- feed the cat",
+        "- feed the cat again",
+        "- question life choices"
+      ],
+      "cursor_start": [1, 0],
+      "goal": { "type": "cursor_at", "line": 4, "col": 2 },
+      "par_keys": 5,
+      "par_seconds": 8,
+      "hint": "j moves down a line, l moves right a character.",
+      "solution": "jjjll",
+      "teaches": ["j", "l"],
+      "web_demo": true
+    },
+    {
+      "id": "basic-motions-02",
+      "title": "Skip the small talk",
+      "description": "Jump straight to the word 'server'. Pressing l twenty-seven times is allowed, but it will be remembered.",
+      "start_text": ["hi hello hey greetings the server is on fire"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "cursor_at", "line": 1, "col": 27 },
+      "par_keys": 5,
+      "par_seconds": 8,
+      "hint": "w jumps to the start of the next word.",
+      "solution": "wwwww",
+      "teaches": ["w"],
+      "web_demo": true
+    }
+  ]
+}

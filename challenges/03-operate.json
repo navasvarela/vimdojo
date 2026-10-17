@@ -1,0 +1,23 @@
+{
+  "$schema": "./schema.json",
+  "pack": "operate",
+  "title": "Operate",
+  "description": "Operators plus motions: d, c, y, the dot command, and text objects.",
+  "order": 3,
+  "levels": [
+    {
+      "id": "operate-01",
+      "title": "Kill the typo",
+      "description": "Remove the stray word 'fxo' so the sentence reads correctly.",
+      "start_text": ["The quick brown fxo jumps over the lazy dog"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "buffer_equals", "value": ["The quick brown jumps over the lazy dog"] },
+      "par_keys": 4,
+      "par_seconds": 10,
+      "hint": "Jump to the typo with f, then delete the word with dw.",
+      "solution": "ffdw",
+      "teaches": ["f", "dw"],
+      "web_demo": true
+    }
+  ]
+}

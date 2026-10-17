@@ -1,0 +1,9 @@
+# Dev-only Neovim test dependencies (cloned by `make deps`)
+.deps/
+
+# Web build
+node_modules/
+web/dist/
+
+.DS_Store
+*.swp
