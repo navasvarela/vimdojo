@@ -1,3 +1,5 @@
+<img src="docs/brand/logo.svg" width="96" alt="vimdojo logo: a torii gate with a block cursor in the gateway">
+
 # vimdojo
 
 Learn Vim motions by solving tiny puzzles, right inside Neovim.

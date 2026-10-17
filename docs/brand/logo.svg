@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title">
+  <title id="title">vimdojo</title>
+  <rect width="256" height="256" rx="56" fill="#0f0e0c"/>
+  <g fill="#ffb000">
+    <!-- kasagi: the top beam, ends sweeping up -->
+    <path d="M28 54 Q128 80 228 54 L222 80 Q128 102 34 80 Z"/>
+    <!-- nuki: the tie beam -->
+    <rect x="52" y="112" width="152" height="14" rx="2"/>
+    <!-- gakuzuka: the center strut -->
+    <rect x="120" y="88" width="16" height="26"/>
+    <!-- pillars -->
+    <rect x="74" y="86" width="22" height="134" rx="2"/>
+    <rect x="160" y="86" width="22" height="134" rx="2"/>
+  </g>
+  <!-- the cursor, standing in the gateway -->
+  <rect x="113" y="166" width="30" height="54" rx="2" fill="#ebe5d6"/>
+</svg>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 256" role="img" aria-labelledby="title">
+  <title id="title">vimdojo</title>
+  <rect width="256" height="256" rx="56" fill="#0f0e0c"/>
+  <g fill="#ffb000">
+    <path d="M28 54 Q128 80 228 54 L222 80 Q128 102 34 80 Z"/>
+    <rect x="52" y="112" width="152" height="14" rx="2"/>
+    <rect x="120" y="88" width="16" height="26"/>
+    <rect x="74" y="86" width="22" height="134" rx="2"/>
+    <rect x="160" y="86" width="22" height="134" rx="2"/>
+  </g>
+  <rect x="113" y="166" width="30" height="54" rx="2" fill="#ebe5d6"/>
+  <text x="296" y="166" font-family="ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace"
+        font-size="108" font-weight="700" letter-spacing="-3" fill="#ffb000">vimdojo</text>
+</svg>

@@ -130,6 +130,11 @@ pre code {
   }
 }
 
+.hero-logo {
+  display: block;
+  margin-bottom: 16px;
+}
+
 .cta {
   display: flex;
   flex-wrap: wrap;
