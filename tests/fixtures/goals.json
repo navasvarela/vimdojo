@@ -1,0 +1,74 @@
+{
+  "cases": [
+    {
+      "name": "buffer_equals matches identical lines",
+      "goal": { "type": "buffer_equals", "value": ["a", "b"] },
+      "start_lines": ["x"],
+      "state": { "lines": ["a", "b"], "cursor": [2, 0] },
+      "expected": true
+    },
+    {
+      "name": "buffer_equals ignores the cursor",
+      "goal": { "type": "buffer_equals", "value": ["a", "b"] },
+      "start_lines": ["x"],
+      "state": { "lines": ["a", "b"], "cursor": [1, 0] },
+      "expected": true
+    },
+    {
+      "name": "buffer_equals rejects a different line",
+      "goal": { "type": "buffer_equals", "value": ["a", "b"] },
+      "start_lines": ["x"],
+      "state": { "lines": ["a", "c"], "cursor": [1, 0] },
+      "expected": false
+    },
+    {
+      "name": "buffer_equals rejects an extra trailing line",
+      "goal": { "type": "buffer_equals", "value": ["a"] },
+      "start_lines": ["x"],
+      "state": { "lines": ["a", ""], "cursor": [1, 0] },
+      "expected": false
+    },
+    {
+      "name": "buffer_equals is whitespace sensitive",
+      "goal": { "type": "buffer_equals", "value": ["a b"] },
+      "start_lines": ["x"],
+      "state": { "lines": ["a  b"], "cursor": [1, 0] },
+      "expected": false
+    },
+    {
+      "name": "cursor_at matches on an unchanged buffer",
+      "goal": { "type": "cursor_at", "line": 2, "col": 3 },
+      "start_lines": ["one", "two three"],
+      "state": { "lines": ["one", "two three"], "cursor": [2, 3] },
+      "expected": true
+    },
+    {
+      "name": "cursor_at rejects the wrong column",
+      "goal": { "type": "cursor_at", "line": 2, "col": 3 },
+      "start_lines": ["one", "two three"],
+      "state": { "lines": ["one", "two three"], "cursor": [2, 4] },
+      "expected": false
+    },
+    {
+      "name": "cursor_at rejects the wrong line",
+      "goal": { "type": "cursor_at", "line": 2, "col": 3 },
+      "start_lines": ["one", "two three"],
+      "state": { "lines": ["one", "two three"], "cursor": [1, 3] },
+      "expected": false
+    },
+    {
+      "name": "cursor_at rejects an edited buffer by default",
+      "goal": { "type": "cursor_at", "line": 2, "col": 3 },
+      "start_lines": ["one", "two three"],
+      "state": { "lines": ["one", "twothree"], "cursor": [2, 3] },
+      "expected": false
+    },
+    {
+      "name": "cursor_at accepts an edited buffer with allow_edit",
+      "goal": { "type": "cursor_at", "line": 2, "col": 3, "allow_edit": true },
+      "start_lines": ["one", "two three"],
+      "state": { "lines": ["one", "twothree"], "cursor": [2, 3] },
+      "expected": true
+    }
+  ]
+}

@@ -9,3 +9,6 @@ vim.o.shadafile = "NONE"
 -- --noplugin skips plugin/ scripts, so load the ones the tests need explicitly.
 vim.cmd("runtime plugin/plenary.vim")
 vim.cmd("runtime plugin/vimdojo.lua")
+
+-- Lets specs `require("helpers")`.
+package.path = root .. "/tests/?.lua;" .. package.path

@@ -1,0 +1,49 @@
+{
+  "cases": [
+    {
+      "name": "at par on both keys and time",
+      "attempt": { "keys": 5, "seconds": 4, "par_keys": 5, "par_seconds": 8, "hinted": false },
+      "expected": { "stars": 3, "points": 1000 }
+    },
+    {
+      "name": "beats par on keys",
+      "attempt": { "keys": 3, "seconds": 8, "par_keys": 5, "par_seconds": 8, "hinted": false },
+      "expected": { "stars": 3, "points": 1000 }
+    },
+    {
+      "name": "keys at par but twice as slow",
+      "attempt": { "keys": 5, "seconds": 16, "par_keys": 5, "par_seconds": 8, "hinted": false },
+      "expected": { "stars": 2, "points": 850 }
+    },
+    {
+      "name": "within one and a half times par keys",
+      "attempt": { "keys": 7, "seconds": 4, "par_keys": 5, "par_seconds": 8, "hinted": false },
+      "expected": { "stars": 2, "points": 800 }
+    },
+    {
+      "name": "exactly one and a half times par keys",
+      "attempt": { "keys": 6, "seconds": 4, "par_keys": 4, "par_seconds": 8, "hinted": false },
+      "expected": { "stars": 2, "points": 767 }
+    },
+    {
+      "name": "over one and a half times par keys",
+      "attempt": { "keys": 8, "seconds": 4, "par_keys": 5, "par_seconds": 8, "hinted": false },
+      "expected": { "stars": 1, "points": 738 }
+    },
+    {
+      "name": "hinted perfect run is capped at two stars",
+      "attempt": { "keys": 5, "seconds": 4, "par_keys": 5, "par_seconds": 8, "hinted": true },
+      "expected": { "stars": 2, "points": 800 }
+    },
+    {
+      "name": "hinted slow run",
+      "attempt": { "keys": 20, "seconds": 8, "par_keys": 5, "par_seconds": 8, "hinted": true },
+      "expected": { "stars": 1, "points": 380 }
+    },
+    {
+      "name": "fractional seconds",
+      "attempt": { "keys": 9, "seconds": 12.5, "par_keys": 6, "par_seconds": 10, "hinted": false },
+      "expected": { "stars": 2, "points": 707 }
+    }
+  ]
+}

@@ -23,3 +23,37 @@ converts at its boundary.
 - The plan's example level ("Kill the typo") used the solution `fxdw`, which
   leaves `fjumps` behind because `dw` starts on the `x`. The correct reference
   solution is `ffdw`. This is exactly what the solution tests exist to catch.
+
+## Key counting
+
+One physical key is one keystroke: `d2w` is 3, `<Esc>` is 1, `<C-r>` is 1.
+`keys.split()` applies the same rule to a key-notation string, which is how
+the solution tests compare a reference solution against `par_keys`.
+
+## Scoring (`lua/vimdojo/scoring.lua`)
+
+- Stars: 3 when keys <= par_keys **and** seconds <= par_seconds; 2 when
+  keys <= 1.5 x par_keys; otherwise 1 (completion).
+- Points (0-1000): `1000 * (0.7 * key_ratio + 0.3 * time_ratio)`, where a
+  ratio is 1 at or under par and `par / actual` above it. Rounded half up.
+- Using the hint caps the attempt at 2 stars and multiplies points by 0.8.
+- `tests/fixtures/scoring.json` pins the behavior for both the Lua and TS ports.
+
+## Progress
+
+- Unlock rules and record merging live in a pure `progress.lua`, separate from
+  file I/O in `storage.lua`. (The plan lists only `storage.lua`; this split keeps
+  the logic testable without the filesystem.)
+- `best_keys` and `best_seconds` are tracked independently, so they may come
+  from different attempts. `stars` is the best ever earned.
+- `unlock_all` is a choice of unlock strategy (`unlocked_all` vs
+  `unlocked_by_progress`) rather than a flag threaded through the rules.
+- A progress file that fails to parse, has an unknown `version`, or contains a
+  malformed record is renamed to `progress.json.corrupt-<unix time>` and play
+  starts fresh. Nothing is ever deleted.
+
+## Mappings
+
+Reference solutions are fed with `noremap`, so levels are judged against stock
+Vim behavior. Players keep their own mappings in the game buffer; a level that
+a custom mapping changes is the player's config, not a bug in the level.
