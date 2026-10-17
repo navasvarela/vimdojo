@@ -123,6 +123,24 @@ describe("playing a level", function()
     assert.are.equal("basic-motions-02", level.id)
   end)
 
+  it("finishes an Insert-mode edit only after <Esc>, counting it", function()
+    child:lua(
+      "require('vimdojo').setup({ unlock_all = true, progress_path = ... })",
+      child.progress_path
+    )
+    child:lua("require('vimdojo.app').start('operate-03')")
+    child:input("fmcwnaps")
+    assert.are.same(
+      { "I love naps" },
+      child:wait_for("vim.api.nvim_buf_get_lines(0, 0, -1, false)")
+    )
+    assert.is_false(child:lua("return require('vimdojo.app').current().session:is_finished()"))
+    child:input("<Esc>")
+
+    local record = child:wait_for("require('vimdojo.app').progress().levels['operate-03']")
+    assert.are.equal(9, record.best_keys)
+  end)
+
   it("refuses to start a locked level", function()
     child:lua("require('vimdojo.app').start('basic-motions-02')")
     assert.is_nil(child:lua("return " .. CURRENT_LEVEL))

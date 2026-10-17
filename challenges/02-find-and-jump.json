@@ -1,0 +1,115 @@
+{
+  "$schema": "./schema.json",
+  "pack": "find-and-jump",
+  "title": "Find and Jump",
+  "description": "Get anywhere in a few keys: f t ; , for characters, { } for paragraphs, % for brackets, and counts.",
+  "order": 2,
+  "levels": [
+    {
+      "id": "find-and-jump-01",
+      "title": "Little Bobby Tables",
+      "description": "Find the first ';' in this perfectly innocent input.",
+      "start_text": ["name = 'Robert'); DROP TABLE students;--"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "cursor_at", "line": 1, "col": 16 },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "f followed by a character jumps to its next occurrence on the line.",
+      "solution": "f;",
+      "teaches": ["f"]
+    },
+    {
+      "id": "find-and-jump-02",
+      "title": "Close, but not quite",
+      "description": "Stop on the last letter of 'isAdmin', right before the ')'.",
+      "start_text": ["if (user.isAdmin) { grantAccess(); }"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "cursor_at", "line": 1, "col": 15 },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "t followed by a character stops just before it.",
+      "solution": "t)",
+      "teaches": ["t"]
+    },
+    {
+      "id": "find-and-jump-03",
+      "title": "Again and again",
+      "description": "Land on the third comma, the moment before any code happens.",
+      "start_text": ["coffee, coffee, coffee, code, coffee"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "cursor_at", "line": 1, "col": 22 },
+      "par_keys": 4,
+      "par_seconds": 6,
+      "hint": "Find the first comma with f, then ; repeats the last find (and , repeats it backwards).",
+      "solution": "f,;;",
+      "teaches": [";", ","]
+    },
+    {
+      "id": "find-and-jump-04",
+      "title": "Paragraph hopping",
+      "description": "Skip ahead to the blank line right before Chapter 3.",
+      "start_text": [
+        "Chapter 1: It was a dark and stormy sprint.",
+        "",
+        "Chapter 2: The build was red.",
+        "The tests were red.",
+        "",
+        "Chapter 3: Someone pushed to main.",
+        "",
+        "Epilogue: Everyone blamed DNS."
+      ],
+      "cursor_start": [1, 0],
+      "goal": { "type": "cursor_at", "line": 5, "col": 0 },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "} jumps to the next blank line, { to the previous one.",
+      "solution": "}}",
+      "teaches": ["}", "{"]
+    },
+    {
+      "id": "find-and-jump-05",
+      "title": "Matchmaker",
+      "description": "Put the cursor on the '}' that closes the if block.",
+      "start_text": [
+        "function handler(event) {",
+        "  if (event.type === \"panic\") {",
+        "    return keepCalm();",
+        "  }",
+        "  return carryOn();",
+        "}",
+        "",
+        "export default handler;"
+      ],
+      "cursor_start": [1, 0],
+      "goal": { "type": "cursor_at", "line": 4, "col": 2 },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "% jumps to the bracket matching the one under (or after) the cursor.",
+      "solution": "j$%",
+      "teaches": ["%"]
+    },
+    {
+      "id": "find-and-jump-06",
+      "title": "Count on it",
+      "description": "Excuse number 7 is the real one. Get to the start of its line without pressing j seven times.",
+      "start_text": [
+        "Excuses, ranked:",
+        "1. It works on my machine",
+        "2. That's a feature",
+        "3. The intern did it",
+        "4. Cosmic rays",
+        "5. Must be a caching issue",
+        "6. It's DNS",
+        "7. It was DNS",
+        "8. Mercury is in retrograde"
+      ],
+      "cursor_start": [1, 0],
+      "goal": { "type": "cursor_at", "line": 8, "col": 0 },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "Most motions take a count: 7j moves down seven lines.",
+      "solution": "7j",
+      "teaches": ["count"]
+    }
+  ]
+}

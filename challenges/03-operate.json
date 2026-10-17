@@ -13,11 +13,110 @@
       "cursor_start": [1, 0],
       "goal": { "type": "buffer_equals", "value": ["The quick brown jumps over the lazy dog"] },
       "par_keys": 4,
-      "par_seconds": 10,
+      "par_seconds": 8,
       "hint": "Jump to the typo with f, then delete the word with dw.",
       "solution": "ffdw",
-      "teaches": ["f", "dw"],
-      "web_demo": true
+      "teaches": ["dw"]
+    },
+    {
+      "id": "operate-02",
+      "title": "Security through deletion",
+      "description": "Someone committed a password. Delete that whole line before the auditors arrive.",
+      "start_text": [
+        "const config = {",
+        "  debug: true,",
+        "  password: \"hunter2\",",
+        "  port: 8080,",
+        "};"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["const config = {", "  debug: true,", "  port: 8080,", "};"]
+      },
+      "par_keys": 4,
+      "par_seconds": 6,
+      "hint": "dd deletes the current line.",
+      "solution": "jjdd",
+      "teaches": ["dd"]
+    },
+    {
+      "id": "operate-03",
+      "title": "Change of heart",
+      "description": "Be honest about your preferences: turn 'meetings' into 'naps'.",
+      "start_text": ["I love meetings"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "buffer_equals", "value": ["I love naps"] },
+      "par_keys": 9,
+      "par_seconds": 10,
+      "hint": "Get to the word, then cw deletes to the end of it and drops you into Insert mode. <Esc> when done.",
+      "solution": "fmcwnaps<Esc>",
+      "teaches": ["cw"]
+    },
+    {
+      "id": "operate-04",
+      "title": "Inside job",
+      "description": "Empty the string, but keep the quotes. The world has heard enough.",
+      "start_text": ["greeting = \"Hello, World!\""],
+      "cursor_start": [1, 0],
+      "goal": { "type": "buffer_equals", "value": ["greeting = \"\""] },
+      "par_keys": 3,
+      "par_seconds": 5,
+      "hint": "di\" deletes inside the quotes, and finds the next quoted string if you are not in one yet.",
+      "solution": "di\"",
+      "teaches": ["di\""]
+    },
+    {
+      "id": "operate-05",
+      "title": "Rename",
+      "description": "Nobody knows what a thingamajig is. Rename it to 'answer' without leaving the word.",
+      "start_text": ["const thingamajig = 42;"],
+      "cursor_start": [1, 10],
+      "goal": { "type": "buffer_equals", "value": ["const answer = 42;"] },
+      "par_keys": 10,
+      "par_seconds": 10,
+      "hint": "ciw changes the whole word under the cursor, wherever the cursor is inside it.",
+      "solution": "ciwanswer<Esc>",
+      "teaches": ["ciw"]
+    },
+    {
+      "id": "operate-06",
+      "title": "Dot dot dot",
+      "description": "Declare victory: remove 'TODO ' from every line. Do it once, then let . do the rest.",
+      "start_text": ["TODO fix login", "TODO fix logout", "TODO fix everything"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "buffer_equals", "value": ["fix login", "fix logout", "fix everything"] },
+      "par_keys": 6,
+      "par_seconds": 8,
+      "hint": ". repeats the last change. Try dw, then j and . for each line.",
+      "solution": "dwj.j.",
+      "teaches": ["."]
+    },
+    {
+      "id": "operate-07",
+      "title": "Plausible deniability",
+      "description": "On second thought, nobody needs to know. Delete the middle paragraph and the blank line after it.",
+      "start_text": ["Dear team,", "", "I have deleted production.", "Sorry.", "", "Best,", "Dave"],
+      "cursor_start": [3, 0],
+      "goal": { "type": "buffer_equals", "value": ["Dear team,", "", "Best,", "Dave"] },
+      "par_keys": 3,
+      "par_seconds": 5,
+      "hint": "dap deletes a paragraph, including the blank line that follows it.",
+      "solution": "dap",
+      "teaches": ["dap"]
+    },
+    {
+      "id": "operate-08",
+      "title": "Ship it",
+      "description": "One 'Ship it!' is not enough. Make it three lines of pure confidence.",
+      "start_text": ["Ship it!"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "buffer_equals", "value": ["Ship it!", "Ship it!", "Ship it!"] },
+      "par_keys": 4,
+      "par_seconds": 6,
+      "hint": "yy yanks the line, p puts it below. p takes a count too.",
+      "solution": "yy2p",
+      "teaches": ["yy", "p"]
     }
   ]
 }

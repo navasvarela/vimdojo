@@ -9,20 +9,14 @@
       "id": "basic-motions-01",
       "title": "Baby steps",
       "description": "Put the cursor on the 'q' of 'question'. Arrow keys are for tourists: use j and l.",
-      "start_text": [
-        "TODO:",
-        "- feed the cat",
-        "- feed the cat again",
-        "- question life choices"
-      ],
+      "start_text": ["TODO:", "- feed the cat", "- feed the cat again", "- question life choices"],
       "cursor_start": [1, 0],
       "goal": { "type": "cursor_at", "line": 4, "col": 2 },
       "par_keys": 5,
       "par_seconds": 8,
       "hint": "j moves down a line, l moves right a character.",
       "solution": "jjjll",
-      "teaches": ["j", "l"],
-      "web_demo": true
+      "teaches": ["j", "l"]
     },
     {
       "id": "basic-motions-02",
@@ -35,8 +29,66 @@
       "par_seconds": 8,
       "hint": "w jumps to the start of the next word.",
       "solution": "wwwww",
-      "teaches": ["w"],
-      "web_demo": true
+      "teaches": ["w"]
+    },
+    {
+      "id": "basic-motions-03",
+      "title": "Back pedal",
+      "description": "You said too much. Back up to the start of 'robot' before anyone notices.",
+      "start_text": ["I am absolutely not a robot beep boop"],
+      "cursor_start": [1, 36],
+      "goal": { "type": "cursor_at", "line": 1, "col": 22 },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "b jumps back to the start of the previous word.",
+      "solution": "bbb",
+      "teaches": ["b"]
+    },
+    {
+      "id": "basic-motions-04",
+      "title": "The end is nigh",
+      "description": "Land on the last letter of 'friday', where all good deploys end.",
+      "start_text": ["deploy on friday afternoon"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "cursor_at", "line": 1, "col": 15 },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "e jumps to the end of the current or next word.",
+      "solution": "eee",
+      "teaches": ["e"]
+    },
+    {
+      "id": "basic-motions-05",
+      "title": "Living on the edge",
+      "description": "Get to the very last character of the return line. The mood will not improve on the way.",
+      "start_text": ["function getMood() {", "    return \"grumpy\"; // before coffee", "}"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "cursor_at", "line": 2, "col": 36 },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "$ jumps to the end of the line.",
+      "solution": "j$",
+      "teaches": ["$"]
+    },
+    {
+      "id": "basic-motions-06",
+      "title": "Back to the top",
+      "description": "Read the script from the beginning: put the cursor on the '#' at the top.",
+      "start_text": [
+        "  # deploy.sh: works on my machine",
+        "  set -euo pipefail",
+        "  npm install",
+        "  npm run build",
+        "  scp -r dist/ prod:/var/www",
+        "  echo \"deployed. probably.\""
+      ],
+      "cursor_start": [6, 0],
+      "goal": { "type": "cursor_at", "line": 1, "col": 2 },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "gg jumps to the first line (G to the last). ^ jumps to the first non-blank character.",
+      "solution": "gg^",
+      "teaches": ["gg", "^"]
     }
   ]
 }

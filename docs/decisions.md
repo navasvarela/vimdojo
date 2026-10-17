@@ -85,3 +85,25 @@ a custom mapping changes is the player's config, not a bug in the level.
 - **End-to-end tests** (`tests/app_spec.lua`) run a child `nvim --embed` and
   drive it with `nvim_input`, so key capture, mappings and autocmds run exactly
   as they do for a real player.
+
+## Curriculum and par (M3)
+
+- **Par rule:** `par_keys` is the shortest solution that uses only motions
+  taught so far in the curriculum (the cumulative `teaches` of every earlier
+  level, plus `h j k l`). Beginners can always reach 3 stars with what the game
+  has shown them. Players who know more motions (`Gw`, `5w`) can beat par.
+  Points are capped at 1000, so beating par only matters for bragging.
+- `make par` runs `scripts/par.lua`, a Dijkstra search over cursor positions
+  in headless Neovim. For every `cursor_at` level it prints the taught-motions
+  optimum (which must equal `par_keys`) and the any-motion optimum. It ignores
+  `curswant` and `;`/`,` state, so treat it as an authoring aid, not a test.
+  `buffer_equals` pars are reasoned by hand. The solution tests still check
+  that each reference solution fits within par.
+- The curriculum is 20 levels (6 + 6 + 8) rather than the plan's ~15. Pack 3
+  needed one level per operator idea the plan lists (`dw dd cw di" ciw . dap
+  yy/p`).
+- Levels rely on Neovim's default `nostartofline`, so `gg`/`G` keep the
+  column. `basic-motions-06` uses `gg^` so it also works where `gg` jumps to
+  the first non-blank.
+- `web_demo` flags were removed from the sample levels. M4 sets them only
+  after each level is checked in the CodeMirror emulation.
