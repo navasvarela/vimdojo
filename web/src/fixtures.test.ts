@@ -26,7 +26,13 @@ const GoalCase = z.object({
   name: z.string(),
   goal: z.unknown(),
   start_lines: z.array(z.string()),
-  state: z.object({ lines: z.array(z.string()), cursor: z.tuple([z.number(), z.number()]) }),
+  state: z.object({
+    lines: z.array(z.string()),
+    cursor: z.tuple([z.number(), z.number()]),
+    registers: z
+      .record(z.string(), z.object({ lines: z.array(z.string()), linewise: z.boolean() }))
+      .optional(),
+  }),
   expected: z.boolean(),
 })
 

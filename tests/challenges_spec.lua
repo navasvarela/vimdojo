@@ -45,6 +45,11 @@ describe("challenges.validate_pack", function()
     { "cursor col past the line", { cursor_start = { 1, 11 } }, "cursor_start col is outside" },
     { "unknown goal type", { goal = { type = "mode_is" } }, 'goal: unknown goal type "mode_is"' },
     { "non-boolean web_demo", { web_demo = "yes" }, "web_demo must be a boolean" },
+    { "malformed requires", { requires = { nvim = "latest" } }, "requires must be" },
+    { "unknown option", { options = { shiftwdith = 2 } }, 'unknown option "shiftwdith"' },
+    { "table option value", { options = { shiftwidth = { 2 } } }, "options.shiftwidth must be" },
+    { "uppercase preset mark", { preset = { marks = { A = { 1, 0 } } } }, 'invalid mark "A"' },
+    { "bad preset register", { preset = { registers = { a = 3 } } }, "preset.registers.a must be" },
   }
   for _, case in ipairs(invalid) do
     local name, overrides, expected = case[1], case[2], case[3]
@@ -54,6 +59,27 @@ describe("challenges.validate_pack", function()
       assert.is_truthy(all:find(expected, 1, true), all)
     end)
   end
+
+  it("accepts v2 fields", function()
+    local errors = challenges.validate_pack(pack_with({
+      requires = { nvim = "0.11" },
+      options = { shiftwidth = 2, expandtab = true, textwidth = 40 },
+      preset = { registers = { a = "word", b = { "a line" } }, marks = { m = { 1, 3 } } },
+    }))
+    assert.are.same({}, errors)
+  end)
+
+  it("rejects an unknown track", function()
+    local pack = pack_with()
+    pack.track = "advanced"
+    local errors = challenges.validate_pack(pack)
+    assert.is_truthy(table.concat(errors, "\n"):find("track must be one of", 1, true))
+  end)
+
+  it("defaults the track to motions", function()
+    local pack = assert(challenges.decode(vim.json.encode(pack_with())))
+    assert.are.equal("motions", pack.track)
+  end)
 
   it("accepts column 0 on an empty line", function()
     local errors =

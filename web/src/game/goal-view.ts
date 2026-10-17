@@ -1,7 +1,7 @@
 import { StateField, type Extension } from "@codemirror/state"
 import { Decoration, EditorView, type DecorationSet } from "@codemirror/view"
 import { assertNever } from "../assert"
-import type { Level } from "../challenges"
+import type { Goal, Level } from "../challenges"
 import { byteColToIndex } from "../text"
 import { h } from "../ui/dom"
 
@@ -29,8 +29,7 @@ function targetHighlight(level: Level, line: number, byteCol: number): Extension
   return field
 }
 
-export function presentGoal(level: Level): GoalPresentation {
-  const goal = level.goal
+function presentNode(level: Level, goal: Goal): GoalPresentation {
   switch (goal.type) {
     case "cursor_at":
       return {
@@ -49,7 +48,28 @@ export function presentGoal(level: Level): GoalPresentation {
         ]),
         extension: [],
       }
+    case "register_contains": {
+      const kind = goal.linewise === undefined ? "" : goal.linewise ? " (linewise)" : " (charwise)"
+      return {
+        element: h("div", { className: "goal" }, [
+          h("p", {}, [`Goal: register "${goal.register}" must hold${kind}:`]),
+          h("pre", { className: "goal-text" }, [goal.value.join("\n")]),
+        ]),
+        extension: [],
+      }
+    }
+    case "all_of": {
+      const parts = goal.goals.map((inner) => presentNode(level, inner))
+      return {
+        element: h("div", { className: "goal" }, parts.map((part) => part.element)),
+        extension: parts.map((part) => part.extension),
+      }
+    }
     default:
       return assertNever(goal)
   }
+}
+
+export function presentGoal(level: Level): GoalPresentation {
+  return presentNode(level, level.goal)
 }

@@ -93,6 +93,49 @@ describe("playing a level", function()
     end)
   end)
 
+  describe("with schema v2 packs", function()
+    before_each(function()
+      player =
+        player_mod.spawn({ challenges_dir = require("helpers").root .. "/tests/fixtures/packs" })
+    end)
+
+    it("opens the first level of each track and gates unsupported levels", function()
+      player:lua("vim.cmd('VimDojo')")
+      local menu =
+        table.concat(player:lua("return vim.api.nvim_buf_get_lines(0, 0, -1, false)"), "\n")
+      assert.is_truthy(menu:find("MOTIONS", 1, true))
+      assert.is_truthy(menu:find("SETUP", 1, true))
+      assert.is_truthy(menu:find("needs Neovim 99.0", 1, true))
+      assert.is_true(player:start("v2-setup-first"))
+    end)
+
+    it("refuses to start a level this Neovim cannot run", function()
+      player:lua(
+        "require('vimdojo').setup({ unlock_all = true, challenges_dir = ... })",
+        require("helpers").root .. "/tests/fixtures/packs"
+      )
+      player:lua("require('vimdojo.app').start('v2-future')")
+      assert.is_nil(player:lua("return " .. CURRENT_LEVEL))
+    end)
+
+    it("starts a reset with the goal's registers cleared and presets reapplied", function()
+      player:lua(
+        "require('vimdojo').setup({ unlock_all = true, challenges_dir = ... })",
+        require("helpers").root .. "/tests/fixtures/packs"
+      )
+      assert.is_true(player:start("v2-register-goal"))
+      player:type('"ayy')
+      assert.is_true(
+        player:wait_for(CURRENT .. ".room:snapshot().registers.a.lines[1] == 'drop me'")
+      )
+      player:type("\\r")
+      assert.is_true(player:wait_for(CURRENT .. ".room:snapshot().registers.a.lines[1] == nil"))
+      player:type('j"ayy')
+
+      assert.are.equal(5, player:wait_for_record("v2-register-goal").best_keys)
+    end)
+  end)
+
   describe("with every level unlocked", function()
     before_each(function()
       player = player_mod.spawn({ unlock_all = true })

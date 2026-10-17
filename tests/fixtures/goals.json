@@ -69,6 +69,97 @@
       "start_lines": ["one", "two three"],
       "state": { "lines": ["one", "twothree"], "cursor": [2, 3] },
       "expected": true
+    },
+    {
+      "name": "register_contains matches lines and type",
+      "goal": {
+        "type": "register_contains",
+        "register": "a",
+        "value": ["keep me"],
+        "linewise": true
+      },
+      "start_lines": ["x"],
+      "state": {
+        "lines": ["x"],
+        "cursor": [1, 0],
+        "registers": { "a": { "lines": ["keep me"], "linewise": true } }
+      },
+      "expected": true
+    },
+    {
+      "name": "register_contains ignores the type when linewise is unset",
+      "goal": { "type": "register_contains", "register": "a", "value": ["keep me"] },
+      "start_lines": ["x"],
+      "state": {
+        "lines": ["x"],
+        "cursor": [1, 0],
+        "registers": { "a": { "lines": ["keep me"], "linewise": false } }
+      },
+      "expected": true
+    },
+    {
+      "name": "register_contains rejects the wrong type",
+      "goal": {
+        "type": "register_contains",
+        "register": "a",
+        "value": ["keep me"],
+        "linewise": true
+      },
+      "start_lines": ["x"],
+      "state": {
+        "lines": ["x"],
+        "cursor": [1, 0],
+        "registers": { "a": { "lines": ["keep me"], "linewise": false } }
+      },
+      "expected": false
+    },
+    {
+      "name": "register_contains rejects different text",
+      "goal": { "type": "register_contains", "register": "a", "value": ["keep me"] },
+      "start_lines": ["x"],
+      "state": {
+        "lines": ["x"],
+        "cursor": [1, 0],
+        "registers": { "a": { "lines": ["keep"], "linewise": false } }
+      },
+      "expected": false
+    },
+    {
+      "name": "register_contains rejects a register missing from the snapshot",
+      "goal": { "type": "register_contains", "register": "a", "value": ["keep me"] },
+      "start_lines": ["x"],
+      "state": { "lines": ["x"], "cursor": [1, 0], "registers": {} },
+      "expected": false
+    },
+    {
+      "name": "all_of holds when every goal holds",
+      "goal": {
+        "type": "all_of",
+        "goals": [
+          { "type": "buffer_equals", "value": ["x"] },
+          { "type": "register_contains", "register": "\"", "value": ["y"] }
+        ]
+      },
+      "start_lines": ["x"],
+      "state": {
+        "lines": ["x"],
+        "cursor": [1, 0],
+        "registers": { "\"": { "lines": ["y"], "linewise": false } }
+      },
+      "expected": true
+    },
+    {
+      "name": "all_of fails when one goal fails",
+      "goal": {
+        "type": "all_of",
+        "goals": [
+          { "type": "buffer_equals", "value": ["x"] },
+          { "type": "cursor_at", "line": 1, "col": 3 }
+        ]
+      },
+      "start_lines": ["x"],
+      "state": { "lines": ["x"], "cursor": [1, 0] },
+      "expected": false
     }
   ]
 }

@@ -1,4 +1,6 @@
--- Level select: packs with their levels, lock state, stars, and bests.
+-- Level select: tracks, their packs and levels, with lock state, stars, and
+-- bests.
+local challenges = require("vimdojo.challenges")
 local ui = require("vimdojo.ui")
 
 local M = {}
@@ -9,6 +11,7 @@ local TITLE_WIDTH = 28
 ---@field packs vimdojo.Pack[]
 ---@field progress vimdojo.Progress
 ---@field unlocked table<string, true>
+---@field supports vimdojo.Supports Whether this Neovim can run a level.
 
 ---@class vimdojo.MenuRows
 ---@field lines string[]
@@ -26,41 +29,79 @@ local function best_text(record)
   return ("%d keys · %.1fs"):format(record.best_keys, record.best_seconds)
 end
 
+---@alias vimdojo.LevelAvailability "open"|"locked"|"unsupported"
+
+---@param model vimdojo.MenuModel
+---@param level vimdojo.Level
+---@return vimdojo.LevelAvailability
+function M.availability(model, level)
+  if not model.supports(level) then
+    return "unsupported"
+  end
+  return model.unlocked[level.id] and "open" or "locked"
+end
+
+---@param rows vimdojo.MenuRows
+---@param line string
+---@param group string|nil Highlight for the whole line.
+local function add(rows, line, group)
+  table.insert(rows.lines, line)
+  if group then
+    table.insert(rows.highlights, { line = #rows.lines - 1, col = 0, group = group })
+  end
+end
+
+---@param rows vimdojo.MenuRows
+---@param model vimdojo.MenuModel
+---@param level vimdojo.Level
+---@param index integer Position within its pack.
+local function add_level(rows, model, level, index)
+  local name = ui.pad(("%02d %s"):format(index, level.title), TITLE_WIDTH)
+  local availability = M.availability(model, level)
+  if availability == "unsupported" then
+    add(
+      rows,
+      ("    ···  %s  needs Neovim %s"):format(name, level.requires.nvim),
+      "VimDojoLocked"
+    )
+  elseif availability == "locked" then
+    add(rows, ("    ···  %s  locked"):format(name), "VimDojoLocked")
+  else
+    local record = model.progress.levels[level.id]
+    local stars = ui.stars(record and record.stars or 0)
+    add(rows, ("    %s  %s  %s"):format(stars, name, best_text(record)))
+    table.insert(rows.highlights, {
+      line = #rows.lines - 1,
+      col = 4,
+      end_col = 4 + #stars,
+      group = "VimDojoStar",
+    })
+    if not record and not rows.first_open then
+      rows.first_open = #rows.lines
+    end
+  end
+  rows.level_at[#rows.lines] = level.id
+  rows.first_level = rows.first_level or #rows.lines
+end
+
 ---@param model vimdojo.MenuModel
 ---@return vimdojo.MenuRows
 function M.rows(model)
   local rows = { lines = { "" }, highlights = {}, level_at = {} }
-  local function add(line, group)
-    table.insert(rows.lines, line)
-    if group then
-      table.insert(rows.highlights, { line = #rows.lines - 1, col = 0, group = group })
-    end
-  end
-
-  for _, pack in ipairs(model.packs) do
-    add(("  %d. %s"):format(pack.order, pack.title), "VimDojoTitle")
-    for index, level in ipairs(pack.levels) do
-      local record = model.progress.levels[level.id]
-      local name = ui.pad(("%02d %s"):format(index, level.title), TITLE_WIDTH)
-      if model.unlocked[level.id] then
-        local stars = record and ui.stars(record.stars) or ui.stars(0)
-        add(("    %s  %s  %s"):format(stars, name, best_text(record)))
-        table.insert(rows.highlights, {
-          line = #rows.lines - 1,
-          col = 4,
-          end_col = 4 + #stars,
-          group = "VimDojoStar",
-        })
-        if not record and not rows.first_open then
-          rows.first_open = #rows.lines
+  for _, track in ipairs(challenges.TRACKS) do
+    local packs = vim.tbl_filter(function(pack)
+      return pack.track == track.id
+    end, model.packs)
+    if #packs > 0 then
+      add(rows, ("  %s"):format(track.title:upper()), "VimDojoMuted")
+      for _, pack in ipairs(packs) do
+        add(rows, ("  %d. %s"):format(pack.order, pack.title), "VimDojoTitle")
+        for index, level in ipairs(pack.levels) do
+          add_level(rows, model, level, index)
         end
-      else
-        add(("    ···  %s  locked"):format(name), "VimDojoLocked")
+        add(rows, "")
       end
-      rows.level_at[#rows.lines] = level.id
-      rows.first_level = rows.first_level or #rows.lines
     end
-    add("")
   end
   return rows
 end
@@ -82,15 +123,22 @@ function M.open(model, on_select)
   local function select()
     local line = vim.api.nvim_win_get_cursor(panel.win)[1]
     local level_id = rows.level_at[line]
-    if not level_id then
+    local level = level_id and challenges.find(model.packs, level_id)
+    if not level then
       return
     end
-    if not model.unlocked[level_id] then
+    local availability = M.availability(model, level)
+    if availability == "unsupported" then
+      vim.notify(
+        ("vimdojo: this level needs Neovim %s or newer"):format(level.requires.nvim),
+        vim.log.levels.INFO
+      )
+    elseif availability == "locked" then
       vim.notify("vimdojo: finish the previous level to unlock this one", vim.log.levels.INFO)
-      return
+    else
+      panel.close()
+      on_select(level_id)
     end
-    panel.close()
-    on_select(level_id)
   end
 
   ui.map(panel.buf, { ["<CR>"] = select, q = panel.close, ["<Esc>"] = panel.close })

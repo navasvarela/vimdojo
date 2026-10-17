@@ -5,9 +5,28 @@
 -- broken or hand-edited pack produces a readable error instead of a crash
 -- mid-game.
 local check = require("vimdojo.check")
+local compat = require("vimdojo.compat")
 local goals = require("vimdojo.goals")
 
 local M = {}
+
+---@class vimdojo.Track
+---@field id string
+---@field title string
+
+--- Tracks in menu order. Each track progresses independently.
+---@type vimdojo.Track[]
+M.TRACKS = {
+  { id = "motions", title = "Motions" },
+  { id = "usage", title = "Usage" },
+  { id = "setup", title = "Setup" },
+}
+M.DEFAULT_TRACK = "motions"
+
+local TRACK_IDS = {}
+for _, track in ipairs(M.TRACKS) do
+  TRACK_IDS[track.id] = true
+end
 
 ---@class vimdojo.Level
 ---@field id string
@@ -22,12 +41,20 @@ local M = {}
 ---@field solution string
 ---@field teaches string[]
 ---@field web_demo boolean|nil
+---@field requires { nvim: string }|nil Minimum Neovim version, e.g. "0.11".
+---@field options table<string, string|number|boolean>|nil Set (like :set) before the level starts.
+---@field preset vimdojo.Preset|nil
+
+---@class vimdojo.Preset
+---@field registers table<string, string|string[]>|nil A string is charwise, a list of lines linewise.
+---@field marks table<string, integer[]>|nil Buffer marks a-z as [line, col].
 
 ---@class vimdojo.Pack
 ---@field pack string
 ---@field title string
 ---@field description string|nil
 ---@field order integer
+---@field track string One of M.TRACKS; defaults to "motions".
 ---@field levels vimdojo.Level[]
 
 --- Where the packs ship with the plugin.
@@ -80,6 +107,59 @@ local function cursor_start_error(level)
   end
 end
 
+---@param options any
+---@return string|nil
+local function options_error(options)
+  if options == nil then
+    return nil
+  end
+  if type(options) ~= "table" then
+    return "options must be an object"
+  end
+  for name, value in pairs(options) do
+    local known = type(name) == "string" and pcall(vim.api.nvim_get_option_info2, name, {})
+    if not known then
+      return ("options: unknown option %q"):format(tostring(name))
+    end
+    local kind = type(value)
+    if kind ~= "string" and kind ~= "number" and kind ~= "boolean" then
+      return ("options.%s must be a string, number or boolean"):format(name)
+    end
+  end
+end
+
+---@param preset any
+---@return string|nil
+local function preset_error(preset)
+  if preset == nil then
+    return nil
+  end
+  if type(preset) ~= "table" then
+    return "preset must be an object"
+  end
+  for name, value in pairs(preset.registers or {}) do
+    if not tostring(name):match('^[a-z0-9"%-]$') then
+      return ("preset.registers: invalid register %q"):format(tostring(name))
+    end
+    if type(value) ~= "string" and not check.is_string_list(value) then
+      return ("preset.registers.%s must be a string or an array of lines"):format(name)
+    end
+  end
+  for name, position in pairs(preset.marks or {}) do
+    if not tostring(name):match("^[a-z]$") then
+      return ("preset.marks: invalid mark %q (a-z)"):format(tostring(name))
+    end
+    local valid = type(position) == "table"
+      and check.is_integer(position[1])
+      and check.is_integer(position[2])
+      and position[1] >= 1
+      and position[2] >= 0
+    if not valid then
+      return ("preset.marks.%s must be [line, col]"):format(name)
+    end
+  end
+end
+
 ---@param level table
 ---@return string[]
 local function level_errors(level)
@@ -106,6 +186,15 @@ local function level_errors(level)
   expect(cursor_error == nil, cursor_error)
   local goal_error = goals.validate(level.goal)
   expect(goal_error == nil, "goal: " .. tostring(goal_error))
+  expect(
+    level.requires == nil
+      or (type(level.requires) == "table" and compat.parse(level.requires.nvim) ~= nil),
+    'requires must be { "nvim": "MAJOR.MINOR" }'
+  )
+  local options_err = options_error(level.options)
+  expect(options_err == nil, options_err)
+  local preset_err = preset_error(level.preset)
+  expect(preset_err == nil, preset_err)
   return errors
 end
 
@@ -126,6 +215,12 @@ function M.validate_pack(pack)
   end
   if not (check.is_integer(pack.order) and pack.order >= 1) then
     table.insert(errors, "order must be an integer >= 1")
+  end
+  if pack.track ~= nil and not TRACK_IDS[pack.track] then
+    table.insert(
+      errors,
+      ("track must be one of motions, usage, setup (got %q)"):format(tostring(pack.track))
+    )
   end
   if type(pack.levels) ~= "table" or #pack.levels == 0 then
     table.insert(errors, "levels must be a non-empty array")
@@ -157,6 +252,7 @@ function M.decode(text)
   if #errors > 0 then
     return nil, table.concat(errors, "\n")
   end
+  decoded.track = decoded.track or M.DEFAULT_TRACK
   return decoded
 end
 

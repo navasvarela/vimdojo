@@ -19,11 +19,12 @@
       "type": "integer",
       "minimum": 1
     },
-    "levels": {
-      "type": "array",
-      "minItems": 1,
-      "items": { "$ref": "#/$defs/level" }
-    }
+    "track": {
+      "description": "Curriculum track. Tracks unlock independently; packs within a track unlock in order.",
+      "enum": ["motions", "usage", "setup"],
+      "default": "motions"
+    },
+    "levels": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/level" } }
   },
   "$defs": {
     "lines": {
@@ -60,10 +61,7 @@
         "cursor_start": {
           "description": "[line, col]: 1-based line, 0-based byte column. Matches nvim_win_get_cursor().",
           "type": "array",
-          "prefixItems": [
-            { "type": "integer", "minimum": 1 },
-            { "type": "integer", "minimum": 0 }
-          ],
+          "prefixItems": [{ "type": "integer", "minimum": 1 }, { "type": "integer", "minimum": 0 }],
           "minItems": 2,
           "maxItems": 2
         },
@@ -80,32 +78,60 @@
           "type": "string",
           "minLength": 1
         },
-        "teaches": {
-          "type": "array",
-          "minItems": 1,
-          "items": { "type": "string", "minLength": 1 }
-        },
+        "teaches": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
         "web_demo": {
           "description": "Include this level in the browser demo. Only set it for levels verified to behave identically in the CodeMirror Vim emulation.",
           "type": "boolean",
           "default": false
+        },
+        "requires": {
+          "description": "Minimum Neovim version for levels that rely on newer defaults or APIs. Older versions show the level as unavailable and skip it for unlocking.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["nvim"],
+          "properties": { "nvim": { "type": "string", "pattern": "^\\d+\\.\\d+(\\.\\d+)?$" } }
+        },
+        "options": {
+          "description": "Options set like :set in the level's clean room before it starts, e.g. { \"shiftwidth\": 2 }.",
+          "type": "object",
+          "additionalProperties": { "type": ["string", "number", "boolean"] }
+        },
+        "preset": {
+          "description": "State applied before the timer starts.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "registers": {
+              "description": "Register contents. A string is charwise; an array of lines is linewise.",
+              "type": "object",
+              "propertyNames": { "pattern": "^[a-z0-9\"-]$" },
+              "additionalProperties": {
+                "oneOf": [{ "type": "string" }, { "$ref": "#/$defs/lines" }]
+              }
+            },
+            "marks": {
+              "description": "Buffer marks as [line, col] (1-based line, 0-based col).",
+              "type": "object",
+              "propertyNames": { "pattern": "^[a-z]$" },
+              "additionalProperties": { "$ref": "#/$defs/position" }
+            }
+          }
         }
       }
     },
     "goal": {
       "oneOf": [
         { "$ref": "#/$defs/goal_buffer_equals" },
-        { "$ref": "#/$defs/goal_cursor_at" }
+        { "$ref": "#/$defs/goal_cursor_at" },
+        { "$ref": "#/$defs/goal_register_contains" },
+        { "$ref": "#/$defs/goal_all_of" }
       ]
     },
     "goal_buffer_equals": {
       "type": "object",
       "additionalProperties": false,
       "required": ["type", "value"],
-      "properties": {
-        "type": { "const": "buffer_equals" },
-        "value": { "$ref": "#/$defs/lines" }
-      }
+      "properties": { "type": { "const": "buffer_equals" }, "value": { "$ref": "#/$defs/lines" } }
     },
     "goal_cursor_at": {
       "description": "Cursor must be at [line, col] (1-based line, 0-based col). The buffer must be unchanged unless allow_edit is true.",
@@ -117,6 +143,34 @@
         "line": { "type": "integer", "minimum": 1 },
         "col": { "type": "integer", "minimum": 0 },
         "allow_edit": { "type": "boolean", "default": false }
+      }
+    },
+    "position": {
+      "type": "array",
+      "prefixItems": [{ "type": "integer", "minimum": 1 }, { "type": "integer", "minimum": 0 }],
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "goal_register_contains": {
+      "description": "A register holds exactly these lines. Set linewise to also require the register type.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "register", "value"],
+      "properties": {
+        "type": { "const": "register_contains" },
+        "register": { "type": "string", "pattern": "^[a-z0-9\"-]$" },
+        "value": { "$ref": "#/$defs/lines" },
+        "linewise": { "type": "boolean" }
+      }
+    },
+    "goal_all_of": {
+      "description": "Every inner goal must hold at the same time.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "goals"],
+      "properties": {
+        "type": { "const": "all_of" },
+        "goals": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/goal" } }
       }
     }
   }

@@ -1,0 +1,97 @@
+{
+  "$schema": "../../../challenges/schema.json",
+  "pack": "v2-motions",
+  "title": "Schema v2 fixtures",
+  "description": "Exercises presets, options, register goals and version gates end to end.",
+  "order": 1,
+  "levels": [
+    {
+      "id": "v2-preset-register",
+      "title": "Preset register",
+      "description": "Paste the preset register a.",
+      "start_text": ["hello "],
+      "cursor_start": [1, 5],
+      "preset": { "registers": { "a": "world" } },
+      "goal": { "type": "buffer_equals", "value": ["hello world"] },
+      "par_keys": 3,
+      "par_seconds": 5,
+      "hint": "\"ap",
+      "solution": "\"ap",
+      "teaches": ["\"a"]
+    },
+    {
+      "id": "v2-register-goal",
+      "title": "Register goal",
+      "description": "Yank the second line into register a, leaving the text alone.",
+      "start_text": ["drop me", "keep me"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "all_of",
+        "goals": [
+          { "type": "register_contains", "register": "a", "value": ["keep me"], "linewise": true },
+          { "type": "buffer_equals", "value": ["drop me", "keep me"] }
+        ]
+      },
+      "par_keys": 5,
+      "par_seconds": 5,
+      "hint": "j\"ayy",
+      "solution": "j\"ayy",
+      "teaches": ["\"ayy"]
+    },
+    {
+      "id": "v2-options",
+      "title": "Level options",
+      "description": "Indent with the level's shiftwidth of 3.",
+      "start_text": ["x"],
+      "cursor_start": [1, 0],
+      "options": { "shiftwidth": 3, "expandtab": true },
+      "goal": { "type": "buffer_equals", "value": ["   x"] },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": ">>",
+      "solution": ">>",
+      "teaches": [">>"]
+    },
+    {
+      "id": "v2-preset-mark",
+      "title": "Preset mark",
+      "description": "Jump to mark a.",
+      "start_text": ["one", "two three", "four"],
+      "cursor_start": [1, 0],
+      "preset": { "marks": { "a": [2, 4] } },
+      "goal": { "type": "cursor_at", "line": 2, "col": 4 },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "`a",
+      "solution": "`a",
+      "teaches": ["`a"]
+    },
+    {
+      "id": "v2-future",
+      "title": "From the future",
+      "description": "Needs a Neovim that doesn't exist yet.",
+      "start_text": ["abc"],
+      "cursor_start": [1, 0],
+      "requires": { "nvim": "99.0" },
+      "goal": { "type": "cursor_at", "line": 1, "col": 2 },
+      "par_keys": 1,
+      "par_seconds": 5,
+      "hint": "$",
+      "solution": "$",
+      "teaches": ["$"]
+    },
+    {
+      "id": "v2-after-future",
+      "title": "After the future",
+      "description": "Unlocks even though the previous level can't run here.",
+      "start_text": ["abc"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "cursor_at", "line": 1, "col": 2 },
+      "par_keys": 1,
+      "par_seconds": 5,
+      "hint": "$",
+      "solution": "$",
+      "teaches": ["$"]
+    }
+  ]
+}

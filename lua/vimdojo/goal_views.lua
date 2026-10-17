@@ -9,8 +9,10 @@ M.namespace = vim.api.nvim_create_namespace("vimdojo.goal")
 ---@field describe fun(goal: vimdojo.Goal): string[]
 ---@field decorate fun(buf: integer, goal: vimdojo.Goal)
 
+local views
+
 ---@type table<string, vimdojo.GoalView>
-local views = {
+views = {
   cursor_at = {
     describe = function()
       return { "Goal: put the cursor on the highlighted character." }
@@ -33,6 +35,34 @@ local views = {
       return lines
     end,
     decorate = function() end,
+  },
+  register_contains = {
+    describe = function(goal)
+      local kind = ""
+      if goal.linewise ~= nil then
+        kind = goal.linewise and " (linewise)" or " (charwise)"
+      end
+      local lines = { ('Goal: register "%s" must hold%s:'):format(goal.register, kind) }
+      for _, line in ipairs(goal.value) do
+        table.insert(lines, "  │ " .. line)
+      end
+      return lines
+    end,
+    decorate = function() end,
+  },
+  all_of = {
+    describe = function(goal)
+      local lines = {}
+      for _, inner in ipairs(goal.goals) do
+        vim.list_extend(lines, views[inner.type].describe(inner))
+      end
+      return lines
+    end,
+    decorate = function(buf, goal)
+      for _, inner in ipairs(goal.goals) do
+        views[inner.type].decorate(buf, inner)
+      end
+    end,
   },
 }
 

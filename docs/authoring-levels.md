@@ -34,6 +34,27 @@ is written exactly once.
 | `solution` | A reference solution in key notation (`ciwfoo<Esc>`). Tests run it. Players never see it. |
 | `teaches` | The keys this level introduces. Used for the par rule and the curriculum listing. |
 | `web_demo` | Include the level in the browser demo. Only set it when the emulation test passes. |
+| `requires` | Optional. `{ "nvim": "0.11" }` for levels that need newer defaults or APIs. Older Neovims show the level as unavailable and skip it. |
+| `options` | Optional. Options set like `:set` before the level starts, e.g. `{ "shiftwidth": 2, "wrapscan": false }`. |
+| `preset` | Optional. `registers` (`{ "a": "charwise text" }` or `{ "a": ["linewise", "lines"] }`) and buffer `marks` (`{ "m": [line, col] }`) set before the timer starts. |
+
+### Goal types
+
+| Type | Shape | Met when |
+|---|---|---|
+| `buffer_equals` | `{ "value": [lines] }` | The text matches exactly. |
+| `cursor_at` | `{ "line", "col", "allow_edit"? }` | The cursor is there and the text is unchanged (unless `allow_edit`). |
+| `register_contains` | `{ "register", "value": [lines], "linewise"? }` | The register holds these lines (and has that type, if `linewise` is given). Registers a goal reads start empty. |
+| `all_of` | `{ "goals": [goal, ...] }` | Every inner goal holds at once. |
+
+Goals are only checked in Normal mode, so an edit is done when the player
+leaves Insert mode.
+
+### Tracks
+
+A pack belongs to one `track`: `motions` (default), `usage` or `setup`.
+Tracks unlock independently, and packs unlock in `order` within their track.
+Pack `order` is unique across all packs.
 
 The full contract is [`challenges/schema.json`](../challenges/schema.json).
 Point your editor's JSON support at it via `"$schema": "./schema.json"`.
@@ -73,6 +94,14 @@ under `par_keys`.
 1-2 seconds per key, and never less than 5 seconds.
 
 ## Checking your level
+
+Play your pack in Neovim before sending it:
+
+```lua
+require("vimdojo").setup({ challenges_dir = "/path/to/your/packs", unlock_all = true })
+```
+
+Then run the checks:
 
 ```sh
 make validate   # JSON Schema

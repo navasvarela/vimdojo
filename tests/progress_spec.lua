@@ -13,6 +13,16 @@ end
 
 local PACKS = { pack("one", { "one-1", "one-2" }), pack("two", { "two-1", "two-2" }) }
 
+---@param id string
+---@param track string
+---@param level_ids string[]
+---@return table
+local function pack_on_track(id, track, level_ids)
+  local p = pack(id, level_ids)
+  p.track = track
+  return p
+end
+
 ---@param completed string[]
 ---@return vimdojo.Progress
 local function progress_with(completed)
@@ -66,6 +76,35 @@ describe("progress.unlocked_by_progress", function()
       assert.are.same(expected, sorted_keys(unlocked))
     end)
   end
+end)
+
+describe("progress.unlocked_by_progress across tracks", function()
+  local packs = {
+    pack_on_track("m1", "motions", { "m1-1", "m1-2" }),
+    pack_on_track("s1", "setup", { "s1-1", "s1-2" }),
+    pack_on_track("m2", "motions", { "m2-1" }),
+  }
+
+  it("opens the first level of every track", function()
+    assert.are.same(
+      { "m1-1", "s1-1" },
+      sorted_keys(progress.unlocked_by_progress(progress_with({}), packs))
+    )
+  end)
+
+  it("unlocks a track's next pack from that track's previous pack only", function()
+    local unlocked =
+      progress.unlocked_by_progress(progress_with({ "s1-1", "s1-2", "m1-1", "m1-2" }), packs)
+    assert.are.same({ "m1-1", "m1-2", "m2-1", "s1-1", "s1-2" }, sorted_keys(unlocked))
+  end)
+
+  it("skips levels this Neovim cannot run", function()
+    local function supports(level)
+      return level.id ~= "m1-1"
+    end
+    local unlocked = progress.unlocked_by_progress(progress_with({}), packs, supports)
+    assert.are.same({ "m1-1", "m1-2", "s1-1" }, sorted_keys(unlocked))
+  end)
 end)
 
 describe("progress.unlocked_all", function()

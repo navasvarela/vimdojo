@@ -24,7 +24,7 @@ fmt:
 	stylua .
 
 validate:
-	$(AJV) validate --spec=draft2020 -s challenges/schema.json -d "challenges/[0-9]*.json"
+	$(AJV) validate --spec=draft2020 -s challenges/schema.json -d "challenges/[0-9]*.json" -d "tests/fixtures/packs/*.json"
 
 par:
 	$(NVIM) --headless --noplugin -u NONE -l scripts/par.lua

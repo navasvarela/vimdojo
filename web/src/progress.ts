@@ -1,5 +1,5 @@
 import { z } from "zod"
-import type { Pack } from "./challenges"
+import type { Level, Pack } from "./challenges"
 
 // Port of lua/vimdojo/progress.lua. The shape matches the plugin's
 // progress.json so an exported file means the same thing in both.
@@ -67,22 +67,33 @@ export function isCompleted(progress: Progress, levelId: string): boolean {
   return record !== undefined && record.stars >= 1
 }
 
+/** Whether the running editor can play a level (see lua/vimdojo/compat.lua). */
+export type Supports = (level: Level) => boolean
+
+const supportsEverything: Supports = () => true
+
 /**
- * A level unlocks when the previous level in its pack is completed; the first
- * level of a pack unlocks when every level of the previous pack is completed.
+ * Port of progress.unlocked_by_progress. Per track (tracks progress
+ * independently): a level unlocks when the previous level in its pack is
+ * cleared; a pack's first level unlocks when the track's previous pack is
+ * cleared. Cleared means completed, or not runnable here.
  */
-export function unlockedByProgress(progress: Progress, packs: readonly Pack[]): Set<string> {
+export function unlockedByProgress(
+  progress: Progress,
+  packs: readonly Pack[],
+  supports: Supports = supportsEverything,
+): Set<string> {
   const unlocked = new Set<string>()
-  let previousPackDone = true
+  const previousPackCleared = new Map<string, boolean>()
   for (const pack of packs) {
-    let previousLevelDone = previousPackDone
+    let previousCleared = previousPackCleared.get(pack.track) ?? true
     for (const level of pack.levels) {
-      if (previousLevelDone) {
+      if (previousCleared) {
         unlocked.add(level.id)
       }
-      previousLevelDone = previousLevelDone && isCompleted(progress, level.id)
+      previousCleared = previousCleared && (isCompleted(progress, level.id) || !supports(level))
     }
-    previousPackDone = previousPackDone && pack.levels.every((l) => isCompleted(progress, l.id))
+    previousPackCleared.set(pack.track, previousCleared)
   }
   return unlocked
 }

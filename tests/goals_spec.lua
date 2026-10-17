@@ -35,6 +35,27 @@ describe("goals.validate", function()
       { type = "cursor_at", line = 1, col = 0, allow_edit = "yes" },
       "allow_edit must be a boolean",
     },
+    {
+      "valid register_contains",
+      { type = "register_contains", register = "a", value = { "x" } },
+      nil,
+    },
+    {
+      "uppercase register",
+      { type = "register_contains", register = "A", value = { "x" } },
+      'register must be one of a-z, 0-9, " or -',
+    },
+    {
+      "valid all_of",
+      { type = "all_of", goals = { { type = "cursor_at", line = 1, col = 0 } } },
+      nil,
+    },
+    { "empty all_of", { type = "all_of", goals = {} }, "goals must be a non-empty array" },
+    {
+      "invalid goal inside all_of",
+      { type = "all_of", goals = { { type = "cursor_at", line = 0, col = 0 } } },
+      "goals[1]: line must be an integer >= 1",
+    },
   }
   for _, case in ipairs(cases) do
     local name, goal, expected = case[1], case[2], case[3]
@@ -42,4 +63,45 @@ describe("goals.validate", function()
       assert.are.equal(expected, goals.validate(goal))
     end)
   end
+end)
+
+describe("goals.registers", function()
+  it("lists the registers a goal reads, including nested ones", function()
+    local goal = {
+      type = "all_of",
+      goals = {
+        { type = "register_contains", register = "b", value = { "x" } },
+        { type = "buffer_equals", value = { "x" } },
+        {
+          type = "all_of",
+          goals = { { type = "register_contains", register = "a", value = { "y" } } },
+        },
+      },
+    }
+    assert.are.same({ "a", "b" }, goals.registers(goal))
+  end)
+
+  it("is empty for goals that read no registers", function()
+    assert.are.same({}, goals.registers({ type = "cursor_at", line = 1, col = 0 }))
+  end)
+end)
+
+describe("goal_views", function()
+  local goal_views = require("vimdojo.goal_views")
+
+  it("describes every goal kind, including nested ones", function()
+    local lines = goal_views.describe({
+      type = "all_of",
+      goals = {
+        { type = "register_contains", register = "a", value = { "keep me" }, linewise = true },
+        { type = "buffer_equals", value = { "x" } },
+      },
+    })
+    assert.are.same({
+      'Goal: register "a" must hold (linewise):',
+      "  │ keep me",
+      "Goal: make the text read exactly:",
+      "  │ x",
+    }, lines)
+  end)
 end)

@@ -73,9 +73,17 @@ function M.snapshot()
   if win == -1 then
     return nil
   end
+  local registers = {}
+  for _, name in ipairs(state.level and goals.registers(state.level.goal) or {}) do
+    registers[name] = {
+      lines = vim.fn.getreg(name, 1, true),
+      linewise = vim.fn.getregtype(name) == "V",
+    }
+  end
   return {
     lines = vim.api.nvim_buf_get_lines(state.buf, 0, -1, false),
     cursor = vim.api.nvim_win_get_cursor(win),
+    registers = registers,
   }
 end
 
@@ -131,8 +139,32 @@ local function level_buffer(lines)
   return buf
 end
 
---- (Re)builds the level in a fresh buffer: text, cursor, target highlight,
---- control mappings and goal checks. Also used for reset.
+---@param options table<string, string|number|boolean>|nil
+local function apply_options(options)
+  for name, value in pairs(options or {}) do
+    vim.api.nvim_set_option_value(name, value, {})
+  end
+end
+
+--- Registers the goal reads start empty, so a reset never inherits a register
+--- filled during the previous attempt; then the level's presets apply.
+---@param level vimdojo.Level
+---@param buf integer
+local function apply_preset(level, buf)
+  for _, name in ipairs(goals.registers(level.goal)) do
+    vim.fn.setreg(name, {})
+  end
+  local preset = level.preset or {}
+  for name, value in pairs(preset.registers or {}) do
+    vim.fn.setreg(name, value, type(value) == "table" and "l" or "c")
+  end
+  for name, position in pairs(preset.marks or {}) do
+    vim.api.nvim_buf_set_mark(buf, name, position[1], position[2], {})
+  end
+end
+
+--- (Re)builds the level in a fresh buffer: text, options, presets, cursor,
+--- target highlight, control mappings and goal checks. Also used for reset.
 ---@param spec vimdojo.RoomSpec
 function M.load(spec)
   vim.cmd("stopinsert")
@@ -147,6 +179,8 @@ function M.load(spec)
   end
   state.buf = buf
 
+  apply_options(spec.level.options)
+  apply_preset(spec.level, buf)
   vim.api.nvim_win_set_cursor(0, spec.level.cursor_start)
   goal_views.decorate(buf, spec.level.goal)
   map_controls(buf, spec.keymaps)

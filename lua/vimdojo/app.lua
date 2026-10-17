@@ -2,6 +2,7 @@
 -- (room.lua), counts keys, and records the outcome. Holds the only mutable
 -- game state.
 local challenges = require("vimdojo.challenges")
+local compat = require("vimdojo.compat")
 local game = require("vimdojo.game")
 local keys = require("vimdojo.keys")
 local menu = require("vimdojo.menu")
@@ -60,7 +61,7 @@ local function ensure_loaded()
   if state.packs then
     return true
   end
-  local packs, err = challenges.load_dir()
+  local packs, err = challenges.load_dir(config().challenges_dir)
   if not packs then
     notify("could not load challenges:\n" .. tostring(err), vim.log.levels.ERROR)
     return false
@@ -73,12 +74,17 @@ local function ensure_loaded()
   return true
 end
 
+---@type vimdojo.Supports
+local function supports(level)
+  return compat.supports(level, compat.running())
+end
+
 ---@return table<string, true>
 local function unlocked_levels()
   if config().unlock_all then
     return progress.unlocked_all(state.packs)
   end
-  return progress.unlocked_by_progress(state.progress, state.packs)
+  return progress.unlocked_by_progress(state.progress, state.packs, supports)
 end
 
 ---@param play vimdojo.Play
@@ -141,11 +147,17 @@ function M.quit()
   play.layout:close()
 end
 
+--- The next level the player can start right away, skipping levels this
+--- Neovim cannot run.
 ---@param level_id string
 ---@return vimdojo.Level|nil
-local function next_unlocked(level_id)
+local function next_playable(level_id)
+  local unlocked = unlocked_levels()
   local next_level = challenges.next_level(state.packs, level_id)
-  if next_level and unlocked_levels()[next_level.id] then
+  while next_level and not supports(next_level) do
+    next_level = challenges.next_level(state.packs, next_level.id)
+  end
+  if next_level and unlocked[next_level.id] then
     return next_level
   end
 end
@@ -163,7 +175,7 @@ local function complete(play)
   end
 
   local level_id = play.level.id
-  local next_level = next_unlocked(level_id)
+  local next_level = next_playable(level_id)
   state.results = results.open({
     level = play.level,
     outcome = outcome,
@@ -317,6 +329,10 @@ function M.start(level_id)
     notify(("unknown level %q"):format(level_id), vim.log.levels.ERROR)
     return
   end
+  if not supports(level) then
+    notify(("that level needs Neovim %s or newer"):format(level.requires.nvim), vim.log.levels.WARN)
+    return
+  end
   if not unlocked_levels()[level_id] then
     notify("that level is still locked", vim.log.levels.WARN)
     return
@@ -372,6 +388,7 @@ function M.open_menu()
     packs = state.packs,
     progress = state.progress,
     unlocked = unlocked_levels(),
+    supports = supports,
   }, M.start)
 end
 

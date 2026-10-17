@@ -76,6 +76,7 @@ require("vimdojo").setup({
   window = "float",    -- "float" | "tab"
   config = "clean",    -- "clean": levels run in a stock Neovim; "mine": with your config
   progress_path = nil, -- defaults to stdpath("data")/vimdojo/progress.json
+  challenges_dir = nil, -- play your own packs instead of the built-in ones
   keymaps = { hint = "<leader>h", reset = "<leader>r", quit = "<Esc><Esc>" },
 })
 ```

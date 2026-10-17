@@ -1,8 +1,8 @@
 import { Compartment, EditorSelection, EditorState, type Extension } from "@codemirror/state"
 import { EditorView, drawSelection, highlightActiveLine, lineNumbers } from "@codemirror/view"
 import { Vim, getCM, vim } from "@replit/codemirror-vim"
-import type { Level } from "../challenges"
-import type { Snapshot } from "../goals"
+import type { Level, Preset } from "../challenges"
+import { registersFor, type Register, type Snapshot } from "../goals"
 import { splitNotation } from "../keys"
 import { byteColToIndex, indexToByteCol } from "../text"
 
@@ -32,7 +32,36 @@ export function createEditor(
     state: levelState(level, events, options),
   })
   getCM(view)?.on("vim-mode-change", events.onChange)
+  prepareRegisters(level)
   return view
+}
+
+/**
+ * Mirrors room/child.lua: registers the goal reads start empty (so a retry
+ * never inherits a solved register), then the level's presets apply. The
+ * emulation keeps registers globally, like Vim. Mark presets are not
+ * emulated; levels that need them never pass the emulation gate.
+ */
+function prepareRegisters(level: Level): void {
+  const controller = Vim.getRegisterController()
+  for (const name of registersFor(level.goal)) {
+    controller.getRegister(name).setText("")
+  }
+  const registers: NonNullable<Preset["registers"]> = level.preset?.registers ?? {}
+  for (const [name, value] of Object.entries(registers)) {
+    if (typeof value === "string") {
+      controller.getRegister(name).setText(value, false)
+    } else {
+      controller.getRegister(name).setText(`${value.join("\n")}\n`, true)
+    }
+  }
+}
+
+function readRegister(name: string): Register {
+  const register = Vim.getRegisterController().getRegister(name)
+  const text = register.toString()
+  const body = register.linewise && text.endsWith("\n") ? text.slice(0, -1) : text
+  return { lines: body === "" ? [] : body.split("\n"), linewise: register.linewise }
 }
 
 /** Stops edits once the attempt is over; the cursor can still move. */
@@ -75,6 +104,7 @@ export function resetEditor(
   }
   view.setState(levelState(level, events, options))
   getCM(view)?.on("vim-mode-change", events.onChange)
+  prepareRegisters(level)
 }
 
 function cursorToOffset(state: EditorState, cursor: readonly [number, number]): number {
@@ -82,13 +112,15 @@ function cursorToOffset(state: EditorState, cursor: readonly [number, number]): 
   return line.from + byteColToIndex(line.text, cursor[1])
 }
 
-export function snapshot(view: EditorView): Snapshot {
+/** @param registerNames Registers to capture, usually registersFor(goal). */
+export function snapshot(view: EditorView, registerNames: readonly string[] = []): Snapshot {
   const { doc, selection } = view.state
   const head = selection.main.head
   const line = doc.lineAt(head)
   return {
     lines: doc.toString().split("\n"),
     cursor: [line.number, indexToByteCol(line.text, head - line.from)],
+    registers: Object.fromEntries(registerNames.map((name) => [name, readRegister(name)])),
   }
 }
 

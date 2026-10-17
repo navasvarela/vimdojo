@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest"
-import { loadPacks, type Level } from "./challenges"
+import fixtureMotions from "../../tests/fixtures/packs/01-v2-motions.json"
+import { loadPacks, parsePacks, type Level } from "./challenges"
 import { createEditor, isNormalMode, snapshot, typeKeys } from "./game/editor"
-import { isMet } from "./goals"
+import { isMet, registersFor } from "./goals"
 
 // Runs every level's reference solution through the CodeMirror Vim emulation
 // in a real browser.
@@ -13,9 +14,10 @@ function solveInEmulation(level: Level): boolean {
   document.body.append(parent)
   const view = createEditor(parent, level, { onChange: () => undefined })
   try {
-    const unsolvedAtStart = !isMet(level.goal, snapshot(view), level.start_text)
+    const names = registersFor(level.goal)
+    const unsolvedAtStart = !isMet(level.goal, snapshot(view, names), level.start_text)
     typeKeys(view, level.solution)
-    return unsolvedAtStart && isNormalMode(view) && isMet(level.goal, snapshot(view), level.start_text)
+    return unsolvedAtStart && isNormalMode(view) && isMet(level.goal, snapshot(view, names), level.start_text)
   } finally {
     view.destroy()
     parent.remove()
@@ -31,6 +33,16 @@ describe("CodeMirror Vim emulation", () => {
       expect(solveInEmulation(level)).toBe(true)
     },
   )
+
+  // Register presets and register goals must work in the emulation too.
+  const fixtures = parsePacks([fixtureMotions]).flatMap((pack) => pack.levels)
+  it.each(
+    fixtures
+      .filter((l) => l.id === "v2-preset-register" || l.id === "v2-register-goal")
+      .map((l) => [l.id, l] as const),
+  )("fixture %s solves in the emulation", (_id, level) => {
+    expect(solveInEmulation(level)).toBe(true)
+  })
 
   it("reports which levels the emulation can solve", () => {
     const report = levels.map((level) => `${solveInEmulation(level) ? "ok  " : "FAIL"} ${level.id}`)

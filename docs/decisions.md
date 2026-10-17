@@ -223,3 +223,37 @@ the player's mappings nor their plugins apply, unless they choose
   after `<Esc>`, because the child's TUI waits `ttimeoutlen` to tell Escape
   from an Alt sequence. Solution specs also assert the recorded key count
   equals the solution's length, which checks counting through the terminal.
+
+## Schema v2 (M8)
+
+- **Tracks:** packs declare `track` (`motions`, `usage` or `setup`; default
+  `motions`). Each track's first pack is open from the start, and packs
+  unlock in `order` within their own track (D3 in PLAN-v2). Pack `order`
+  stays globally unique, so packs keep one numbering across tracks.
+- **Version gates:** `requires = { nvim = "0.11" }`. Levels this Neovim
+  can't run show "needs Neovim X" in the menu, can't be started, are skipped
+  by "next level", and **don't block unlocking** (otherwise a 0.10 user would
+  be stuck behind one 0.11 level). Solution tests mark them pending (D4).
+- **Options** are applied like `:set` in the level's clean room. Validation
+  rejects unknown option names via `nvim_get_option_info2`, so a typo fails
+  CI instead of silently not applying.
+- **Presets:** `registers` (a string is charwise, a list is linewise) and
+  buffer `marks` a-z. Quickfix and diagnostics presets arrive with the Usage
+  track (M11), which needs them.
+- **Goals:** `register_contains` (lines, plus an optional `linewise`) and
+  `all_of` (composite, recursive). Snapshots carry only the registers the
+  goal reads (`goals.registers()`). Registers a goal reads are cleared on
+  every load and reset, so a reset can't inherit a register from the previous
+  attempt.
+- **Deviation from PLAN-v2:** the multi-file `files` field moves to M11,
+  where the workspace engine that uses it lands. Adding it now would be
+  schema without behavior.
+- **`challenges_dir` setup option:** load packs from another directory.
+  Authors can play-test a pack before contributing it, and the test suite
+  uses it for `tests/fixtures/packs/`, which exercises every v2 feature end
+  to end in real clean rooms.
+- **Web:** zod mirrors the recursive goal union (`all_of` uses a getter for
+  recursion). The emulation snapshots and presets registers through
+  codemirror-vim's register controller, verified in Chromium against the
+  fixture levels. Mark presets and options aren't emulated; such levels
+  can't pass the emulation gate, so they never get flagged `web_demo`.

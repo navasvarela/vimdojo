@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { demoPacks, loadPacks, nextLevel } from "./challenges"
+import { demoPacks, loadPacks, nextLevel, parsePacks } from "./challenges"
 import { isCountableKeydown, splitNotation } from "./keys"
 import { emptyProgress, recordResult, unlockedByProgress } from "./progress"
 import { loadProgress, saveProgress, serializeProgress, parseJsonProgress } from "./storage"
@@ -62,11 +62,41 @@ describe("text columns", () => {
   })
 })
 
+function lvl(id: string) {
+  return {
+    id,
+    title: id,
+    description: id,
+    start_text: ["a"],
+    cursor_start: [1, 0],
+    goal: { type: "cursor_at", line: 1, col: 0 },
+    par_keys: 1,
+    par_seconds: 1,
+    hint: "h",
+    solution: "l",
+    teaches: ["l"],
+  }
+}
+
 describe("progress", () => {
   const packs = loadPacks()
 
   it("unlocks only the first level on fresh progress", () => {
     expect([...unlockedByProgress(emptyProgress(), packs)]).toEqual([packs[0]?.levels[0]?.id])
+  })
+
+  it("progresses each track independently, skipping unsupported levels", () => {
+    const fixture = parsePacks([
+      { pack: "m", title: "M", order: 1, levels: [lvl("m-1"), lvl("m-2")] },
+      { pack: "s", title: "S", order: 2, track: "setup", levels: [lvl("s-1")] },
+    ])
+    expect([...unlockedByProgress(emptyProgress(), fixture)].sort()).toEqual(["m-1", "s-1"])
+    const skipFirst = (level: { id: string }) => level.id !== "m-1"
+    expect([...unlockedByProgress(emptyProgress(), fixture, skipFirst)].sort()).toEqual([
+      "m-1",
+      "m-2",
+      "s-1",
+    ])
   })
 
   it("merges results into independent bests", () => {

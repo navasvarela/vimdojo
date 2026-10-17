@@ -1,0 +1,22 @@
+{
+  "$schema": "../../../challenges/schema.json",
+  "pack": "v2-setup",
+  "title": "Setup track fixture",
+  "order": 2,
+  "track": "setup",
+  "levels": [
+    {
+      "id": "v2-setup-first",
+      "title": "First of its track",
+      "description": "Unlocked from the start because tracks progress independently.",
+      "start_text": ["abc"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "buffer_equals", "value": ["bc"] },
+      "par_keys": 1,
+      "par_seconds": 5,
+      "hint": "x",
+      "solution": "x",
+      "teaches": ["x"]
+    }
+  ]
+}

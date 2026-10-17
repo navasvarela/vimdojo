@@ -1,6 +1,6 @@
 import type { EditorView } from "@codemirror/view"
 import { nextLevel, type Level, type Pack } from "../challenges"
-import { isMet } from "../goals"
+import { isMet, registersFor } from "../goals"
 import { isCountableKeydown } from "../keys"
 import { recordResult, unlockedAll, type Progress } from "../progress"
 import {
@@ -276,7 +276,8 @@ export class Demo {
     if (play.session.status !== "playing" || !isNormalMode(play.view)) {
       return
     }
-    if (isMet(play.level.goal, snapshot(play.view), play.level.start_text)) {
+    const state = snapshot(play.view, registersFor(play.level.goal))
+    if (isMet(play.level.goal, state, play.level.start_text)) {
       this.complete(play)
     }
   }

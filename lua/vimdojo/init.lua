@@ -5,6 +5,7 @@ local M = {}
 ---@field window "float"|"tab" Where a level is played.
 ---@field config "clean"|"mine" Run levels in a stock Neovim (`--clean`), or with your own config.
 ---@field progress_path string|nil Override for the progress file location (used by tests).
+---@field challenges_dir string|nil Load packs from this directory instead of the built-in ones (for authors and tests).
 ---@field keymaps vimdojo.Controls Normal-mode game controls in the level buffer. Never counted as keystrokes.
 
 ---@type vimdojo.Config
@@ -13,6 +14,7 @@ local defaults = {
   window = "float",
   config = "clean",
   progress_path = nil,
+  challenges_dir = nil,
   keymaps = {
     hint = "<leader>h",
     reset = "<leader>r",
