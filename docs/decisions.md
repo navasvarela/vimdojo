@@ -289,3 +289,22 @@ the player's mappings nor their plugins apply, unless they choose
   `cit`, `g<C-a>`, linewise `yi{`, and `#` + `cgn` match selection. Of the 13
   new levels that pass, six are flagged `web_demo`: `/`, `*`, `ci(`, `daw`,
   `<C-a>` and `R`.
+
+## Motions wave 2 (M10)
+
+- **Packs reshaped for honest pars.** PLAN-v2 sketched separate Registers (6),
+  Macros (6) and Ex (7) packs. Many register ideas have a shorter route with
+  keys already taught: `yy9jp` + `kdd` beats `"0p`, typing `444` beats
+  `<C-r>=12*37`, and `40i-` beats an expression for repeated text. And
+  `yy9p` + `g<C-a>` beats a numbering macro. Those were dropped. The result
+  is **08 Registers and Macros** (5 levels; macros live in registers anyway)
+  and **09 Ex Power** (6). The Usage and Setup packs therefore start at
+  order 10.
+- Every Ex level was checked against the macro and `cgn` alternatives that
+  are taught by then. `:%norm wdw` ties a `wdwj^` macro at 11, which is
+  accepted.
+- "Until it stops" uses `k` after `dd` inside the macro, so the next search
+  starts above the cursor and back-to-back DEBUG lines aren't skipped.
+- The emulation handles macros, `"A` appends, `<C-r>` and most Ex commands.
+  Four levels joined the demo (19 in total). `:m` and the
+  stop-on-failure macro don't match Neovim there.

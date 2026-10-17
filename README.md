@@ -14,8 +14,8 @@ game.
 **[Try the browser demo](https://navasvarela.github.io/vimdojo/)**, then
 install the plugin for the real thing.
 
-- 42 levels in seven packs: Basic Motions, Find and Jump, Operate, Visual Mode,
-  Search, Text Objects and Transform
+- 53 levels in nine packs: Basic Motions, Find and Jump, Operate, Visual Mode,
+  Search, Text Objects, Transform, Registers and Macros, and Ex Power
 - A live timer and key counter, with stars and points against par
 - Hints, instant reset, and progress saved across sessions
 - Every level runs in a clean, isolated Neovim (or with your own config, if

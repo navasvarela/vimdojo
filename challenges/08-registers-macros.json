@@ -1,0 +1,143 @@
+{
+  "$schema": "./schema.json",
+  "pack": "registers-macros",
+  "title": "Registers and Macros",
+  "description": "Named and appending registers, pasting from Insert mode, and macros: record once, replay anywhere.",
+  "order": 8,
+  "levels": [
+    {
+      "id": "registers-01",
+      "title": "Collector",
+      "description": "Gather every TODO line under '## Collected', in order, without losing the originals.",
+      "start_text": [
+        "## Collected",
+        "",
+        "Monday: TODO buy coffee",
+        "Standup. Standup. Standup.",
+        "Tuesday: TODO refactor everything",
+        "Meetings about meetings.",
+        "Wednesday: nothing happened",
+        "Thursday: TODO write the tests (lol)",
+        "Friday: deploy and pray"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "## Collected",
+          "Monday: TODO buy coffee",
+          "Tuesday: TODO refactor everything",
+          "Thursday: TODO write the tests (lol)",
+          "",
+          "Monday: TODO buy coffee",
+          "Standup. Standup. Standup.",
+          "Tuesday: TODO refactor everything",
+          "Meetings about meetings.",
+          "Wednesday: nothing happened",
+          "Thursday: TODO write the tests (lol)",
+          "Friday: deploy and pray"
+        ]
+      },
+      "par_keys": 23,
+      "par_seconds": 32,
+      "hint": "\"ayy yanks into register a; \"Ayy (capital) appends to it. Find TODOs with / and n, then \"ap pastes them all at once.",
+      "solution": "/TO<CR>\"ayyn\"Ayyn\"Ayygg\"ap",
+      "teaches": ["\"a", "\"A"],
+      "web_demo": true
+    },
+    {
+      "id": "registers-02",
+      "title": "Paste while typing",
+      "description": "Finish the line. Register a already holds the address, so don't type it.",
+      "start_text": ["Email:"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["Email: support@vimdojo.invalid (we reply eventually)"]
+      },
+      "par_keys": 27,
+      "par_seconds": 36,
+      "hint": "In Insert mode, <C-r> followed by a register name inserts that register.",
+      "solution": "A <C-r>a (we reply eventually)<Esc>",
+      "teaches": ["<C-r>"],
+      "preset": { "registers": { "a": "support@vimdojo.invalid" } }
+    },
+    {
+      "id": "macros-01",
+      "title": "Record and replay",
+      "description": "Put a colon after every name. Do it once while recording, then replay.",
+      "start_text": ["alice 31", "bob 27", "carol 45", "dave 38", "eve 29", "mallory 52"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["alice: 31", "bob: 27", "carol: 45", "dave: 38", "eve: 29", "mallory: 52"]
+      },
+      "par_keys": 12,
+      "par_seconds": 18,
+      "hint": "qa starts recording into register a and q stops. Leave the cursor where the next line starts, then 5@a replays it five times.",
+      "solution": "qaea:<Esc>j^q5@a",
+      "teaches": ["q", "@"],
+      "web_demo": true
+    },
+    {
+      "id": "macros-02",
+      "title": "CSV to Lua",
+      "description": "Turn every CSV row into a Lua table entry. Typing it seven times is how carpal tunnel starts.",
+      "start_text": [
+        "alice,31",
+        "bob,27",
+        "carol,45",
+        "dave,38",
+        "eve,29",
+        "mallory,52",
+        "trent,40"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "{ name = \"alice\", age = 31 },",
+          "{ name = \"bob\", age = 27 },",
+          "{ name = \"carol\", age = 45 },",
+          "{ name = \"dave\", age = 38 },",
+          "{ name = \"eve\", age = 29 },",
+          "{ name = \"mallory\", age = 52 },",
+          "{ name = \"trent\", age = 40 },"
+        ]
+      },
+      "par_keys": 38,
+      "par_seconds": 50,
+      "hint": "Record one row's edit, finishing with j to move down. I inserts at the start, f, finds the comma, cl changes it, A appends.",
+      "solution": "qaI{ name = \"<Esc>f,cl\", age = <Esc>A },<Esc>jq6@a",
+      "teaches": ["macro"]
+    },
+    {
+      "id": "macros-03",
+      "title": "Until it stops",
+      "description": "Delete every DEBUG line. You don't need to count them: a macro stops as soon as a step fails.",
+      "start_text": [
+        "INFO  boot",
+        "DEBUG x=1",
+        "INFO  ready",
+        "DEBUG x=2",
+        "DEBUG x=3",
+        "INFO  request",
+        "DEBUG why is x 3",
+        "INFO  request",
+        "DEBUG x=4",
+        "DEBUG still x=4",
+        "INFO  shutdown"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["INFO  boot", "INFO  ready", "INFO  request", "INFO  request", "INFO  shutdown"]
+      },
+      "par_keys": 13,
+      "par_seconds": 20,
+      "hint": "Record: search for the next DEBUG, delete the line, step up a line (so back-to-back DEBUG lines aren't skipped). Then replay with a generous count.",
+      "solution": "qa/DE<CR>ddkq9@a",
+      "teaches": ["macro stops on failure"]
+    }
+  ]
+}

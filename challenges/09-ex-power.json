@@ -1,0 +1,157 @@
+{
+  "$schema": "./schema.json",
+  "pack": "ex-power",
+  "title": "Ex Power",
+  "description": "Command-line editing: substitute, global, sort, normal on ranges, and moving lines.",
+  "order": 9,
+  "levels": [
+    {
+      "id": "ex-01",
+      "title": "Find and replace",
+      "description": "The quarterly report needs to sound professional. Replace every lol with ok.",
+      "start_text": ["Q3 summary: lol lol lol lol lol lol lol lol"],
+      "cursor_start": [1, 0],
+      "goal": { "type": "buffer_equals", "value": ["Q3 summary: ok ok ok ok ok ok ok ok"] },
+      "par_keys": 12,
+      "par_seconds": 18,
+      "hint": ":s/old/new/g replaces every match on the current line.",
+      "solution": ":s/lol/ok/g<CR>",
+      "teaches": [":s"],
+      "web_demo": true
+    },
+    {
+      "id": "ex-02",
+      "title": "Vowel shortage is over",
+      "description": "Rename usr to user everywhere in the file, including get_usr.",
+      "start_text": [
+        "local usr = get_usr()",
+        "if usr.admin then",
+        "  log(\"usr is admin: \" .. usr.name)",
+        "end",
+        "return usr"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "local user = get_user()",
+          "if user.admin then",
+          "  log(\"user is admin: \" .. user.name)",
+          "end",
+          "return user"
+        ]
+      },
+      "par_keys": 15,
+      "par_seconds": 22,
+      "hint": "The % range runs :s on every line of the file.",
+      "solution": ":%s/usr/user/g<CR>",
+      "teaches": [":%s"]
+    },
+    {
+      "id": "ex-03",
+      "title": "Silence the logs",
+      "description": "Code review is in five minutes. Delete every console.log line.",
+      "start_text": [
+        "function pay(order) {",
+        "  console.log(\"here\")",
+        "  const total = sum(order)",
+        "  console.log(\"total\", total)",
+        "  console.log(\"WHY\")",
+        "  charge(total)",
+        "  console.log(\"it worked??\")",
+        "  return total",
+        "}"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "function pay(order) {",
+          "  const total = sum(order)",
+          "  charge(total)",
+          "  return total",
+          "}"
+        ]
+      },
+      "par_keys": 9,
+      "par_seconds": 15,
+      "hint": ":g/pattern/d deletes every line that matches.",
+      "solution": ":g/log/d<CR>",
+      "teaches": [":g"],
+      "web_demo": true
+    },
+    {
+      "id": "ex-04",
+      "title": "Tidy imports",
+      "description": "Sort the imports and drop the duplicates.",
+      "start_text": [
+        "import { b } from \"b\"",
+        "import { a } from \"a\"",
+        "import { c } from \"c\"",
+        "import { a } from \"a\"",
+        "import { d } from \"d\"",
+        "import { b } from \"b\""
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "import { a } from \"a\"",
+          "import { b } from \"b\"",
+          "import { c } from \"c\"",
+          "import { d } from \"d\""
+        ]
+      },
+      "par_keys": 7,
+      "par_seconds": 12,
+      "hint": ":sort u sorts lines and removes duplicates. Ex commands can be abbreviated: :sor works too.",
+      "solution": ":sor u<CR>",
+      "teaches": [":sort"]
+    },
+    {
+      "id": "ex-05",
+      "title": "Hedge trimmer",
+      "description": "Drop the hedging word from every status update: the second word of each line.",
+      "start_text": [
+        "We totally shipped",
+        "It basically works",
+        "Tests mostly pass",
+        "Users probably love it",
+        "Nobody actually complained"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["We shipped", "It works", "Tests pass", "Users love it", "Nobody complained"]
+      },
+      "par_keys": 11,
+      "par_seconds": 17,
+      "hint": ":%norm runs Normal-mode keys on every line, starting at the beginning of each.",
+      "solution": ":%norm wdw<CR>",
+      "teaches": [":norm"]
+    },
+    {
+      "id": "ex-06",
+      "title": "Move it",
+      "description": "Define helper before main uses it: move the whole helper function to the top.",
+      "start_text": [
+        "function main()",
+        "  helper()",
+        "end",
+        "function helper()",
+        "  return 42",
+        "end"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["function helper()", "  return 42", "end", "function main()", "  helper()", "end"]
+      },
+      "par_keys": 7,
+      "par_seconds": 12,
+      "hint": ":4,6m0 moves lines 4 to 6 below line 0, the top of the file.",
+      "solution": ":4,6m0<CR>",
+      "teaches": [":m"]
+    }
+  ]
+}
