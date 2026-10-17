@@ -13,10 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: nvim-neorocks/luarocks-tag-release@v9
+      # Pinned to v8: v9.0.0 always passes `upload --sign-protocol`, which
+      # the lux version it installs (0.47.0) rejects, so every upload fails.
+      # v8 uploads with plain luarocks. Revisit once v9 is fixed upstream.
+      - uses: nvim-neorocks/luarocks-tag-release@v8.0.0
         env:
-          # A luarocks.org API key, stored as a repository secret.
-          LUX_API_KEY: ${{ secrets.LUX_API_KEY }}
+          # A luarocks.org API key, stored as the LUX_API_KEY repository
+          # secret (v9's name for it), passed under the name v8 expects.
+          LUAROCKS_API_KEY: ${{ secrets.LUX_API_KEY }}
         with:
           # challenges/ holds the level packs; the plugin finds it through
           # 'runtimepath' because a rock installs it apart from lua/.
