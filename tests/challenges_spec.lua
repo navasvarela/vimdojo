@@ -135,3 +135,32 @@ describe("challenges navigation", function()
     end)
   end
 end)
+
+describe("challenges.runtime_dir", function()
+  local saved_rtp
+
+  before_each(function()
+    saved_rtp = vim.o.runtimepath
+  end)
+
+  after_each(function()
+    vim.o.runtimepath = saved_rtp
+  end)
+
+  it("finds challenges/ beside plugin/vimdojo.lua, as in a rock install", function()
+    local rock = helpers.temp_dir()
+    local unrelated = helpers.temp_dir()
+    vim.fn.mkdir(rock .. "/plugin", "p")
+    vim.fn.mkdir(rock .. "/challenges", "p")
+    vim.fn.writefile({}, rock .. "/plugin/vimdojo.lua")
+    vim.fn.mkdir(unrelated .. "/challenges", "p")
+    vim.o.runtimepath = table.concat({ unrelated, rock }, ",")
+
+    assert.are.equal(vim.fn.fnamemodify(rock, ":p:h") .. "/challenges", challenges.runtime_dir())
+  end)
+
+  it("returns nil when no runtimepath entry provides the plugin", function()
+    vim.o.runtimepath = helpers.temp_dir()
+    assert.is_nil(challenges.runtime_dir())
+  end)
+end)

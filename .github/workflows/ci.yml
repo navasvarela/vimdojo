@@ -42,6 +42,7 @@ jobs:
         with:
           neovim: true
           version: ${{ matrix.neovim }}
+      - run: make doc
       - run: make test
 
   web:

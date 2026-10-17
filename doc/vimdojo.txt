@@ -1,0 +1,178 @@
+*vimdojo.txt*  Learn Vim motions by solving tiny puzzles.
+
+Author:  Juan Miguel Salamanca Zafra
+License: MIT
+Website: https://navasvarela.github.io/vimdojo/
+
+==============================================================================
+CONTENTS                                                    *vimdojo-contents*
+
+  1. Introduction ........................................ |vimdojo-intro|
+  2. Installation ........................................ |vimdojo-install|
+  3. Playing ............................................. |vimdojo-playing|
+  4. Commands ............................................ |vimdojo-commands|
+  5. Configuration ....................................... |vimdojo-config|
+  6. Scoring ............................................. |vimdojo-scoring|
+  7. Progress ............................................ |vimdojo-progress|
+  8. Writing levels ...................................... |vimdojo-levels|
+
+==============================================================================
+1. INTRODUCTION                                                *vimdojo-intro*
+
+vimdojo is a game that teaches Vim motions. Each level gives you a short
+snippet of text and a goal, such as "delete the typo" or "put the cursor on
+the last word". Solve it with Vim keys. Every attempt is scored on the number
+of keystrokes, the time taken, and the level's par.
+
+The curriculum has three packs: Basic Motions, Find and Jump, and Operate.
+Levels unlock in order. Finishing a pack unlocks the next one.
+
+==============================================================================
+2. INSTALLATION                                              *vimdojo-install*
+
+Requires Neovim 0.10 or newer. There are no runtime dependencies.
+
+lazy.nvim: >lua
+    { "navasvarela/vimdojo", cmd = "VimDojo", opts = {} }
+<
+packer.nvim: >lua
+    use({ "navasvarela/vimdojo" })
+<
+vim-plug: >vim
+    Plug 'navasvarela/vimdojo'
+<
+rocks.nvim (from luarocks.org): >vim
+    :Rocks install vimdojo
+<
+Calling |vimdojo.setup()| is optional. Without it the defaults apply.
+
+==============================================================================
+3. PLAYING                                                   *vimdojo-playing*
+
+Run |:VimDojo| to open the level menu. Move to a level and press <CR>.
+
+The level opens in a scratch buffer, in a floating window or a new tab (see
+|vimdojo-config|). A header above it shows the description, the goal and the
+par. For a cursor goal, the target character is highlighted. For a text
+goal, the header shows the text to produce. The window bar shows a live
+timer and keystroke counter.
+
+  - The timer starts on your first keystroke, not when the level opens.
+  - Every physical key counts once: `d2w` is 3 keys and <Esc> is 1.
+    Mouse events are never counted, and the mouse is disabled while you
+    play.
+  - A level is solved as soon as the goal holds in Normal mode. If you are
+    editing, leave Insert mode with <Esc> to finish (and that <Esc> counts).
+
+When you solve a level, a results card shows your stars, points, keys, time
+and your best so far:
+
+  n or <CR>   Next level (when it is unlocked)
+  r           Retry the level
+  m           Back to the menu
+  q or <Esc>  Quit
+
+                                                            *vimdojo-controls*
+While a level is open, these Normal-mode keys control the game. They are
+never counted as keystrokes, and all of them can be remapped with
+`keymaps` in |vimdojo-config|.
+
+  <leader>h   Show the hint. The attempt is capped at 2 stars.
+  <leader>r   Reset the level: text, cursor, timer and counter.
+  <Esc><Esc>  Leave the level.
+
+Levels are judged against stock Vim behavior. Your own mappings stay active
+in the game buffer, so if your config remaps a motion, the level sees the
+remapped behavior.
+
+==============================================================================
+4. COMMANDS                                                 *vimdojo-commands*
+
+                                                                    *:VimDojo*
+:VimDojo [subcommand]
+    Without a subcommand, opens the level menu. Subcommands:
+
+    menu    Open the level menu.
+    hint    Show the current level's hint (same as <leader>h).
+    reset   Restart the current level (same as <leader>r).
+    quit    Leave the current level (same as <Esc><Esc>).
+
+    Keys typed on the command line count as keystrokes, so prefer the
+    mappings in |vimdojo-controls| during a level.
+
+==============================================================================
+5. CONFIGURATION                                              *vimdojo-config*
+
+                                                             *vimdojo.setup()*
+require("vimdojo").setup({opts})
+    All fields are optional. The defaults: >lua
+
+    require("vimdojo").setup({
+      -- Unlock every pack and level regardless of progress.
+      unlock_all = false,
+      -- Where a level is played: "float" or "tab".
+      window = "float",
+      -- Progress file. nil means stdpath("data")/vimdojo/progress.json.
+      progress_path = nil,
+      -- Game controls in the level buffer (Normal mode).
+      keymaps = {
+        hint = "<leader>h",
+        reset = "<leader>r",
+        quit = "<Esc><Esc>",
+      },
+    })
+<
+Highlight groups, all defined with `default = true` so your colorscheme can
+override them:
+
+  VimDojoTarget   The cursor goal's target character.
+  VimDojoStar     Stars in the menu and results.
+  VimDojoTitle    Pack titles in the menu.
+  VimDojoLocked   Locked levels in the menu.
+  VimDojoGood     The par line.
+  VimDojoMuted    Secondary text.
+
+==============================================================================
+6. SCORING                                                   *vimdojo-scoring*
+
+Stars:
+  3  keys <= par keys and seconds <= par seconds
+  2  keys <= 1.5 x par keys
+  1  solved
+
+Points range from 0 to 1000: 70% for keystrokes and 30% for time. Each part is
+full at or under par, and the fraction of par achieved above it. Using the
+hint multiplies the points by 0.8 and caps the attempt at 2 stars.
+
+Keystrokes weigh more than time because Vim skill is about choosing the
+right motion, not typing fast. Par is the shortest solution that uses only
+the motions taught so far, so knowing more Vim lets you beat it.
+
+==============================================================================
+7. PROGRESS                                                 *vimdojo-progress*
+
+Progress is stored as JSON in `stdpath("data")/vimdojo/progress.json`: >json
+
+    {
+      "version": 1,
+      "levels": {
+        "basic-motions-01": {
+          "best_keys": 5, "best_seconds": 7.4, "stars": 3, "attempts": 4
+        }
+      }
+    }
+<
+The file is written atomically. If it cannot be read, it is renamed to
+`progress.json.corrupt-<time>` and play starts fresh. Nothing is deleted.
+
+The web demo uses the same format, so its "Export progress" file has the
+same shape. Only the demo's levels appear in it.
+
+==============================================================================
+8. WRITING LEVELS                                             *vimdojo-levels*
+
+Levels live in `challenges/*.json` in the plugin's directory and are shared
+with the web demo. See `docs/authoring-levels.md` in the repository for the
+format, the par rule and the tests that every level must pass.
+
+ vim:tw=78:ts=8:ft=help:norl:

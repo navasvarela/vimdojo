@@ -3,9 +3,9 @@ DEPS_DIR := .deps
 PLENARY_DIR := $(abspath $(DEPS_DIR)/plenary.nvim)
 AJV := npx --yes ajv-cli@5.0.0
 
-.PHONY: all deps test lint fmt validate par
+.PHONY: all deps test lint fmt validate par doc gif
 
-all: lint validate test
+all: lint validate doc test
 
 deps: $(PLENARY_DIR)
 
@@ -28,3 +28,11 @@ validate:
 
 par:
 	$(NVIM) --headless --noplugin -u NONE -l scripts/par.lua
+
+# Fails if the help file has duplicate or malformed tags.
+doc:
+	$(NVIM) --headless --clean -c "try | helptags doc | catch | cquit 1 | endtry" -c "qa"
+
+# Re-records docs/demo.gif from docs/demo.tape (needs https://github.com/charmbracelet/vhs).
+gif:
+	vhs docs/demo.tape

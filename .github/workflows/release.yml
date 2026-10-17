@@ -1,0 +1,34 @@
+name: LuaRocks release
+
+# Publishes the plugin to luarocks.org (for rocks.nvim) when a version tag is
+# pushed. On pull requests it only builds and installs the rock locally, which
+# catches packaging mistakes before a release.
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+
+jobs:
+  luarocks-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: nvim-neorocks/luarocks-tag-release@v9
+        env:
+          # A luarocks.org API key, stored as a repository secret.
+          LUX_API_KEY: ${{ secrets.LUX_API_KEY }}
+        with:
+          # challenges/ holds the level packs; the plugin finds it through
+          # 'runtimepath' because a rock installs it apart from lua/.
+          copy_directories: |
+            {{ neovim.plugin.dirs }}
+            challenges
+          summary: Learn Vim motions by solving tiny puzzles in Neovim
+          detailed_description: |
+            A game that teaches Vim motions: each level gives you a snippet of
+            text and a goal, and scores your solution on keystrokes, time and par.
+          labels: |
+            neovim
+            vim
+            game
+            learning

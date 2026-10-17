@@ -2,44 +2,77 @@
 
 Learn Vim motions by solving tiny puzzles, right inside Neovim.
 
-Each level gives you a snippet of text and a goal ("delete the typo", "put the
-cursor on the last word"). Solve it with Vim keystrokes and you are scored on
-keystrokes, time, and a per-level par.
+![vimdojo: open the menu, solve a level in five keys, and move on to the next](docs/demo.gif)
 
-> Status: early development. See [PLAN.md](PLAN.md) for the roadmap.
->
-> Website and browser demo: https://navasvarela.github.io/vimdojo/ (deployed by `.github/workflows/pages.yml`).
+Each level gives you a snippet of text and a goal ("delete the typo", "put the
+cursor on the last word"). Solve it with Vim keys. You're scored on keystrokes,
+time and the level's par. Every key counts, so finding the short way is the
+game.
+
+**[Try the browser demo](https://navasvarela.github.io/vimdojo/)**, then
+install the plugin for the real thing.
+
+- 20 levels in three packs: Basic Motions, Find and Jump, and Operate
+- A live timer and key counter, with stars and points against par
+- Hints, instant reset, and progress saved across sessions
+- Runs in your own Neovim, with your own config
+- No dependencies, and near-zero startup cost (only the command is defined
+  until you use it)
 
 ## Install
 
-Requires Neovim 0.10+. No runtime dependencies.
+Requires Neovim 0.10+.
+
+**lazy.nvim**
 
 ```lua
--- lazy.nvim
 { "navasvarela/vimdojo", cmd = "VimDojo", opts = {} }
 ```
 
-Then run `:VimDojo`.
+**packer.nvim**
+
+```lua
+use({ "navasvarela/vimdojo" })
+```
+
+**vim-plug**
+
+```vim
+Plug 'navasvarela/vimdojo'
+```
+
+**rocks.nvim**
+
+```vim
+:Rocks install vimdojo
+```
+
+Then run `:VimDojo`. Full documentation: `:help vimdojo`.
 
 ## Playing
 
 | Key / command | Action |
 |---|---|
 | `:VimDojo` | Open the level menu (`<CR>` to play, `q` to close) |
-| `<leader>h` / `:VimDojo hint` | Show the hint (caps the attempt at 2 stars) |
-| `<leader>r` / `:VimDojo reset` | Restart the level |
-| `<Esc><Esc>` / `:VimDojo quit` | Leave the level |
+| `<leader>h` | Show the hint (caps the attempt at 2 stars) |
+| `<leader>r` | Restart the level |
+| `<Esc><Esc>` | Leave the level |
+| `n` / `r` / `m` | On the results card: next level, retry, menu |
 
 The timer starts on your first key. Every physical key counts (`d2w` is 3
-keys, `<Esc>` is 1). The game's own control keys are never counted. A level is
-solved as soon as the goal holds in Normal mode.
+keys, `<Esc>` is 1), and the game's own control keys never do. A level is
+solved as soon as its goal holds in Normal mode.
+
+**Stars:** 3 for matching par on both keys and time, 2 for up to 1.5× par
+keys, and 1 for solving it. Par is the shortest solution that uses only the
+motions taught so far, so if you know more Vim, you can beat it.
 
 ## Configuration
 
 ```lua
 require("vimdojo").setup({
-  unlock_all = false, -- skip progression locks
-  window = "float",   -- "float" | "tab"
+  unlock_all = false,  -- skip progression locks
+  window = "float",    -- "float" | "tab"
   progress_path = nil, -- defaults to stdpath("data")/vimdojo/progress.json
   keymaps = { hint = "<leader>h", reset = "<leader>r", quit = "<Esc><Esc>" },
 })
@@ -48,29 +81,14 @@ require("vimdojo").setup({
 Levels are judged against stock Vim behavior. If your config remaps a motion,
 it applies in the game buffer too.
 
-## Development
+## Contributing
 
-```sh
-make deps      # clone plenary.nvim into .deps/ (dev only)
-make test      # plugin unit tests + every level's reference solution
-make lint      # stylua --check and selene
-make validate  # validate challenges/*.json against challenges/schema.json
-```
-
-The web demo lives in `web/` (Vite + TypeScript + CodeMirror 6 with
-`@replit/codemirror-vim`):
-
-```sh
-cd web
-npm install
-npx playwright install chromium  # once, for the emulation tests
-npm run dev    # http://localhost:5173/vimdojo/
-npm test       # unit tests (jsdom) + emulation tests (Chromium)
-npm run build
-```
-
-Design decisions are logged in [docs/decisions.md](docs/decisions.md).
+New levels are the best contribution: they're plain JSON, and the tests prove
+each one is solvable within par in real Neovim. See
+[docs/authoring-levels.md](docs/authoring-levels.md) and
+[CONTRIBUTING.md](CONTRIBUTING.md). Design decisions are logged in
+[docs/decisions.md](docs/decisions.md).
 
 ## License
 
-MIT
+[MIT](LICENSE)

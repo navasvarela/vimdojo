@@ -30,10 +30,32 @@ local M = {}
 ---@field order integer
 ---@field levels vimdojo.Level[]
 
+--- Where the packs ship with the plugin.
+---
+--- A git checkout (lazy.nvim, packer, vim-plug) keeps `challenges/` next to
+--- `lua/`. A LuaRocks install (rocks.nvim) does not: the modules go to the
+--- Lua tree while `challenges/` is copied into the rock's directory, which is
+--- on 'runtimepath' alongside `plugin/vimdojo.lua`. Try both.
 ---@return string
 function M.default_dir()
   local this_file = debug.getinfo(1, "S").source:sub(2)
-  return vim.fn.fnamemodify(this_file, ":p:h:h:h") .. "/challenges"
+  local beside_lua = vim.fn.fnamemodify(this_file, ":p:h:h:h") .. "/challenges"
+  if vim.fn.isdirectory(beside_lua) == 1 then
+    return beside_lua
+  end
+  return M.runtime_dir() or beside_lua
+end
+
+--- The `challenges/` directory of the runtimepath entry that provides
+--- `plugin/vimdojo.lua`, so another plugin's `challenges/` is never picked.
+---@return string|nil
+function M.runtime_dir()
+  for _, plugin_file in ipairs(vim.api.nvim_get_runtime_file("plugin/vimdojo.lua", true)) do
+    local dir = vim.fn.fnamemodify(plugin_file, ":p:h:h") .. "/challenges"
+    if vim.fn.isdirectory(dir) == 1 then
+      return dir
+    end
+  end
 end
 
 ---@param level table
