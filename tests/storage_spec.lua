@@ -2,10 +2,13 @@ local helpers = require("helpers")
 local progress = require("vimdojo.progress")
 local storage = require("vimdojo.storage")
 
+--- File names (not paths, which use backslashes on Windows) next to `path`.
 ---@param path string
 ---@return string[]
 local function siblings(path)
-  return vim.fn.glob(vim.fn.fnamemodify(path, ":h") .. "/*", false, true)
+  local names = vim.fn.readdir(vim.fn.fnamemodify(path, ":h"))
+  table.sort(names)
+  return names
 end
 
 describe("storage", function()
@@ -36,7 +39,7 @@ describe("storage", function()
 
   it("leaves no temporary file behind", function()
     assert.is_true(storage.save(path, progress.empty()))
-    assert.are.same({ path }, siblings(path))
+    assert.are.same({ "progress.json" }, siblings(path))
   end)
 
   local corrupt = {
@@ -57,7 +60,8 @@ describe("storage", function()
       local files = siblings(path)
       assert.are.equal(1, #files)
       assert.is_truthy(files[1]:find("progress.json.corrupt-", 1, true))
-      assert.are.same({ content }, vim.fn.readfile(files[1]))
+      local backup = vim.fn.fnamemodify(path, ":h") .. "/" .. files[1]
+      assert.are.same({ content }, vim.fn.readfile(backup))
     end)
   end
 end)
