@@ -178,6 +178,36 @@ local function cross_pack_errors(packs)
   return errors
 end
 
+---@param packs vimdojo.Pack[]
+---@param level_id string
+---@return vimdojo.Level|nil
+function M.find(packs, level_id)
+  for _, pack in ipairs(packs) do
+    for _, level in ipairs(pack.levels) do
+      if level.id == level_id then
+        return level
+      end
+    end
+  end
+end
+
+--- The level after `level_id` in curriculum order, crossing into the next
+--- pack at the end of a pack.
+---@param packs vimdojo.Pack[] Sorted by order.
+---@param level_id string
+---@return vimdojo.Level|nil
+function M.next_level(packs, level_id)
+  local found = false
+  for _, pack in ipairs(packs) do
+    for _, level in ipairs(pack.levels) do
+      if found then
+        return level
+      end
+      found = level.id == level_id
+    end
+  end
+end
+
 --- Loads every pack file (`*.json` except `schema.json`) in `dir`, sorted by
 --- `order`.
 ---@param dir string|nil Defaults to the plugin's own challenges/ directory.

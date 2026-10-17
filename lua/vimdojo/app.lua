@@ -1,0 +1,344 @@
+-- Orchestrates a play session: loads data, opens the level, wires key capture
+-- and goal checks, and records the outcome. Holds the only mutable game state.
+local challenges = require("vimdojo.challenges")
+local game = require("vimdojo.game")
+local goals = require("vimdojo.goals")
+local keys = require("vimdojo.keys")
+local menu = require("vimdojo.menu")
+local progress = require("vimdojo.progress")
+local results = require("vimdojo.results")
+local storage = require("vimdojo.storage")
+local ui = require("vimdojo.ui")
+
+local uv = vim.uv or vim.loop
+
+local M = {}
+
+-- 100 ms keeps the timer readable to a tenth of a second without measurable cost.
+local STATUS_REFRESH_MS = 100
+
+---@class vimdojo.Play
+---@field level vimdojo.Level
+---@field session vimdojo.Session
+---@field layout vimdojo.Layout
+---@field augroup integer
+---@field stop_capture fun()|nil
+---@field ticker uv.uv_timer_t|nil
+---@field saved_mouse string|nil
+
+---@type { packs: vimdojo.Pack[]|nil, progress: vimdojo.Progress|nil, play: vimdojo.Play|nil, results: vimdojo.Panel|nil }
+local state = { packs = nil, progress = nil, play = nil, results = nil }
+
+---@return vimdojo.Config
+local function config()
+  return require("vimdojo").config
+end
+
+---@return string
+local function progress_path()
+  return config().progress_path or storage.default_path()
+end
+
+---@return number
+local function clock()
+  return uv.hrtime() / 1e9
+end
+
+---@param message string
+---@param level integer|nil
+local function notify(message, level)
+  vim.notify("vimdojo: " .. message, level or vim.log.levels.INFO)
+end
+
+---@return boolean loaded
+local function ensure_loaded()
+  if state.packs then
+    return true
+  end
+  local packs, err = challenges.load_dir()
+  if not packs then
+    notify("could not load challenges:\n" .. tostring(err), vim.log.levels.ERROR)
+    return false
+  end
+  local data, warning = storage.load(progress_path())
+  if warning then
+    vim.notify(warning, vim.log.levels.WARN)
+  end
+  state.packs, state.progress = packs, data
+  return true
+end
+
+---@return table<string, true>
+local function unlocked_levels()
+  if config().unlock_all then
+    return progress.unlocked_all(state.packs)
+  end
+  return progress.unlocked_by_progress(state.progress, state.packs)
+end
+
+---@param play vimdojo.Play
+---@return string
+local function status_text(play)
+  local session = play.session
+  local text = (" time %.1fs · keys %d · par %d keys / %gs"):format(
+    session:elapsed(),
+    session.keys,
+    play.level.par_keys,
+    play.level.par_seconds
+  )
+  if session.hinted then
+    text = text .. " · hinted"
+  end
+  return text
+end
+
+--- Stops everything that listens to the player. Idempotent, and safe to call
+--- from any exit path (goal reached, quit, window closed under us).
+---@param play vimdojo.Play
+local function release_input(play)
+  pcall(vim.api.nvim_del_augroup_by_id, play.augroup)
+  if play.stop_capture then
+    play.stop_capture()
+    play.stop_capture = nil
+  end
+  if play.ticker then
+    play.ticker:stop()
+    play.ticker:close()
+    play.ticker = nil
+  end
+  if play.saved_mouse then
+    vim.o.mouse = play.saved_mouse
+    play.saved_mouse = nil
+  end
+end
+
+local function close_results()
+  if state.results then
+    state.results.close()
+    state.results = nil
+  end
+end
+
+--- Ends the current level, if any, and closes its windows.
+function M.quit()
+  close_results()
+  local play = state.play
+  if not play then
+    return
+  end
+  state.play = nil
+  release_input(play)
+  play.layout:close()
+end
+
+---@param level_id string
+---@return vimdojo.Level|nil
+local function next_unlocked(level_id)
+  local next_level = challenges.next_level(state.packs, level_id)
+  if next_level and unlocked_levels()[next_level.id] then
+    return next_level
+  end
+end
+
+---@param play vimdojo.Play
+local function complete(play)
+  local outcome = play.session:finish()
+  release_input(play)
+  play.layout:set_status(status_text(play))
+  play.layout:freeze()
+
+  progress.record(state.progress, play.level.id, outcome)
+  local ok, err = storage.save(progress_path(), state.progress)
+  if not ok then
+    notify("could not save progress: " .. tostring(err), vim.log.levels.ERROR)
+  end
+
+  local level_id = play.level.id
+  local next_level = next_unlocked(level_id)
+  state.results = results.open({
+    level = play.level,
+    outcome = outcome,
+    record = state.progress.levels[level_id],
+    has_next = next_level ~= nil,
+  }, {
+    next = function()
+      if next_level then
+        M.start(next_level.id)
+      end
+    end,
+    retry = function()
+      M.start(level_id)
+    end,
+    menu = function()
+      M.quit()
+      M.open_menu()
+    end,
+    close = M.quit,
+  })
+end
+
+---@param play vimdojo.Play
+local function check_goal(play)
+  if not play.session:is_playing() or vim.api.nvim_get_mode().mode ~= "n" then
+    return
+  end
+  local snapshot = {
+    lines = vim.api.nvim_buf_get_lines(play.layout.game_buf, 0, -1, false),
+    cursor = vim.api.nvim_win_get_cursor(play.layout.game_win),
+  }
+  if goals.is_met(play.level.goal, snapshot, play.level.start_text) then
+    complete(play)
+  end
+end
+
+---@param play vimdojo.Play
+local function watch(play)
+  local buf, win = play.layout.game_buf, play.layout.game_win
+  -- Goals are only checked in Normal mode: an edit counts as done once the
+  -- player leaves Insert mode, the same way the reference solutions run.
+  vim.api.nvim_create_autocmd({ "TextChanged", "CursorMoved" }, {
+    group = play.augroup,
+    buffer = buf,
+    callback = function()
+      check_goal(play)
+    end,
+  })
+  vim.api.nvim_create_autocmd("ModeChanged", {
+    group = play.augroup,
+    pattern = "*:n",
+    callback = function()
+      if vim.api.nvim_get_current_buf() == buf then
+        check_goal(play)
+      end
+    end,
+  })
+  vim.api.nvim_create_autocmd("WinClosed", {
+    group = play.augroup,
+    pattern = tostring(win),
+    callback = function()
+      vim.schedule(M.quit)
+    end,
+  })
+end
+
+--- Control keys are counted by the key capture before their mapping runs, so
+--- each control takes its own keys back off the counter.
+---@param play vimdojo.Play
+local function map_controls(play)
+  local maps = config().keymaps
+  local function control(lhs, action)
+    return function()
+      play.session:uncount_keys(keys.count(lhs))
+      action()
+    end
+  end
+  ui.map(play.layout.game_buf, {
+    [maps.hint] = control(maps.hint, M.hint),
+    [maps.reset] = control(maps.reset, M.reset),
+    [maps.quit] = control(maps.quit, M.quit),
+  })
+end
+
+---@param play vimdojo.Play
+local function capture_input(play)
+  play.saved_mouse = vim.o.mouse
+  -- A click could move the cursor onto a cursor_at target for free.
+  vim.o.mouse = ""
+  play.stop_capture = keys.capture(function()
+    return not play.session:is_finished() and vim.api.nvim_get_current_win() == play.layout.game_win
+  end, function(count)
+    play.session:count_keys(count)
+  end)
+  play.ticker = uv.new_timer()
+  play.ticker:start(
+    0,
+    STATUS_REFRESH_MS,
+    vim.schedule_wrap(function()
+      if state.play == play then
+        play.layout:set_status(status_text(play))
+      end
+    end)
+  )
+end
+
+---@param level_id string
+function M.start(level_id)
+  if not ensure_loaded() then
+    return
+  end
+  local level = challenges.find(state.packs, level_id)
+  if not level then
+    notify(("unknown level %q"):format(level_id), vim.log.levels.ERROR)
+    return
+  end
+  if not unlocked_levels()[level_id] then
+    notify("that level is still locked", vim.log.levels.WARN)
+    return
+  end
+  M.quit()
+
+  local play = {
+    level = level,
+    session = game.new(level, clock),
+    layout = ui.open_level(level, { window = config().window, controls = config().keymaps }),
+    augroup = vim.api.nvim_create_augroup("vimdojo.play", { clear = true }),
+  }
+  state.play = play
+  watch(play)
+  map_controls(play)
+  capture_input(play)
+end
+
+--- Restarts the current level in place. A hint already seen stays counted.
+function M.reset()
+  local play = state.play
+  if not play or play.session:is_finished() then
+    return
+  end
+  local hinted = play.session.hinted
+  play.session = game.new(play.level, clock)
+  if hinted then
+    play.session:use_hint()
+  end
+  play.layout:load(play.level)
+  play.layout:set_status(status_text(play))
+end
+
+function M.hint()
+  local play = state.play
+  if not play or play.session:is_finished() or play.session.hinted then
+    return
+  end
+  play.session:use_hint()
+  play.layout:show_hint(play.level.hint)
+end
+
+function M.open_menu()
+  if not ensure_loaded() then
+    return
+  end
+  M.quit()
+  menu.open({
+    packs = state.packs,
+    progress = state.progress,
+    unlocked = unlocked_levels(),
+  }, M.start)
+end
+
+--- Drops cached packs and progress so the next command reloads them from disk.
+function M.reload()
+  M.quit()
+  state.packs, state.progress = nil, nil
+end
+
+---@return vimdojo.Play|nil
+function M.current()
+  return state.play
+end
+
+---@return vimdojo.Progress|nil
+function M.progress()
+  return state.progress
+end
+
+return M

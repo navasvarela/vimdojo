@@ -4,12 +4,18 @@ local M = {}
 ---@field unlock_all boolean Unlock every pack and level regardless of progress.
 ---@field window "float"|"tab" Where a level is played.
 ---@field progress_path string|nil Override for the progress file location (used by tests).
+---@field keymaps vimdojo.Controls Normal-mode game controls in the level buffer. Never counted as keystrokes.
 
 ---@type vimdojo.Config
 local defaults = {
   unlock_all = false,
   window = "float",
   progress_path = nil,
+  keymaps = {
+    hint = "<leader>h",
+    reset = "<leader>r",
+    quit = "<Esc><Esc>",
+  },
 }
 
 ---@type vimdojo.Config
@@ -20,17 +26,39 @@ function M.setup(opts)
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
 end
 
+---@type table<string, fun()>
+local subcommands = {
+  menu = function()
+    require("vimdojo.app").open_menu()
+  end,
+  reset = function()
+    require("vimdojo.app").reset()
+  end,
+  hint = function()
+    require("vimdojo.app").hint()
+  end,
+  quit = function()
+    require("vimdojo.app").quit()
+  end,
+}
+
 ---@return string[]
 function M.subcommands()
-  return {}
+  local names = vim.tbl_keys(subcommands)
+  table.sort(names)
+  return names
 end
 
+--- `:VimDojo [subcommand]`. With no argument it opens the menu.
 ---@param args string[]
 function M.command(args)
-  vim.notify(
-    "vimdojo: not implemented yet (" .. table.concat(args, " ") .. ")",
-    vim.log.levels.INFO
-  )
+  local name = args[1] or "menu"
+  local run = subcommands[name]
+  if not run then
+    vim.notify(("vimdojo: unknown subcommand %q"):format(name), vim.log.levels.ERROR)
+    return
+  end
+  run()
 end
 
 return M

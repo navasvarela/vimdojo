@@ -19,6 +19,33 @@ Requires Neovim 0.10+. No runtime dependencies.
 
 Then run `:VimDojo`.
 
+## Playing
+
+| Key / command | Action |
+|---|---|
+| `:VimDojo` | Open the level menu (`<CR>` to play, `q` to close) |
+| `<leader>h` / `:VimDojo hint` | Show the hint (caps the attempt at 2 stars) |
+| `<leader>r` / `:VimDojo reset` | Restart the level |
+| `<Esc><Esc>` / `:VimDojo quit` | Leave the level |
+
+The timer starts on your first key. Every physical key counts (`d2w` is 3
+keys, `<Esc>` is 1). The game's own control keys are never counted. A level is
+solved as soon as the goal holds in Normal mode.
+
+## Configuration
+
+```lua
+require("vimdojo").setup({
+  unlock_all = false, -- skip progression locks
+  window = "float",   -- "float" | "tab"
+  progress_path = nil, -- defaults to stdpath("data")/vimdojo/progress.json
+  keymaps = { hint = "<leader>h", reset = "<leader>r", quit = "<Esc><Esc>" },
+})
+```
+
+Levels are judged against stock Vim behavior. If your config remaps a motion,
+it applies in the game buffer too.
+
 ## Development
 
 ```sh

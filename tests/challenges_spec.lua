@@ -109,3 +109,29 @@ describe("challenges.load_dir", function()
     assert.is_truthy(err:find("no challenge packs", 1, true))
   end)
 end)
+
+describe("challenges navigation", function()
+  local packs = {
+    { pack = "a", levels = { { id = "a-1" }, { id = "a-2" } } },
+    { pack = "b", levels = { { id = "b-1" } } },
+  }
+
+  it("finds a level by id", function()
+    assert.are.equal("a-2", challenges.find(packs, "a-2").id)
+    assert.is_nil(challenges.find(packs, "nope"))
+  end)
+
+  local next_cases = {
+    { "a-1", "a-2" },
+    { "a-2", "b-1" },
+    { "b-1", nil },
+    { "nope", nil },
+  }
+  for _, case in ipairs(next_cases) do
+    local from, expected = case[1], case[2]
+    it(("next after %s is %s"):format(from, tostring(expected)), function()
+      local level = challenges.next_level(packs, from)
+      assert.are.equal(expected, level and level.id)
+    end)
+  end
+end)

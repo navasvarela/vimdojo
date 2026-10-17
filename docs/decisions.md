@@ -57,3 +57,31 @@ the solution tests compare a reference solution against `par_keys`.
 Reference solutions are fed with `noremap`, so levels are judged against stock
 Vim behavior. Players keep their own mappings in the game buffer; a level that
 a custom mapping changes is the player's config, not a bug in the level.
+
+## Game loop (M2)
+
+- **Control keys** are buffer-local Normal-mode mappings in the level buffer,
+  configurable via `setup({ keymaps = { hint, reset, quit } })`. Defaults:
+  `<leader>h`, `<leader>r`, `<Esc><Esc>`. `vim.on_key` sees them before the
+  mapping runs, so each control subtracts its own key count (`<leader>` counts
+  as one key). If that leaves zero keys, the timer resets as if the attempt
+  had not started, so reading the hint first costs no time.
+- **Attempts finish in Normal mode.** The goal is checked on `TextChanged`,
+  `CursorMoved` and `ModeChanged` into Normal mode, not in Insert mode. A
+  change is done once the player presses `<Esc>`, which matches how the
+  reference solutions run (`feedkeys` with `x` leaves Insert mode). The plan
+  suggested also checking `TextChangedI`/`CursorMovedI`. That would end
+  `ciwfoo<Esc>` before the `<Esc>` and make par off by one.
+- **Mouse:** `'mouse'` is a global option, so it is saved, cleared for the
+  whole session and restored on every exit path. Without this, a click could
+  solve a `cursor_at` level with zero keys.
+- **Goal visibility:** `cursor_at` targets are highlighted in the buffer
+  (`VimDojoTarget`). `buffer_equals` targets are printed in the header.
+- **Hints:** the header reserves a hint line sized for the real hint, so
+  showing it never resizes or moves windows. A hint survives a reset within
+  the same level visit.
+- **Reset** restores the text in place with `undolevels=-1`, so `u` cannot
+  undo the level back to an empty buffer.
+- **End-to-end tests** (`tests/app_spec.lua`) run a child `nvim --embed` and
+  drive it with `nvim_input`, so key capture, mappings and autocmds run exactly
+  as they do for a real player.
