@@ -14,7 +14,7 @@ Requires Neovim 0.10+. No runtime dependencies.
 
 ```lua
 -- lazy.nvim
-{ "<owner>/vimdojo", cmd = "VimDojo", opts = {} }
+{ "navasvarela/vimdojo", cmd = "VimDojo", opts = {} }
 ```
 
 Then run `:VimDojo`.
