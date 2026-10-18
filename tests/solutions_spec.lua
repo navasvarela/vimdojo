@@ -41,6 +41,20 @@ for _, source in ipairs(sources) do
                   goals.is_met(level.goal, start, level.start_text),
                   "the goal is already met before any key is pressed"
                 )
+                -- Setup levels get their first sandbox verdict asynchronously,
+                -- after the snapshot above; a starter config that already
+                -- passes every probe would solve the level with zero keys.
+                if #goals.probes(level.goal) > 0 then
+                  local checked = player:wait_for(
+                    "(function() local s = require('vimdojo.app').current().room:snapshot();"
+                      .. " return s and s.config_passed ~= nil and s end)()"
+                  )
+                  assert.is_truthy(checked, "the starter config was never checked")
+                  assert.is_false(
+                    goals.is_met(level.goal, checked, level.start_text),
+                    "the starter config already passes every probe"
+                  )
+                end
 
                 player:type(level.solution)
 
