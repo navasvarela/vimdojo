@@ -65,11 +65,36 @@ function M.start()
   notify("ready")
 end
 
----@param path string Absolute.
----@return integer|nil buf The loaded buffer editing `path`, if any.
-local function loaded_buffer(path)
+--- A buffer's file relative to the workspace, with forward slashes: the form
+--- level data uses (layout leaves).
+---@param buf integer
+---@return string|nil
+local function workspace_name(buf)
+  local name = vim.api.nvim_buf_get_name(buf)
+  if name == "" then
+    return nil
+  end
+  return (vim.fn.fnamemodify(name, ":."):gsub("\\", "/"))
+end
+
+--- The loaded buffer editing `full`, if any. Files are compared by their
+--- real path, which resolves symlinks (macOS /var), Windows backslashes,
+--- drive-letter case and short 8.3 names alike. Workspace files always exist
+--- on disk, so their real path is defined.
+---@param full string
+---@return integer|nil buf
+local function loaded_buffer(full)
+  local target = (vim.uv or vim.loop).fs_realpath(full)
+  if not target then
+    return nil
+  end
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_loaded(buf) and vim.api.nvim_buf_get_name(buf) == path then
+    local name = vim.api.nvim_buf_get_name(buf)
+    if
+      vim.api.nvim_buf_is_loaded(buf)
+      and name ~= ""
+      and (vim.uv or vim.loop).fs_realpath(name) == target
+    then
       return buf
     end
   end
@@ -82,7 +107,7 @@ end
 local function read_files(paths)
   local files = {}
   for _, path in ipairs(paths) do
-    local full = vim.fs.normalize(state.workspace .. "/" .. path)
+    local full = state.workspace .. "/" .. path
     local buf = loaded_buffer(full)
     if buf then
       files[path] = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
@@ -99,8 +124,7 @@ end
 ---@return vimdojo.LayoutNode
 local function name_layout(node)
   if node[1] == "leaf" then
-    local name = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(node[2]))
-    return { "leaf", name == "" and "[No Name]" or vim.fn.fnamemodify(name, ":.") }
+    return { "leaf", workspace_name(vim.api.nvim_win_get_buf(node[2])) or "[No Name]" }
   end
   return { node[1], vim.tbl_map(name_layout, node[2]) }
 end
@@ -272,9 +296,8 @@ local function workspace_buffer(level)
     vim.fn.writefile(lines, full)
   end
   vim.cmd.cd(vim.fn.fnameescape(dir))
-  -- getcwd(), not `dir`: buffer names are built from the resolved working
-  -- directory, which differs when the temp dir sits under a symlink (macOS
-  -- /var -> /private/var). Matching files to buffers needs the same form.
+  -- getcwd(), not `dir`: the resolved working directory, which differs when
+  -- the temp dir sits under a symlink (macOS /var -> /private/var).
   state.workspace = vim.fn.getcwd()
   vim.cmd.edit(vim.fn.fnameescape(level.open))
   return vim.api.nvim_get_current_buf()

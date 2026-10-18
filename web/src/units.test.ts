@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { demoPacks, loadPacks, nextLevel, parsePacks } from "./challenges"
+import { TRACKS, demoPacks, loadPacks, nextLevel, parsePacks } from "./challenges"
 import { isCountableKeydown, splitNotation } from "./keys"
 import { emptyProgress, recordResult, unlockedByProgress } from "./progress"
 import { loadProgress, saveProgress, serializeProgress, parseJsonProgress } from "./storage"
@@ -82,8 +82,11 @@ function lvl(id: string) {
 describe("progress", () => {
   const packs = loadPacks()
 
-  it("unlocks only the first level on fresh progress", () => {
-    expect([...unlockedByProgress(emptyProgress(), packs)]).toEqual([packs[0]?.levels[0]?.id])
+  it("unlocks only the first level of each track on fresh progress", () => {
+    const firstOfEachTrack = TRACKS.map(
+      (track) => packs.find((pack) => pack.track === track)?.levels[0]?.id,
+    ).filter((id): id is string => id !== undefined)
+    expect([...unlockedByProgress(emptyProgress(), packs)].sort()).toEqual(firstOfEachTrack.sort())
   })
 
   it("progresses each track independently, skipping unsupported levels", () => {
