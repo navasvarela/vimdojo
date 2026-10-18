@@ -14,8 +14,10 @@ game.
 **[Try the browser demo](https://navasvarela.github.io/vimdojo/)**, then
 install the plugin for the real thing.
 
-- 53 levels in nine packs: Basic Motions, Find and Jump, Operate, Visual Mode,
-  Search, Text Objects, Transform, Registers and Macros, and Ex Power
+- 66 levels in twelve packs across two tracks. **Motions** covers basic
+  motions through macros and Ex commands. **Usage** covers windows and
+  buffers, project-wide edits with the quickfix list, and Neovim's built-in
+  defaults.
 - A live timer and key counter, with stars and points against par
 - Hints, instant reset, and progress saved across sessions
 - Every level runs in a clean, isolated Neovim (or with your own config, if

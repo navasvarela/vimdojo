@@ -44,10 +44,13 @@ end
 ---@field requires { nvim: string }|nil Minimum Neovim version, e.g. "0.11".
 ---@field options table<string, string|number|boolean>|nil Set (like :set) before the level starts.
 ---@field preset vimdojo.Preset|nil
+---@field files table<string, string[]>|nil Workspace files (path -> lines), for levels about files and windows.
+---@field open string|nil The workspace file the level starts in; its text becomes start_text.
 
 ---@class vimdojo.Preset
 ---@field registers table<string, string|string[]>|nil A string is charwise, a list of lines linewise.
 ---@field marks table<string, integer[]>|nil Buffer marks a-z as [line, col].
+---@field commands string[]|nil Ex commands run after the level is built (splits, quickfix, a previous :s).
 
 ---@class vimdojo.Pack
 ---@field pack string
@@ -85,6 +88,46 @@ function M.runtime_dir()
   end
 end
 
+--- The text the level starts with: `start_text`, or the opened workspace file.
+---@param level table
+---@return string[]|nil
+function M.level_text(level)
+  if level.start_text ~= nil then
+    return level.start_text
+  end
+  if type(level.files) == "table" and type(level.open) == "string" then
+    return level.files[level.open]
+  end
+end
+
+---@param level table
+---@return string|nil
+local function text_error(level)
+  if level.files == nil then
+    if not check.is_string_list(level.start_text) then
+      return "start_text must be a non-empty array of strings"
+    end
+    return nil
+  end
+  if level.start_text ~= nil then
+    return "use either start_text or files, not both"
+  end
+  if type(level.files) ~= "table" or next(level.files) == nil then
+    return "files must be an object of path -> lines"
+  end
+  for path, lines in pairs(level.files) do
+    if not check.is_workspace_path(path) then
+      return ("files: %q is not a relative workspace path"):format(tostring(path))
+    end
+    if not check.is_string_list(lines) then
+      return ("files.%s must be a non-empty array of lines"):format(path)
+    end
+  end
+  if type(level.open) ~= "string" or level.files[level.open] == nil then
+    return "open must name one of the files"
+  end
+end
+
 ---@param level table
 ---@return string|nil
 local function cursor_start_error(level)
@@ -96,12 +139,13 @@ local function cursor_start_error(level)
   if not (check.is_integer(line) and check.is_integer(col)) then
     return "cursor_start must contain integers"
   end
-  if type(level.start_text) ~= "table" or line < 1 or line > #level.start_text then
+  local text = M.level_text(level)
+  if type(text) ~= "table" or line < 1 or line > #text then
     return "cursor_start line is outside start_text"
   end
   -- Normal mode can rest on column 0 of an empty line, otherwise only on an
   -- existing byte.
-  local max_col = math.max(#level.start_text[line] - 1, 0)
+  local max_col = math.max(#text[line] - 1, 0)
   if col < 0 or col > max_col then
     return "cursor_start col is outside its line"
   end
@@ -152,6 +196,22 @@ local function preset_error(preset)
       return ("preset.marks.%s must be [line, col]"):format(name)
     end
   end
+  if preset.commands ~= nil and not check.is_string_list(preset.commands) then
+    return "preset.commands must be a non-empty array of Ex commands"
+  end
+end
+
+--- Whether a level can only be played in Neovim: it runs a config, uses real
+--- files or windows, or sets itself up with Ex commands. The browser demo
+--- can't, so such levels can't be flagged web_demo.
+---@param level vimdojo.Level
+---@return boolean
+function M.needs_neovim(level)
+  return level.files ~= nil
+    or (level.preset ~= nil and level.preset.commands ~= nil)
+    or #goals.probes(level.goal) > 0
+    or #goals.files(level.goal) > 0
+    or goals.reads_layout(level.goal)
 end
 
 ---@param level table
@@ -167,7 +227,8 @@ local function level_errors(level)
   for _, field in ipairs({ "id", "title", "description", "hint", "solution" }) do
     expect(check.is_non_empty_string(level[field]), field .. " must be a non-empty string")
   end
-  expect(check.is_string_list(level.start_text), "start_text must be a non-empty array of strings")
+  local text_err = text_error(level)
+  expect(text_err == nil, text_err)
   expect(check.is_string_list(level.teaches), "teaches must be a non-empty array of strings")
   expect(check.is_integer(level.par_keys) and level.par_keys >= 1, "par_keys must be >= 1")
   expect(
@@ -181,8 +242,8 @@ local function level_errors(level)
   local goal_error = goals.validate(level.goal)
   expect(goal_error == nil, "goal: " .. tostring(goal_error))
   expect(
-    goal_error ~= nil or level.web_demo ~= true or #goals.probes(level.goal) == 0,
-    "web_demo can't be set on a level with config_probes: the browser can't run a Neovim config"
+    goal_error ~= nil or text_err ~= nil or level.web_demo ~= true or not M.needs_neovim(level),
+    "web_demo can't be set on a level that needs Neovim (a config, files, windows or Ex setup)"
   )
   expect(
     level.requires == nil
@@ -251,6 +312,9 @@ function M.decode(text)
     return nil, table.concat(errors, "\n")
   end
   decoded.track = decoded.track or M.DEFAULT_TRACK
+  for _, level in ipairs(decoded.levels) do
+    level.start_text = M.level_text(level)
+  end
   return decoded
 end
 

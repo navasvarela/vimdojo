@@ -160,6 +160,64 @@
       "start_lines": ["x"],
       "state": { "lines": ["x"], "cursor": [1, 0] },
       "expected": false
+    },
+    {
+      "name": "files_equal holds when every listed file matches",
+      "goal": { "type": "files_equal", "files": { "a.lua": ["x"], "b.lua": ["y"] } },
+      "start_lines": ["x"],
+      "state": {
+        "lines": ["x"],
+        "cursor": [1, 0],
+        "files": { "a.lua": ["x"], "b.lua": ["y"], "c.lua": ["z"] }
+      },
+      "expected": true
+    },
+    {
+      "name": "files_equal fails when one file differs",
+      "goal": { "type": "files_equal", "files": { "a.lua": ["x"], "b.lua": ["y"] } },
+      "start_lines": ["x"],
+      "state": { "lines": ["x"], "cursor": [1, 0], "files": { "a.lua": ["x"], "b.lua": ["nope"] } },
+      "expected": false
+    },
+    {
+      "name": "files_equal fails when a file is missing",
+      "goal": { "type": "files_equal", "files": { "a.lua": ["x"] } },
+      "start_lines": ["x"],
+      "state": { "lines": ["x"], "cursor": [1, 0], "files": {} },
+      "expected": false
+    },
+    {
+      "name": "layout matches the same tree",
+      "goal": { "type": "layout", "layout": ["row", [["leaf", "util.lua"], ["leaf", "main.lua"]]] },
+      "start_lines": ["x"],
+      "state": {
+        "lines": ["x"],
+        "cursor": [1, 0],
+        "layout": ["row", [["leaf", "util.lua"], ["leaf", "main.lua"]]]
+      },
+      "expected": true
+    },
+    {
+      "name": "layout is order sensitive",
+      "goal": { "type": "layout", "layout": ["row", [["leaf", "util.lua"], ["leaf", "main.lua"]]] },
+      "start_lines": ["x"],
+      "state": {
+        "lines": ["x"],
+        "cursor": [1, 0],
+        "layout": ["row", [["leaf", "main.lua"], ["leaf", "util.lua"]]]
+      },
+      "expected": false
+    },
+    {
+      "name": "layout tells rows from columns",
+      "goal": { "type": "layout", "layout": ["row", [["leaf", "util.lua"], ["leaf", "main.lua"]]] },
+      "start_lines": ["x"],
+      "state": {
+        "lines": ["x"],
+        "cursor": [1, 0],
+        "layout": ["col", [["leaf", "util.lua"], ["leaf", "main.lua"]]]
+      },
+      "expected": false
     }
   ]
 }

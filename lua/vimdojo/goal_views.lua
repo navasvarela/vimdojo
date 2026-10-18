@@ -74,6 +74,34 @@ views = {
       return rows
     end,
   },
+  files_equal = {
+    describe = function(goal)
+      local lines = { "Goal: make the files read exactly:" }
+      local paths = vim.tbl_keys(goal.files)
+      table.sort(paths)
+      for _, path in ipairs(paths) do
+        table.insert(lines, "  " .. path)
+        for _, line in ipairs(goal.files[path]) do
+          table.insert(lines, "  │ " .. line)
+        end
+      end
+      return lines
+    end,
+    decorate = function() end,
+    -- Several files may end up side by side in splits.
+    extra_rows = function()
+      return 10
+    end,
+  },
+  layout = {
+    describe = function(goal)
+      return { "Goal: arrange the windows like this:", "  " .. M.render_layout(goal.layout, true) }
+    end,
+    decorate = function() end,
+    extra_rows = function()
+      return 10
+    end,
+  },
   config_probes = {
     describe = function(goal)
       local lines = { "Goal: make this init.lua pass every check:" }
@@ -93,6 +121,23 @@ views = {
     end,
   },
 }
+
+--- A one-line sketch of a window layout: `a.lua │ b.lua` for side by side,
+--- `a.lua ─ b.lua` for stacked, parenthesized when nested.
+---@param node vimdojo.LayoutNode
+---@param top boolean|nil
+---@return string
+function M.render_layout(node, top)
+  if node[1] == "leaf" then
+    return node[2]
+  end
+  local separator = node[1] == "row" and " │ " or " ─ "
+  local parts = vim.tbl_map(function(child)
+    return M.render_layout(child, false)
+  end, node[2])
+  local text = table.concat(parts, separator)
+  return top and text or ("(" .. text .. ")")
+end
 
 ---@param goal vimdojo.Goal
 ---@return string[]

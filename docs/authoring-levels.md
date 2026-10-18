@@ -38,6 +38,23 @@ is written exactly once.
 | `options` | Optional. Options set like `:set` before the level starts, e.g. `{ "shiftwidth": 2, "wrapscan": false }`. |
 | `preset` | Optional. `registers` (`{ "a": "charwise text" }` or `{ "a": ["linewise", "lines"] }`) and buffer `marks` (`{ "m": [line, col] }`) set before the timer starts. |
 
+### Levels with files (Usage track)
+
+Instead of `start_text`, a level can ship a small project:
+
+```json
+"files": { "main.lua": ["..."], "src/util.lua": ["..."] },
+"open": "main.lua",
+"preset": { "commands": ["vsplit src/util.lua"] }
+```
+
+The files are written to a fresh directory that becomes the working
+directory, and `open` is edited. `cursor_start` applies to it. `preset.commands`
+are Ex commands run before the timer starts, to set up splits, quickfix lists
+(`silent vimgrep /x/j **`, `cfirst`) or diagnostics
+(`lua vim.diagnostic.set(...)`). Levels with files or commands can't be
+`web_demo`.
+
 ### Goal types
 
 | Type | Shape | Met when |
@@ -46,6 +63,8 @@ is written exactly once.
 | `cursor_at` | `{ "line", "col", "allow_edit"? }` | The cursor is there and the text is unchanged (unless `allow_edit`). |
 | `register_contains` | `{ "register", "value": [lines], "linewise"? }` | The register holds these lines (and has that type, if `linewise` is given). Registers a goal reads start empty. |
 | `all_of` | `{ "goals": [goal, ...] }` | Every inner goal holds at once. |
+| `files_equal` | `{ "files": { "path": [lines] } }` | Each workspace file holds these lines (unsaved buffer edits count). |
+| `layout` | `{ "layout": ["row", [["leaf", "a.lua"], ["leaf", "b.lua"]]] }` | The current tab's windows match, like `winlayout()` with file names. |
 | `config_probes` | `{ "probes": [probe, ...] }` | Setup levels: the buffer, loaded as an `init.lua` in a sandboxed Neovim, loads without errors and passes every probe. See below. |
 
 Goals are only checked in Normal mode, so an edit is done when the player

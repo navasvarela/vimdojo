@@ -4,7 +4,7 @@ import goalsFixture from "../../tests/fixtures/goals.json"
 import scoringFixture from "../../tests/fixtures/scoring.json"
 import { isMet } from "./goals"
 import { score } from "./scoring"
-import { parsePacks } from "./challenges"
+import { LayoutNodeSchema, parsePacks } from "./challenges"
 
 // The same fixtures drive tests/goals_spec.lua and tests/scoring_spec.lua, so
 // the Lua and TS implementations cannot drift apart unnoticed.
@@ -32,6 +32,8 @@ const GoalCase = z.object({
     registers: z
       .record(z.string(), z.object({ lines: z.array(z.string()), linewise: z.boolean() }))
       .optional(),
+    files: z.record(z.string(), z.array(z.string())).optional(),
+    layout: LayoutNodeSchema.optional(),
   }),
   expected: z.boolean(),
 })

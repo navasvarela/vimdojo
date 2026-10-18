@@ -56,12 +56,40 @@ const ConfigProbesGoal = z.object({
   probes: z.array(Probe).min(1),
 })
 
+/** A relative path inside a level's workspace (no absolute paths, no `..`). */
+const WorkspacePath = z
+  .string()
+  .regex(/^[A-Za-z0-9_.-]+(\/[A-Za-z0-9_.-]+)*$/)
+  .refine((path) => !path.split("/").some((segment) => segment === "." || segment === ".."))
+
+/** winlayout() with workspace file names in the leaves. */
+export type LayoutNode = ["leaf", string] | ["row" | "col", LayoutNode[]]
+
+export const LayoutNodeSchema: z.ZodType<LayoutNode> = z.lazy(() =>
+  z.union([
+    z.tuple([z.literal("leaf"), WorkspacePath]),
+    z.tuple([z.enum(["row", "col"]), z.array(LayoutNodeSchema).min(2)]),
+  ]),
+)
+
+const FilesEqualGoal = z.object({
+  type: z.literal("files_equal"),
+  files: z.record(WorkspacePath, Lines),
+})
+
+const LayoutGoal = z.object({
+  type: z.literal("layout"),
+  layout: LayoutNodeSchema,
+})
+
 const Goal = z.discriminatedUnion("type", [
   BufferEqualsGoal,
   CursorAtGoal,
   RegisterContainsGoal,
   AllOfGoal,
   ConfigProbesGoal,
+  FilesEqualGoal,
+  LayoutGoal,
 ])
 
 const Position = z.tuple([z.number().int().min(1), z.number().int().min(0)])
@@ -70,16 +98,21 @@ const Preset = z.object({
   /** A string is charwise; an array of lines is linewise. */
   registers: z.record(RegisterName, z.union([z.string(), Lines])).optional(),
   marks: z.record(z.string().regex(/^[a-z]$/), Position).optional(),
+  /** Ex commands run after the level is built. Neovim only. */
+  commands: z.array(z.string().min(1)).min(1).optional(),
 })
 
 export const TRACKS = ["motions", "usage", "setup"] as const
 export type Track = (typeof TRACKS)[number]
 
-const Level = z.object({
+const LevelData = z.object({
   id: z.string().min(1),
   title: z.string().min(1),
   description: z.string().min(1),
-  start_text: Lines,
+  /** Either start_text, or workspace files plus the one to open. */
+  start_text: Lines.optional(),
+  files: z.record(WorkspacePath, Lines).optional(),
+  open: z.string().optional(),
   /** [line, col]: 1-based line, 0-based UTF-8 byte column (Neovim's convention). */
   cursor_start: Position,
   goal: Goal,
@@ -92,6 +125,18 @@ const Level = z.object({
   requires: z.object({ nvim: z.string().regex(/^\d+\.\d+(\.\d+)?$/) }).optional(),
   options: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
   preset: Preset.optional(),
+})
+
+// Mirrors challenges.level_text in Lua: a workspace level starts with the text
+// of its open file, so every level has start_text after parsing.
+const Level = LevelData.transform((level, ctx) => {
+  const opened = level.open === undefined ? undefined : level.files?.[level.open]
+  const startText = level.start_text ?? opened
+  if (startText === undefined) {
+    ctx.addIssue({ code: "custom", message: "a level needs start_text, or files and open" })
+    return z.NEVER
+  }
+  return { ...level, start_text: startText }
 })
 
 const Pack = z.object({
@@ -107,6 +152,8 @@ export type BufferEqualsGoal = z.infer<typeof BufferEqualsGoal>
 export type CursorAtGoal = z.infer<typeof CursorAtGoal>
 export type RegisterContainsGoal = z.infer<typeof RegisterContainsGoal>
 export type ConfigProbesGoal = z.infer<typeof ConfigProbesGoal>
+export type FilesEqualGoal = z.infer<typeof FilesEqualGoal>
+export type LayoutGoal = z.infer<typeof LayoutGoal>
 export type Preset = z.infer<typeof Preset>
 export type Goal = z.infer<typeof Goal>
 export type Level = z.infer<typeof Level>

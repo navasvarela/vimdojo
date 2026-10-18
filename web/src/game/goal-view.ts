@@ -72,6 +72,20 @@ function presentNode(level: Level, goal: Goal): GoalPresentation {
         extension: parts.map((part) => part.extension),
       }
     }
+    case "files_equal":
+      return {
+        element: h("p", { className: "goal" }, [
+          "Goal: edit ",
+          Object.keys(goal.files).sort().join(", "),
+          " (Neovim only).",
+        ]),
+        extension: [],
+      }
+    case "layout":
+      return {
+        element: h("p", { className: "goal" }, ["Goal: arrange the windows (Neovim only)."]),
+        extension: [],
+      }
     default:
       return assertNever(goal)
   }

@@ -22,6 +22,12 @@ end
 ---@return table
 local function pack_with(overrides)
   local level = vim.tbl_extend("force", valid_level(), overrides or {})
+  -- vim.NIL in overrides removes a field (tbl_extend can't assign nil).
+  for key, value in pairs(level) do
+    if value == vim.NIL then
+      level[key] = nil
+    end
+  end
   return { pack = "sample", title = "Sample", order = 1, levels = { level } }
 end
 
@@ -59,7 +65,37 @@ describe("challenges.validate_pack", function()
           probes = { { kind = "option", name = "list", value = true } },
         },
       },
-      "web_demo can't be set on a level with config_probes",
+      "web_demo can't be set on a level that needs Neovim",
+    },
+    {
+      "web_demo with preset commands",
+      { web_demo = true, preset = { commands = { "vsplit" } } },
+      "web_demo can't be set on a level that needs Neovim",
+    },
+    {
+      "both start_text and files",
+      { files = { ["a.lua"] = { "x" } }, open = "a.lua" },
+      "use either start_text or files, not both",
+    },
+    {
+      "a path escaping the workspace",
+      { start_text = vim.NIL, files = { ["../x.lua"] = { "x" } }, open = "../x.lua" },
+      "is not a relative workspace path",
+    },
+    {
+      "open naming a missing file",
+      { start_text = vim.NIL, files = { ["a.lua"] = { "x" } }, open = "b.lua" },
+      "open must name one of the files",
+    },
+    {
+      "a malformed layout",
+      { goal = { type = "layout", layout = { "row", { { "leaf", "a.lua" } } } } },
+      "a row or col holds at least two nodes",
+    },
+    {
+      "empty preset commands",
+      { preset = { commands = {} } },
+      "preset.commands must be",
     },
   }
   for _, case in ipairs(invalid) do
@@ -70,6 +106,28 @@ describe("challenges.validate_pack", function()
       assert.is_truthy(all:find(expected, 1, true), all)
     end)
   end
+
+  it("accepts a workspace level and derives its start text from the open file", function()
+    local pack = pack_with({
+      start_text = vim.NIL,
+      files = { ["main.lua"] = { "hello world" }, ["lib/util.lua"] = { "return {}" } },
+      open = "main.lua",
+      preset = { commands = { "vsplit lib/util.lua" } },
+      goal = {
+        type = "all_of",
+        goals = {
+          {
+            type = "layout",
+            layout = { "row", { { "leaf", "lib/util.lua" }, { "leaf", "main.lua" } } },
+          },
+          { type = "files_equal", files = { ["main.lua"] = { "hello" } } },
+        },
+      },
+    })
+    local decoded = assert(challenges.decode(vim.json.encode(pack)))
+    assert.are.same({ "hello world" }, decoded.levels[1].start_text)
+    assert.is_true(challenges.needs_neovim(decoded.levels[1]))
+  end)
 
   it("accepts v2 fields", function()
     local errors = challenges.validate_pack(pack_with({

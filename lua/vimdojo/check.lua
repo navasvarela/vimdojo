@@ -47,4 +47,20 @@ function M.is_option_name(name)
   return type(name) == "string" and (pcall(vim.api.nvim_get_option_info2, name, {}))
 end
 
+--- A relative path inside a level's workspace: no absolute paths, no `..`,
+--- no empty segments, so writing it can never escape the workspace.
+---@param value any
+---@return boolean
+function M.is_workspace_path(value)
+  if type(value) ~= "string" or value == "" or value:find("^[/\\]") or value:find("\\") then
+    return false
+  end
+  for segment in (value .. "/"):gmatch("([^/]*)/") do
+    if segment == "" or segment == ".." or segment == "." or not segment:match("^[%w_%-%.]+$") then
+      return false
+    end
+  end
+  return true
+end
+
 return M

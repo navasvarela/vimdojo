@@ -32,6 +32,7 @@ describe("keys", () => {
     ["ffdw", ["f", "f", "d", "w"]],
     ["ciwfoo<Esc>", ["c", "i", "w", "f", "o", "o", "<Esc>"]],
     ["<C-r>a", ["<C-r>", "a"]],
+    ["<C-^>", ["<C-^>"]],
     ["f<", ["f", "<"]],
     ["fé", ["f", "é"]],
   ])("splits %s like the Lua port", (notation, expected) => {

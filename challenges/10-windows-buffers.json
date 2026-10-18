@@ -1,0 +1,170 @@
+{
+  "$schema": "./schema.json",
+  "pack": "windows-buffers",
+  "title": "Windows and Buffers",
+  "description": "Split, swap, move and close windows, and hop between buffers.",
+  "order": 10,
+  "track": "usage",
+  "levels": [
+    {
+      "id": "windows-01",
+      "title": "Side by side",
+      "description": "Split the window vertically so main.lua shows twice, side by side.",
+      "files": {
+        "main.lua": ["local util = require('util')", "", "util.greet('world')"],
+        "util.lua": [
+          "local M = {}",
+          "",
+          "function M.greet(name)",
+          "  print('hello ' .. name)",
+          "end",
+          "",
+          "return M"
+        ],
+        "notes.md": ["# Notes", "- rename greet to wave?", "- buy more coffee"]
+      },
+      "open": "main.lua",
+      "cursor_start": [1, 0],
+      "goal": { "type": "layout", "layout": ["row", [["leaf", "main.lua"], ["leaf", "main.lua"]]] },
+      "par_keys": 2,
+      "par_seconds": 6,
+      "hint": "<C-w>v splits the current window vertically.",
+      "solution": "<C-w>v",
+      "teaches": ["<C-w>v"]
+    },
+    {
+      "id": "windows-02",
+      "title": "Two at once",
+      "description": "Open util.lua in a vertical split next to main.lua. Let Tab finish the file name for you.",
+      "files": {
+        "main.lua": ["local util = require('util')", "", "util.greet('world')"],
+        "util.lua": [
+          "local M = {}",
+          "",
+          "function M.greet(name)",
+          "  print('hello ' .. name)",
+          "end",
+          "",
+          "return M"
+        ],
+        "notes.md": ["# Notes", "- rename greet to wave?", "- buy more coffee"]
+      },
+      "open": "main.lua",
+      "cursor_start": [1, 0],
+      "goal": { "type": "layout", "layout": ["row", [["leaf", "util.lua"], ["leaf", "main.lua"]]] },
+      "par_keys": 7,
+      "par_seconds": 12,
+      "hint": ":vs file opens a file in a vertical split. On the command line, Tab completes file names (and counts as one key).",
+      "solution": ":vs u<Tab><CR>",
+      "teaches": [":vsplit", "<Tab> completion"]
+    },
+    {
+      "id": "windows-03",
+      "title": "Swap seats",
+      "description": "main.lua should be on the left. Swap the two windows.",
+      "files": {
+        "main.lua": ["local util = require('util')", "", "util.greet('world')"],
+        "util.lua": [
+          "local M = {}",
+          "",
+          "function M.greet(name)",
+          "  print('hello ' .. name)",
+          "end",
+          "",
+          "return M"
+        ],
+        "notes.md": ["# Notes", "- rename greet to wave?", "- buy more coffee"]
+      },
+      "open": "main.lua",
+      "cursor_start": [1, 0],
+      "goal": { "type": "layout", "layout": ["row", [["leaf", "main.lua"], ["leaf", "util.lua"]]] },
+      "par_keys": 2,
+      "par_seconds": 6,
+      "hint": "<C-w>x exchanges the current window with the next one.",
+      "solution": "<C-w>x",
+      "teaches": ["<C-w>x"],
+      "preset": { "commands": ["vsplit util.lua"] }
+    },
+    {
+      "id": "windows-04",
+      "title": "Back and forth",
+      "description": "You jumped to util.lua. Go back to the file you came from.",
+      "files": {
+        "main.lua": ["local util = require('util')", "", "util.greet('world')"],
+        "util.lua": [
+          "local M = {}",
+          "",
+          "function M.greet(name)",
+          "  print('hello ' .. name)",
+          "end",
+          "",
+          "return M"
+        ],
+        "notes.md": ["# Notes", "- rename greet to wave?", "- buy more coffee"]
+      },
+      "open": "main.lua",
+      "cursor_start": [1, 0],
+      "goal": { "type": "layout", "layout": ["leaf", "main.lua"] },
+      "par_keys": 1,
+      "par_seconds": 5,
+      "hint": "<C-^> switches to the alternate file: the one you were in before.",
+      "solution": "<C-^>",
+      "teaches": ["<C-^>"],
+      "preset": { "commands": ["edit util.lua"] }
+    },
+    {
+      "id": "windows-05",
+      "title": "Declutter",
+      "description": "Too many windows. Keep only the one you're in.",
+      "files": {
+        "main.lua": ["local util = require('util')", "", "util.greet('world')"],
+        "util.lua": [
+          "local M = {}",
+          "",
+          "function M.greet(name)",
+          "  print('hello ' .. name)",
+          "end",
+          "",
+          "return M"
+        ],
+        "notes.md": ["# Notes", "- rename greet to wave?", "- buy more coffee"]
+      },
+      "open": "main.lua",
+      "cursor_start": [1, 0],
+      "goal": { "type": "layout", "layout": ["leaf", "notes.md"] },
+      "par_keys": 2,
+      "par_seconds": 6,
+      "hint": "<C-w>o makes the current window the only one.",
+      "solution": "<C-w>o",
+      "teaches": ["<C-w>o"],
+      "preset": { "commands": ["vsplit util.lua", "split notes.md"] }
+    },
+    {
+      "id": "windows-06",
+      "title": "Far right",
+      "description": "util.lua is stacked on top of main.lua. Move it to its own column on the right.",
+      "files": {
+        "main.lua": ["local util = require('util')", "", "util.greet('world')"],
+        "util.lua": [
+          "local M = {}",
+          "",
+          "function M.greet(name)",
+          "  print('hello ' .. name)",
+          "end",
+          "",
+          "return M"
+        ],
+        "notes.md": ["# Notes", "- rename greet to wave?", "- buy more coffee"]
+      },
+      "open": "main.lua",
+      "cursor_start": [1, 0],
+      "goal": { "type": "layout", "layout": ["row", [["leaf", "main.lua"], ["leaf", "util.lua"]]] },
+      "par_keys": 2,
+      "par_seconds": 6,
+      "hint": "<C-w>L moves the current window to the far right, full height. H, J and K go to the other edges.",
+      "solution": "<C-w>L",
+      "teaches": ["<C-w>L"],
+      "preset": { "commands": ["split util.lua"] }
+    }
+  ]
+}

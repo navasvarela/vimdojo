@@ -368,3 +368,40 @@ the player's mappings nor their plugins apply, unless they choose
   killed `solutions_spec.lua` partway through on a busy laptop once M9 and
   M10 added levels, before it reached the fixture packs. CI finishes it in
   seconds.
+
+## Usage track (M11)
+
+- **Workspaces:** a level can ship `files` (path -> lines) plus `open`
+  instead of `start_text`. The room writes them into a fresh temp directory,
+  `:cd`s there, and edits `open`. `start_text` is derived from the open file
+  when packs load (Lua `challenges.level_text`, and a zod transform in TS),
+  so the rest of the engine is unchanged and nothing is duplicated. Paths
+  must stay inside the workspace (no absolute paths, no `..`).
+- The workspace path is taken from `getcwd()` after the `:cd`, not from
+  `tempname()`. On macOS the temp dir sits under the `/var` ->
+  `/private/var` symlink, and buffer names use the resolved form.
+- **`preset.commands`** (Ex commands run after the level is built) set up
+  splits, quickfix lists (`vimgrep /x/j **` + `cfirst`), a previous `:s`,
+  and diagnostics (`lua vim.diagnostic.set(...)`). This is trusted data from
+  the repo, and it only runs in the clean room.
+- **Goals:** `files_equal` compares each file's buffer if it's loaded
+  (unsaved edits count), and its disk contents otherwise. `layout` compares
+  the current tab's `winlayout()` with workspace file names in the leaves.
+  Both are Neovim-only. `challenges.needs_neovim()` rejects `web_demo` on
+  them, on Setup levels, and on levels with preset commands.
+- **The room now behaves like an editor, not a single buffer.** Controls are
+  global mappings and goal checks are global autocmds, because players move
+  between windows and files. Checks are coalesced with `vim.schedule`,
+  since a split fires several events. `WinResized` is watched because moving
+  a window (`<C-w>L`) enters, creates and closes none. A load/reset tears
+  everything down first: one tab, one window, no other buffers, an empty
+  quickfix list, no arguments and no jumps.
+- **Key notation:** `<C-^>`, `<C-]>` and other modifier + punctuation keys
+  count as one key (Lua and TS). Before, they were split into characters,
+  which broke both par checks and typing in tests.
+- **Packs:** 10 Windows and Buffers (6), 11 Project-Wide Edits (3), 12
+  Neovim Built-ins (4; the quickfix level `requires` 0.11). Most window
+  levels are 1-2 keys by nature: the lesson is the command, and par is
+  trivially honest. PLAN-v2's "global marks" and "Breathing room"
+  (`]<Space>`) levels were dropped: the first needs uppercase-mark presets
+  across files, and the second ties `o<Esc>`.

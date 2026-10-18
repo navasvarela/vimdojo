@@ -14,6 +14,8 @@ local M = {}
 ---@field cursor integer[] [line, col]: 1-based line, 0-based byte column.
 ---@field registers table<string, vimdojo.Register>|nil Only those the goal reads (see M.registers).
 ---@field config_passed boolean|nil Setup levels: the sandbox verdict for the current text, nil until there is one.
+---@field files table<string, string[]>|nil Workspace files the goal reads, path -> lines (see M.files).
+---@field layout vimdojo.LayoutNode|nil The current tab's windows, when the goal reads them (see M.reads_layout).
 
 ---@class vimdojo.Goal
 ---@field type string
@@ -25,6 +27,12 @@ local M = {}
 ---@field linewise boolean|nil register_contains
 ---@field goals vimdojo.Goal[]|nil all_of
 ---@field probes vimdojo.Probe[]|nil config_probes
+---@field files table<string, string[]>|nil files_equal
+---@field layout vimdojo.LayoutNode|nil layout
+
+--- A window layout in winlayout() shape, with files instead of window ids:
+--- `{ "leaf", "main.lua" }`, `{ "row", { node, ... } }` or `{ "col", { node, ... } }`.
+---@alias vimdojo.LayoutNode table
 
 ---@param a string[]
 ---@param b string[]
@@ -50,11 +58,61 @@ local REGISTER_PATTERN = '^[a-z0-9"%-]$'
 ---@field is_met fun(goal: vimdojo.Goal, state: vimdojo.Snapshot, start_lines: string[]): boolean
 ---@field registers (fun(goal: vimdojo.Goal, into: table<string, true>))|nil
 ---@field probes (fun(goal: vimdojo.Goal, into: vimdojo.Probe[]))|nil
+---@field files (fun(goal: vimdojo.Goal, into: table<string, true>))|nil
+---@field layout (fun(goal: vimdojo.Goal, into: { needed: boolean }))|nil
 
 local kinds
 
---- Calls each inner goal's `hook` (registers, probes), for composite goals.
----@param hook "registers"|"probes"
+---@param node any
+---@return string|nil err
+local function layout_error(node)
+  if type(node) ~= "table" then
+    return "layout nodes must be arrays"
+  end
+  if node[1] == "leaf" then
+    if not check.is_workspace_path(node[2]) then
+      return 'a leaf names a workspace file, e.g. ["leaf", "main.lua"]'
+    end
+    return nil
+  end
+  if node[1] ~= "row" and node[1] ~= "col" then
+    return 'layout nodes start with "leaf", "row" or "col"'
+  end
+  if type(node[2]) ~= "table" or #node[2] < 2 then
+    return "a row or col holds at least two nodes"
+  end
+  for _, child in ipairs(node[2]) do
+    local err = layout_error(child)
+    if err then
+      return err
+    end
+  end
+end
+
+---@param a vimdojo.LayoutNode
+---@param b vimdojo.LayoutNode
+---@return boolean
+local function layout_equal(a, b)
+  if type(a) ~= "table" or type(b) ~= "table" or a[1] ~= b[1] then
+    return false
+  end
+  if a[1] == "leaf" then
+    return a[2] == b[2]
+  end
+  if #a[2] ~= #b[2] then
+    return false
+  end
+  for i = 1, #a[2] do
+    if not layout_equal(a[2][i], b[2][i]) then
+      return false
+    end
+  end
+  return true
+end
+
+--- Calls each inner goal's `hook` (registers, probes, files, layout), for
+--- composite goals.
+---@param hook "registers"|"probes"|"files"|"layout"
 ---@param goals vimdojo.Goal[]
 ---@param into table
 local function gather(hook, goals, into)
@@ -147,6 +205,58 @@ kinds = {
     probes = function(goal, into)
       gather("probes", goal.goals, into)
     end,
+    files = function(goal, into)
+      gather("files", goal.goals, into)
+    end,
+    layout = function(goal, into)
+      gather("layout", goal.goals, into)
+    end,
+  },
+
+  -- Usage levels with a workspace of real files. The snapshot carries each
+  -- file's buffer if it is loaded, its contents on disk otherwise, so saving
+  -- is not required.
+  files_equal = {
+    validate = function(goal)
+      if type(goal.files) ~= "table" or next(goal.files) == nil then
+        return "files must be an object of path -> lines"
+      end
+      for path, lines in pairs(goal.files) do
+        if not check.is_workspace_path(path) then
+          return ("files: %q is not a relative workspace path"):format(tostring(path))
+        end
+        if not check.is_string_list(lines) then
+          return ("files.%s must be a non-empty array of lines"):format(path)
+        end
+      end
+    end,
+    is_met = function(goal, state)
+      for path, lines in pairs(goal.files) do
+        local actual = state.files and state.files[path]
+        if not actual or not lines_equal(actual, lines) then
+          return false
+        end
+      end
+      return true
+    end,
+    files = function(goal, into)
+      for path in pairs(goal.files) do
+        into[path] = true
+      end
+    end,
+  },
+
+  -- The current tab's window layout, as winlayout() with file names.
+  layout = {
+    validate = function(goal)
+      return layout_error(goal.layout)
+    end,
+    is_met = function(goal, state)
+      return state.layout ~= nil and layout_equal(goal.layout, state.layout)
+    end,
+    layout = function(_, into)
+      into.needed = true
+    end,
   },
 
   -- Setup levels. The probes run in a sandboxed Neovim (sandbox.lua), which
@@ -211,6 +321,26 @@ function M.probes(goal)
   local list = {}
   gather("probes", { goal }, list)
   return list
+end
+
+--- The workspace files a snapshot must capture for `goal`, sorted.
+---@param goal vimdojo.Goal
+---@return string[]
+function M.files(goal)
+  local paths = {}
+  gather("files", { goal }, paths)
+  local list = vim.tbl_keys(paths)
+  table.sort(list)
+  return list
+end
+
+--- Whether a snapshot must capture the window layout for `goal`.
+---@param goal vimdojo.Goal
+---@return boolean
+function M.reads_layout(goal)
+  local into = { needed = false }
+  gather("layout", { goal }, into)
+  return into.needed
 end
 
 return M

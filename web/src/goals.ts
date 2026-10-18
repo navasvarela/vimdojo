@@ -1,5 +1,5 @@
 import { assertNever } from "./assert"
-import type { Goal } from "./challenges"
+import type { Goal, LayoutNode } from "./challenges"
 
 // Port of lua/vimdojo/goals.lua; both are tested against tests/fixtures/goals.json.
 
@@ -14,10 +14,30 @@ export type Snapshot = {
   readonly cursor: readonly [number, number]
   /** Only the registers the goal reads (see registersFor). */
   readonly registers?: Readonly<Record<string, Register>> | undefined
+  /** Workspace files the goal reads, path -> lines (Neovim only). */
+  readonly files?: Readonly<Record<string, readonly string[]>> | undefined
+  /** The current tab's windows (Neovim only). */
+  readonly layout?: LayoutNode | undefined
 }
 
 function linesEqual(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && a.every((line, i) => line === b[i])
+}
+
+function layoutEqual(a: LayoutNode, b: LayoutNode): boolean {
+  if (a[0] === "leaf" || b[0] === "leaf") {
+    return a[0] === b[0] && a[1] === b[1]
+  }
+  const [aKind, aChildren] = a
+  const [bKind, bChildren] = b
+  return (
+    aKind === bKind &&
+    aChildren.length === bChildren.length &&
+    aChildren.every((child, i) => {
+      const other = bChildren[i]
+      return other !== undefined && layoutEqual(child, other)
+    })
+  )
 }
 
 export function isMet(goal: Goal, state: Snapshot, startLines: readonly string[]): boolean {
@@ -40,6 +60,13 @@ export function isMet(goal: Goal, state: Snapshot, startLines: readonly string[]
     case "config_probes":
       // Needs a real Neovim to load the config; the browser never meets it.
       return false
+    case "files_equal":
+      return Object.entries(goal.files).every(([path, lines]) => {
+        const actual = state.files?.[path]
+        return actual !== undefined && linesEqual(actual, lines)
+      })
+    case "layout":
+      return state.layout !== undefined && layoutEqual(goal.layout, state.layout)
     default:
       return assertNever(goal)
   }
@@ -59,6 +86,8 @@ export function registersFor(goal: Goal): string[] {
       case "buffer_equals":
       case "cursor_at":
       case "config_probes":
+      case "files_equal":
+      case "layout":
         return
       default:
         assertNever(g)
@@ -68,10 +97,12 @@ export function registersFor(goal: Goal): string[] {
   return [...names].sort()
 }
 
-/** Whether the goal can only be checked in Neovim (Setup levels). */
+/** Whether the goal can only be checked in Neovim (configs, files, windows). */
 export function needsNeovim(goal: Goal): boolean {
   switch (goal.type) {
     case "config_probes":
+    case "files_equal":
+    case "layout":
       return true
     case "all_of":
       return goal.goals.some(needsNeovim)

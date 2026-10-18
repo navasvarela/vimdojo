@@ -169,3 +169,39 @@ describe("goal_views", function()
     assert.are.equal(0, goal_views.extra_rows({ type = "buffer_equals", value = { "x" } }))
   end)
 end)
+
+describe("goal_views.render_layout", function()
+  local goal_views = require("vimdojo.goal_views")
+  local cases = {
+    { { "leaf", "a.lua" }, "a.lua" },
+    { { "row", { { "leaf", "a.lua" }, { "leaf", "b.lua" } } }, "a.lua │ b.lua" },
+    {
+      { "row", { { "leaf", "a.lua" }, { "col", { { "leaf", "b.lua" }, { "leaf", "c.md" } } } } },
+      "a.lua │ (b.lua ─ c.md)",
+    },
+  }
+  for _, case in ipairs(cases) do
+    it(case[2], function()
+      assert.are.equal(case[2], goal_views.render_layout(case[1], true))
+    end)
+  end
+end)
+
+describe("goals requirements", function()
+  local goal = {
+    type = "all_of",
+    goals = {
+      { type = "files_equal", files = { ["b.lua"] = { "x" }, ["a.lua"] = { "y" } } },
+      { type = "layout", layout = { "leaf", "a.lua" } },
+    },
+  }
+
+  it("lists the files a goal reads", function()
+    assert.are.same({ "a.lua", "b.lua" }, goals.files(goal))
+  end)
+
+  it("knows when a goal reads the layout", function()
+    assert.is_true(goals.reads_layout(goal))
+    assert.is_false(goals.reads_layout({ type = "cursor_at", line = 1, col = 0 }))
+  end)
+end)

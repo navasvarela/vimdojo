@@ -15,8 +15,8 @@ local M = {}
 ---@field keymaps vimdojo.Controls
 ---@field leader string The parent's mapleader, so <leader> means the same here.
 
----@type { parent: integer|nil, room: string|nil, level: vimdojo.Level|nil, buf: integer|nil, solved: boolean, augroup: integer|nil, config_check: vimdojo.ConfigCheck|nil }
-local state = { solved = false }
+---@type { parent: integer|nil, room: string|nil, level: vimdojo.Level|nil, buf: integer|nil, solved: boolean, augroup: integer|nil, config_check: vimdojo.ConfigCheck|nil, workspace: string|nil, check_pending: boolean }
+local state = { solved = false, check_pending = false }
 
 ---@param event string
 ---@param payload any
@@ -65,27 +65,69 @@ function M.start()
   notify("ready")
 end
 
+---@param path string Absolute.
+---@return integer|nil buf The loaded buffer editing `path`, if any.
+local function loaded_buffer(path)
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_is_loaded(buf) and vim.api.nvim_buf_get_name(buf) == path then
+      return buf
+    end
+  end
+end
+
+--- Each workspace file the goal reads: its buffer if loaded (unsaved edits
+--- count), otherwise its contents on disk.
+---@param paths string[]
+---@return table<string, string[]>
+local function read_files(paths)
+  local files = {}
+  for _, path in ipairs(paths) do
+    local full = vim.fs.normalize(state.workspace .. "/" .. path)
+    local buf = loaded_buffer(full)
+    if buf then
+      files[path] = vim.api.nvim_buf_get_lines(buf, 0, -1, false)
+    elseif vim.fn.filereadable(full) == 1 then
+      files[path] = vim.fn.readfile(full)
+    end
+  end
+  return files
+end
+
+--- The current tab as winlayout(), with each window's file (relative to the
+--- workspace) in place of its id.
+---@param node table
+---@return vimdojo.LayoutNode
+local function name_layout(node)
+  if node[1] == "leaf" then
+    local name = vim.api.nvim_buf_get_name(vim.api.nvim_win_get_buf(node[2]))
+    return { "leaf", name == "" and "[No Name]" or vim.fn.fnamemodify(name, ":.") }
+  end
+  return { node[1], vim.tbl_map(name_layout, node[2]) }
+end
+
 ---@return vimdojo.Snapshot|nil
 function M.snapshot()
   if not state.buf or not vim.api.nvim_buf_is_valid(state.buf) then
     return nil
   end
-  local win = vim.fn.bufwinid(state.buf)
-  if win == -1 then
-    return nil
-  end
+  local goal = state.level and state.level.goal
   local registers = {}
-  for _, name in ipairs(state.level and goals.registers(state.level.goal) or {}) do
+  for _, name in ipairs(goal and goals.registers(goal) or {}) do
     registers[name] = {
       lines = vim.fn.getreg(name, 1, true),
       linewise = vim.fn.getregtype(name) == "V",
     }
   end
+  -- The level buffer may be hidden while the player works in another file;
+  -- its cursor then can't be on a cursor_at target.
+  local win = vim.fn.bufwinid(state.buf)
   return {
     lines = vim.api.nvim_buf_get_lines(state.buf, 0, -1, false),
-    cursor = vim.api.nvim_win_get_cursor(win),
+    cursor = win ~= -1 and vim.api.nvim_win_get_cursor(win) or { 0, 0 },
     registers = registers,
     config_passed = state.config_check and state.config_check:passed(),
+    files = (goal and state.workspace) and read_files(goals.files(goal)) or nil,
+    layout = (goal and goals.reads_layout(goal)) and name_layout(vim.fn.winlayout()) or nil,
   }
 end
 
@@ -103,28 +145,48 @@ local function check()
   end
 end
 
----@param buf integer
+--- Global, not buffer-local: in levels about files and windows the player
+--- moves between buffers, and the controls must work from any of them. The
+--- room is a dedicated Neovim, so nothing else is affected.
 ---@param keymaps vimdojo.Controls
-local function map_controls(buf, keymaps)
+local function map_controls(keymaps)
   for name, lhs in pairs(keymaps) do
     vim.keymap.set("n", lhs, function()
       notify("control", name)
-    end, { buffer = buf, nowait = true, silent = true, desc = "vimdojo " .. name })
+    end, { nowait = true, silent = true, desc = "vimdojo " .. name })
   end
 end
 
----@param buf integer
-local function watch(buf)
-  state.augroup = vim.api.nvim_create_augroup("vimdojo.room", { clear = true })
-  vim.api.nvim_create_autocmd({ "TextChanged", "CursorMoved" }, {
-    group = state.augroup,
-    buffer = buf,
-    callback = check,
-  })
+--- Coalesces bursts of events (a split fires WinNew, WinEnter, BufEnter...)
+--- into one check after they settle.
+local function schedule_check()
+  if state.check_pending then
+    return
+  end
+  state.check_pending = true
+  vim.schedule(function()
+    state.check_pending = false
+    check()
+  end)
+end
+
+local function watch()
+  -- WinResized covers moving windows (<C-w>L, <C-w>x...), which enters,
+  -- creates or closes none.
+  local events = {
+    "TextChanged",
+    "CursorMoved",
+    "BufEnter",
+    "WinEnter",
+    "WinClosed",
+    "WinNew",
+    "WinResized",
+  }
+  vim.api.nvim_create_autocmd(events, { group = state.augroup, callback = schedule_check })
   vim.api.nvim_create_autocmd("ModeChanged", {
     group = state.augroup,
     pattern = "*:n",
-    callback = check,
+    callback = schedule_check,
   })
 end
 
@@ -198,29 +260,85 @@ local function apply_preset(level, buf)
   end
 end
 
---- (Re)builds the level in a fresh buffer: text, options, presets, cursor,
---- target highlight, control mappings and goal checks. Also used for reset.
+--- Writes the level's files into a fresh directory, makes it the working
+--- directory, and edits the `open` file.
+---@param level vimdojo.Level
+---@return integer buf
+local function workspace_buffer(level)
+  local dir = vim.fn.tempname()
+  for path, lines in pairs(level.files) do
+    local full = dir .. "/" .. path
+    vim.fn.mkdir(vim.fn.fnamemodify(full, ":h"), "p")
+    vim.fn.writefile(lines, full)
+  end
+  vim.cmd.cd(vim.fn.fnameescape(dir))
+  -- getcwd(), not `dir`: buffer names are built from the resolved working
+  -- directory, which differs when the temp dir sits under a symlink (macOS
+  -- /var -> /private/var). Matching files to buffers needs the same form.
+  state.workspace = vim.fn.getcwd()
+  vim.cmd.edit(vim.fn.fnameescape(level.open))
+  return vim.api.nvim_get_current_buf()
+end
+
+--- One tab, one window showing `keep`, and no other buffers, quickfix
+--- entries, arguments or jumps left over from a previous attempt.
+---@param keep integer
+local function reset_editor(keep)
+  vim.cmd("silent! tabonly!")
+  vim.cmd("silent! only!")
+  vim.api.nvim_win_set_buf(0, keep)
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if buf ~= keep then
+      pcall(vim.api.nvim_buf_delete, buf, { force = true })
+    end
+  end
+  vim.fn.setqflist({}, "r")
+  vim.cmd("silent! %argdelete")
+  vim.cmd("clearjumps")
+end
+
+--- Ex commands that finish setting up the level (splits, quickfix lists,
+--- a previous :s). A failing command is a bug in the level; the solution
+--- tests catch it, so it is reported rather than aborting the load.
+---@param commands string[]|nil
+local function run_commands(commands)
+  for _, command in ipairs(commands or {}) do
+    local ok, err = pcall(vim.cmd, command)
+    if not ok then
+      vim.notify(
+        ("vimdojo: preset command %q failed: %s"):format(command, err),
+        vim.log.levels.ERROR
+      )
+    end
+  end
+end
+
+--- (Re)builds the level from scratch: text or workspace, options, presets,
+--- cursor, setup commands, target highlight, controls and goal checks. Also
+--- used for reset.
 ---@param spec vimdojo.RoomSpec
 function M.load(spec)
   vim.cmd("stopinsert")
   stop_config_check()
+  -- Stop watching before tearing the editor down, so the teardown can't
+  -- check (or solve) the old level.
+  state.augroup = vim.api.nvim_create_augroup("vimdojo.room", { clear = true })
   state.level, state.solved = spec.level, false
   vim.g.mapleader = spec.leader
 
-  local previous = state.buf
-  local buf = level_buffer(spec.level.start_text)
-  vim.api.nvim_win_set_buf(0, buf)
-  if previous and previous ~= buf and vim.api.nvim_buf_is_valid(previous) then
-    vim.api.nvim_buf_delete(previous, { force = true })
-  end
+  state.workspace = nil
+  local buf = spec.level.files and workspace_buffer(spec.level)
+    or level_buffer(spec.level.start_text)
+  reset_editor(buf)
   state.buf = buf
 
   apply_options(spec.level.options)
   apply_preset(spec.level, buf)
   vim.api.nvim_win_set_cursor(0, spec.level.cursor_start)
+  run_commands(spec.level.preset and spec.level.preset.commands)
   goal_views.decorate(buf, spec.level.goal)
-  map_controls(buf, spec.keymaps)
-  watch(buf)
+  map_controls(spec.keymaps)
+  watch()
   local probes = goals.probes(spec.level.goal)
   if #probes > 0 then
     watch_config(buf, probes)

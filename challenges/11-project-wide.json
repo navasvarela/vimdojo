@@ -1,0 +1,90 @@
+{
+  "$schema": "./schema.json",
+  "pack": "project-wide",
+  "title": "Project-Wide Edits",
+  "description": "Work across files: follow paths, find files anywhere, and change every file at once with the quickfix list.",
+  "order": 11,
+  "track": "usage",
+  "levels": [
+    {
+      "id": "project-01",
+      "title": "Follow the path",
+      "description": "greet.lua has a typo. Open it straight from the dofile() call and fix 'helo'.",
+      "files": {
+        "main.lua": ["dofile(\"greet.lua\")", "greet()"],
+        "greet.lua": ["function greet()", "  print('helo')", "end"]
+      },
+      "open": "main.lua",
+      "cursor_start": [1, 8],
+      "goal": {
+        "type": "files_equal",
+        "files": { "greet.lua": ["function greet()", "  print('hello')", "end"] }
+      },
+      "par_keys": 8,
+      "par_seconds": 14,
+      "hint": "gf opens the file whose name is under the cursor. Saving isn't required.",
+      "solution": "gfjflal<Esc>",
+      "teaches": ["gf"]
+    },
+    {
+      "id": "project-02",
+      "title": "Rename everywhere",
+      "description": "getUser is now fetchUser. Rename it in every file without opening them one by one.",
+      "files": {
+        "main.lua": ["require('api')", "require('admin')", "require('cli')"],
+        "api.lua": [
+          "local api = {}",
+          "function api.me(session) return getUser(session.id) end",
+          "return api"
+        ],
+        "admin.lua": ["local u = getUser(1)", "if u.admin then", "  getUser(2).promote()", "end"],
+        "cli.lua": ["print(getUser(arg[1]).name)"]
+      },
+      "open": "main.lua",
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "files_equal",
+        "files": {
+          "api.lua": [
+            "local api = {}",
+            "function api.me(session) return fetchUser(session.id) end",
+            "return api"
+          ],
+          "admin.lua": [
+            "local u = fetchUser(1)",
+            "if u.admin then",
+            "  fetchUser(2).promote()",
+            "end"
+          ],
+          "cli.lua": ["print(fetchUser(arg[1]).name)"]
+        }
+      },
+      "par_keys": 42,
+      "par_seconds": 54,
+      "hint": ":vimgrep /pattern/ ** fills the quickfix list with every match in the project; :cdo runs a command on each entry.",
+      "solution": ":vim getUser **<CR>:cdo s/getUser/fetchUser/<CR>",
+      "teaches": [":vimgrep", ":cdo"]
+    },
+    {
+      "id": "project-03",
+      "title": "Deep find",
+      "description": "Turn debug on. The settings file is buried somewhere under src/, and you don't need to know where.",
+      "files": {
+        "main.lua": ["local settings = require('app.config.settings')"],
+        "src/app/config/settings.lua": ["return {", "  debug = false,", "}"]
+      },
+      "open": "main.lua",
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "files_equal",
+        "files": { "src/app/config/settings.lua": ["return {", "  debug = true,", "}"] }
+      },
+      "par_keys": 20,
+      "par_seconds": 28,
+      "hint": ":find searches 'path' (set to ** here) for a file name, and Tab completes it. :fin is enough.",
+      "solution": ":fin set<Tab><CR>jffcwtrue<Esc>",
+      "teaches": [":find"],
+      "options": { "path": ".,**" }
+    }
+  ]
+}

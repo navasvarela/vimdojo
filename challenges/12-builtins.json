@@ -1,0 +1,125 @@
+{
+  "$schema": "./schema.json",
+  "pack": "builtins",
+  "title": "Neovim Built-ins",
+  "description": "Defaults that ship with modern Neovim: commenting, repeating :s, quickfix and diagnostic jumps.",
+  "order": 12,
+  "track": "usage",
+  "levels": [
+    {
+      "id": "builtins-01",
+      "title": "Comment out",
+      "description": "Comment out the three print calls. No plugin needed since Neovim 0.10.",
+      "files": {
+        "main.lua": ["local debug = true", "print('a')", "print('b')", "print('c')", "return debug"]
+      },
+      "open": "main.lua",
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "local debug = true",
+          "-- print('a')",
+          "-- print('b')",
+          "-- print('c')",
+          "return debug"
+        ]
+      },
+      "par_keys": 5,
+      "par_seconds": 10,
+      "hint": "gc is the comment operator: gcc comments a line, gc2j comments this line and the two below.",
+      "solution": "jgc2j",
+      "teaches": ["gc"]
+    },
+    {
+      "id": "builtins-02",
+      "title": "Again, everywhere",
+      "description": "You already fixed 'colour' on the first line with :s. Do the same on every line.",
+      "start_text": ["The colour of the sky", "My favourite colour is grey", "colour me surprised"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["The color of the sky", "My favourite color is grey", "color me surprised"]
+      },
+      "par_keys": 2,
+      "par_seconds": 6,
+      "hint": "g& repeats the last :s on every line, with the same pattern and flags.",
+      "solution": "g&",
+      "teaches": ["g&"],
+      "preset": { "commands": ["s/colour/color/"] }
+    },
+    {
+      "id": "builtins-03",
+      "title": "Quickfix hopping",
+      "description": "The quickfix list holds every oops() in the project and you're on the first. Turn each one into ok().",
+      "files": {
+        "main.lua": ["require('a')", "require('b')", "require('c')"],
+        "a.lua": ["local x = 1", "oops()", "return x"],
+        "b.lua": ["oops()", "print('b')"],
+        "c.lua": ["local y = 2", "local z = 3", "oops()"]
+      },
+      "open": "main.lua",
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "files_equal",
+        "files": {
+          "a.lua": ["local x = 1", "ok()", "return x"],
+          "b.lua": ["ok()", "print('b')"],
+          "c.lua": ["local y = 2", "local z = 3", "ok()"]
+        }
+      },
+      "par_keys": 11,
+      "par_seconds": 17,
+      "hint": "]q jumps to the next quickfix entry (and [q to the previous). Fix one, then ]q and . for the rest.",
+      "solution": "cwok<Esc>]q.]q.",
+      "teaches": ["]q", "[q"],
+      "preset": { "commands": ["silent vimgrep /oops/j **", "cfirst"] },
+      "requires": { "nvim": "0.11" }
+    },
+    {
+      "id": "builtins-04",
+      "title": "Fix the error",
+      "description": "There's an error somewhere in this file. Jump straight to it and fix it.",
+      "start_text": [
+        "local function double(x)",
+        "  return x * 2",
+        "end",
+        "",
+        "local function triple(x)",
+        "  return x * 3",
+        "end",
+        "",
+        "local function half(x)",
+        "  retrun x / 2",
+        "end"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "local function double(x)",
+          "  return x * 2",
+          "end",
+          "",
+          "local function triple(x)",
+          "  return x * 3",
+          "end",
+          "",
+          "local function half(x)",
+          "  return x / 2",
+          "end"
+        ]
+      },
+      "par_keys": 6,
+      "par_seconds": 11,
+      "hint": "]d jumps to the next diagnostic. From there, swap the two letters that are the wrong way round.",
+      "solution": "]d3lxp",
+      "teaches": ["]d", "[d"],
+      "preset": {
+        "commands": [
+          "lua vim.diagnostic.set(vim.api.nvim_create_namespace('vimdojo.level'), 0, { { lnum = 9, col = 2, message = 'unknown keyword: retrun', severity = vim.diagnostic.severity.ERROR } })"
+        ]
+      }
+    }
+  ]
+}

@@ -1,7 +1,8 @@
 // Key counting rules shared with lua/vimdojo/keys.lua: one physical key is one
 // keystroke, and "<Esc>"-style names count as a single key.
 
-const SPECIAL_KEY = /^<[\w-]+>/
+// <Esc>, <C-r>... plus a modifier with a punctuation key: <C-^>, <C-]>.
+const SPECIAL_KEY = /^<[\w-]+>|^<[A-Za-z]-[^\w>]>/
 
 /** Splits Vim key notation ("ciwfoo<Esc>") into one entry per key. */
 export function splitNotation(notation: string): string[] {
