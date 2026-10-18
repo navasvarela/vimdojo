@@ -295,9 +295,13 @@ local function workspace_buffer(level)
     vim.fn.mkdir(vim.fn.fnamemodify(full, ":h"), "p")
     vim.fn.writefile(lines, full)
   end
-  vim.cmd.cd(vim.fn.fnameescape(dir))
-  -- getcwd(), not `dir`: the resolved working directory, which differs when
-  -- the temp dir sits under a symlink (macOS /var -> /private/var).
+  vim.fn.mkdir(dir, "p")
+  -- Work in the real path: tempname() can go through a symlink (macOS /var
+  -- -> /private/var) or a Windows 8.3 short name (RUNNER~1). :find's **
+  -- search returns long, resolved names, and completion breaks when they
+  -- don't share the working directory's prefix.
+  local real = (vim.uv or vim.loop).fs_realpath(dir) or dir
+  vim.cmd.cd(vim.fn.fnameescape(real))
   state.workspace = vim.fn.getcwd()
   vim.cmd.edit(vim.fn.fnameescape(level.open))
   return vim.api.nvim_get_current_buf()
