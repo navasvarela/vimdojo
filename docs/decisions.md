@@ -308,3 +308,63 @@ the player's mappings nor their plugins apply, unless they choose
 - The emulation handles macros, `"A` appends, `<C-r>` and most Ex commands.
   Four levels joined the demo (19 in total). `:m` and the
   stop-on-failure macro don't match Neovim there.
+
+## Setup-track engine (M12)
+
+- **The room child runs the checks**, the same way it owns every other goal
+  check (M7). On `TextChanged` and on entering Normal mode it restarts a
+  400 ms debounce, then hands the buffer to `sandbox.lua`. The verdict is
+  stored with the buffer's `changedtick`, and snapshots carry it as
+  `config_passed` only while the text is unchanged. So `config_probes` stays
+  a pure lookup in `goals.lua`, works inside `all_of`, and a stale verdict
+  can never solve a level. A newer check kills the one in flight.
+- **Sandbox:** `nvim --headless --clean -n -i NONE -u shim.lua -l
+  probes/run.lua job.json`, with every `XDG_*` variable (including
+  `XDG_CONFIG_DIRS` and `XDG_DATA_DIRS`, so system-wide site directories
+  stay out) and `NVIM_APPNAME` pointing into a temporary directory that is
+  deleted afterwards. The shim loads the player's config at the point of
+  startup where a real `init.lua` loads, before filetype detection and
+  plugins, and sets `$MYVIMRC`. The report comes back as a JSON file, not
+  stdout, so whatever the config prints can't corrupt it. About 50 ms per
+  run on a laptop.
+- **This is isolation, not a security sandbox.** The code is the player's
+  own (or a pack author's, for starters), running with their permissions.
+  The point is that it never touches their real config, data or session.
+- **The 3 s timeout uses SIGKILL.** `vim.system`'s own timeout sends
+  SIGTERM, which Neovim handles on its event loop; a config stuck in
+  `while true do end` never returns to the loop and was never killed
+  (measured).
+- **Load errors point at a line.** The config is compiled with chunk name
+  `init.lua` (Lua truncates long temp paths in messages), run under
+  `xpcall(debug.traceback)`, and the innermost `init.lua:N:` frame wins, so
+  an error raised inside the runtime (`vim.keymap.set` with a `nil` rhs)
+  still points at the player's line. Probes still run after a load error,
+  so the player sees everything that's wrong at once.
+- **Feedback is diagnostics in the room's buffer**: the load error on its
+  line, the first failed probe (plus a count) on the last line, as virtual
+  text. They're drawn by the child, so they cost no keys and can't move
+  the header. The header lists every probe's description.
+- **Probes** are declarative data in `lua/vimdojo/probes/`, one module per
+  kind: `option`, `keys`, `filetype`, `command`, `source_twice`,
+  `extmarks_after` and the `lua` escape hatch. They're validated when packs
+  load (unknown options and events are errors) and in `schema.json`. Each
+  runs from one window on an empty buffer. `keys` and `extmarks_after` edit
+  a real fixture file so `:w` and `BufWritePre` work, and expand `<leader>`
+  to the leader the config set. `extmarks_after` counts every namespace by
+  default because the yank highlight's namespace was renamed between
+  versions.
+- **`option` reads from a new buffer**, so a buffer-local value set only on
+  the startup buffer (`vim.bo.shiftwidth = 2`) doesn't pass: new files
+  wouldn't get it.
+- **The web parses `config_probes` loosely**: only `kind` (as an enum) and
+  `description`. The browser never runs probes; the schema and the Lua
+  validator are the contract. `isMet` is always false there, the emulation
+  gate skips such levels, and loading a pack rejects `web_demo` on them.
+- **Fixture levels** in `tests/fixtures/packs/02-v2-setup.json` (an option,
+  a `<leader>w` mapping, a `:Trim` command) are solved end to end through
+  real rooms by `solutions_spec.lua`. `probes_spec.lua` runs every kind in
+  a real sandbox against a passing and a failing config.
+- **Plenary's per-file timeout is raised to 10 minutes.** Its 50 s default
+  killed `solutions_spec.lua` partway through on a busy laptop once M9 and
+  M10 added levels, before it reached the fixture packs. CI finishes it in
+  seconds.

@@ -70,6 +70,17 @@ timer and keystroke counter.
   - A level is solved as soon as the goal holds in Normal mode. If you are
     editing, leave Insert mode with <Esc> to finish (and that <Esc> counts).
 
+                                                               *vimdojo-setup*
+Setup levels hand you an `init.lua` to fix or extend instead of plain text.
+Whenever you pause in Normal mode, the config is loaded in a separate,
+throwaway headless Neovim (its own temporary config, data and state
+directories) and checked for what it does: an option's value, what a mapping
+does to a buffer, what a command leaves behind. Load errors and failed checks
+show as diagnostics in the level's buffer. The level is solved once the
+config loads without errors and every check passes. Your own config and
+files are never read or changed. This is isolation, not a security sandbox:
+the code runs with your permissions, so only play packs you trust.
+
 When you solve a level, a results card shows your stars, points, keys, time
 and your best so far:
 

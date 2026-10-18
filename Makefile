@@ -12,9 +12,12 @@ deps: $(PLENARY_DIR)
 $(PLENARY_DIR):
 	git clone --depth 1 https://github.com/nvim-lua/plenary.nvim $@
 
+# Plenary kills a spec file after 50 s by default. solutions_spec.lua plays
+# every level in a real clean room, which takes longer than that on a busy
+# laptop: it was killed mid-run, before reaching the fixture packs.
 test: deps
 	PLENARY_DIR=$(PLENARY_DIR) $(NVIM) --headless --noplugin -u tests/minimal_init.lua \
-		-c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', sequential = true }"
+		-c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', sequential = true, timeout = 600000 }"
 
 lint:
 	stylua --check .

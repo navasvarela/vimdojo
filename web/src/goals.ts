@@ -37,6 +37,9 @@ export function isMet(goal: Goal, state: Snapshot, startLines: readonly string[]
     }
     case "all_of":
       return goal.goals.every((inner) => isMet(inner, state, startLines))
+    case "config_probes":
+      // Needs a real Neovim to load the config; the browser never meets it.
+      return false
     default:
       return assertNever(goal)
   }
@@ -55,6 +58,7 @@ export function registersFor(goal: Goal): string[] {
         return
       case "buffer_equals":
       case "cursor_at":
+      case "config_probes":
         return
       default:
         assertNever(g)
@@ -62,4 +66,20 @@ export function registersFor(goal: Goal): string[] {
   }
   visit(goal)
   return [...names].sort()
+}
+
+/** Whether the goal can only be checked in Neovim (Setup levels). */
+export function needsNeovim(goal: Goal): boolean {
+  switch (goal.type) {
+    case "config_probes":
+      return true
+    case "all_of":
+      return goal.goals.some(needsNeovim)
+    case "buffer_equals":
+    case "cursor_at":
+    case "register_contains":
+      return false
+    default:
+      return assertNever(goal)
+  }
 }

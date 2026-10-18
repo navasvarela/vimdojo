@@ -33,11 +33,35 @@ const AllOfGoal = z.object({
   },
 })
 
+export const PROBE_KINDS = [
+  "option",
+  "keys",
+  "filetype",
+  "command",
+  "source_twice",
+  "extmarks_after",
+  "lua",
+] as const
+
+// Probes run only in a sandboxed Neovim, never in the browser, so the web
+// keeps just what it shows (kind, description). Their exact shape is checked
+// by challenges/schema.json in CI and by lua/vimdojo/probes when packs load.
+const Probe = z.looseObject({
+  kind: z.enum(PROBE_KINDS),
+  description: z.string().min(1).optional(),
+})
+
+const ConfigProbesGoal = z.object({
+  type: z.literal("config_probes"),
+  probes: z.array(Probe).min(1),
+})
+
 const Goal = z.discriminatedUnion("type", [
   BufferEqualsGoal,
   CursorAtGoal,
   RegisterContainsGoal,
   AllOfGoal,
+  ConfigProbesGoal,
 ])
 
 const Position = z.tuple([z.number().int().min(1), z.number().int().min(0)])
@@ -82,6 +106,7 @@ const Pack = z.object({
 export type BufferEqualsGoal = z.infer<typeof BufferEqualsGoal>
 export type CursorAtGoal = z.infer<typeof CursorAtGoal>
 export type RegisterContainsGoal = z.infer<typeof RegisterContainsGoal>
+export type ConfigProbesGoal = z.infer<typeof ConfigProbesGoal>
 export type Preset = z.infer<typeof Preset>
 export type Goal = z.infer<typeof Goal>
 export type Level = z.infer<typeof Level>

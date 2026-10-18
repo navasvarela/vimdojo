@@ -61,7 +61,7 @@ jobs:
       - run: git clone --depth 1 https://github.com/nvim-lua/plenary.nvim .deps/plenary.nvim
       - run: >
           nvim --headless --noplugin -u tests/minimal_init.lua
-          -c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', sequential = true }"
+          -c "PlenaryBustedDirectory tests/ { minimal_init = 'tests/minimal_init.lua', sequential = true, timeout = 600000 }"
         env:
           PLENARY_DIR: ${{ github.workspace }}/.deps/plenary.nvim
 

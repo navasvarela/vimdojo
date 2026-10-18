@@ -50,6 +50,17 @@ describe("challenges.validate_pack", function()
     { "table option value", { options = { shiftwidth = { 2 } } }, "options.shiftwidth must be" },
     { "uppercase preset mark", { preset = { marks = { A = { 1, 0 } } } }, 'invalid mark "A"' },
     { "bad preset register", { preset = { registers = { a = 3 } } }, "preset.registers.a must be" },
+    {
+      "web_demo on a config level",
+      {
+        web_demo = true,
+        goal = {
+          type = "config_probes",
+          probes = { { kind = "option", name = "list", value = true } },
+        },
+      },
+      "web_demo can't be set on a level with config_probes",
+    },
   }
   for _, case in ipairs(invalid) do
     local name, overrides, expected = case[1], case[2], case[3]
