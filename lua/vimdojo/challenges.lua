@@ -117,8 +117,7 @@ local function options_error(options)
     return "options must be an object"
   end
   for name, value in pairs(options) do
-    local known = type(name) == "string" and pcall(vim.api.nvim_get_option_info2, name, {})
-    if not known then
+    if not check.is_option_name(name) then
       return ("options: unknown option %q"):format(tostring(name))
     end
     local kind = type(value)
@@ -149,12 +148,7 @@ local function preset_error(preset)
     if not tostring(name):match("^[a-z]$") then
       return ("preset.marks: invalid mark %q (a-z)"):format(tostring(name))
     end
-    local valid = type(position) == "table"
-      and check.is_integer(position[1])
-      and check.is_integer(position[2])
-      and position[1] >= 1
-      and position[2] >= 0
-    if not valid then
+    if not check.is_position(position) then
       return ("preset.marks.%s must be [line, col]"):format(name)
     end
   end
@@ -186,6 +180,10 @@ local function level_errors(level)
   expect(cursor_error == nil, cursor_error)
   local goal_error = goals.validate(level.goal)
   expect(goal_error == nil, "goal: " .. tostring(goal_error))
+  expect(
+    goal_error ~= nil or level.web_demo ~= true or #goals.probes(level.goal) == 0,
+    "web_demo can't be set on a level with config_probes: the browser can't run a Neovim config"
+  )
   expect(
     level.requires == nil
       or (type(level.requires) == "table" and compat.parse(level.requires.nvim) ~= nil),

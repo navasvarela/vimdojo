@@ -124,7 +124,8 @@
         { "$ref": "#/$defs/goal_buffer_equals" },
         { "$ref": "#/$defs/goal_cursor_at" },
         { "$ref": "#/$defs/goal_register_contains" },
-        { "$ref": "#/$defs/goal_all_of" }
+        { "$ref": "#/$defs/goal_all_of" },
+        { "$ref": "#/$defs/goal_config_probes" }
       ]
     },
     "goal_buffer_equals": {
@@ -171,6 +172,170 @@
       "properties": {
         "type": { "const": "all_of" },
         "goals": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/goal" } }
+      }
+    },
+    "goal_config_probes": {
+      "description": "Setup levels: the buffer is an init.lua. It is loaded in a sandboxed headless Neovim and must load without errors and pass every probe. Neovim only; never web_demo.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "probes"],
+      "properties": {
+        "type": { "const": "config_probes" },
+        "probes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/probe" } }
+      }
+    },
+    "probe_description": {
+      "description": "Shown in the level header. Each kind has a default.",
+      "type": "string",
+      "minLength": 1
+    },
+    "probe": {
+      "oneOf": [
+        { "$ref": "#/$defs/probe_option" },
+        { "$ref": "#/$defs/probe_keys" },
+        { "$ref": "#/$defs/probe_filetype" },
+        { "$ref": "#/$defs/probe_command" },
+        { "$ref": "#/$defs/probe_source_twice" },
+        { "$ref": "#/$defs/probe_extmarks_after" },
+        { "$ref": "#/$defs/probe_lua" }
+      ]
+    },
+    "probe_option": {
+      "description": "An option has this value in a new buffer once the config has loaded.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "name", "value"],
+      "properties": {
+        "kind": { "const": "option" },
+        "description": { "$ref": "#/$defs/probe_description" },
+        "name": { "type": "string", "minLength": 1 },
+        "value": { "type": ["string", "number", "boolean"] }
+      }
+    },
+    "probe_keys": {
+      "description": "Typing keys in a fixture file leaves the editor in the expected state.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "keys", "expect"],
+      "properties": {
+        "kind": { "const": "keys" },
+        "description": { "$ref": "#/$defs/probe_description" },
+        "keys": {
+          "description": "Key notation typed as the player would, so mappings apply. <leader> means the leader the config set.",
+          "type": "string",
+          "minLength": 1
+        },
+        "lines": {
+          "description": "The fixture file's lines. Defaults to one empty line.",
+          "$ref": "#/$defs/lines"
+        },
+        "cursor": {
+          "description": "Where the cursor starts in the fixture file.",
+          "$ref": "#/$defs/position"
+        },
+        "expect": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "lines": { "$ref": "#/$defs/lines" },
+            "cursor": { "$ref": "#/$defs/position" },
+            "modified": { "type": "boolean" },
+            "hlsearch": {
+              "description": "v:hlsearch: whether search matches are highlighted.",
+              "type": "boolean"
+            },
+            "windows": {
+              "description": "Windows in the current tab.",
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        }
+      }
+    },
+    "probe_filetype": {
+      "description": "A new buffer of this filetype gets these options.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "filetype", "expect"],
+      "properties": {
+        "kind": { "const": "filetype" },
+        "description": { "$ref": "#/$defs/probe_description" },
+        "filetype": { "type": "string", "minLength": 1 },
+        "expect": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "type": ["string", "number", "boolean"] }
+        }
+      }
+    },
+    "probe_command": {
+      "description": "An Ex command turns the fixture lines into the expected lines.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "command", "lines", "expect"],
+      "properties": {
+        "kind": { "const": "command" },
+        "description": { "$ref": "#/$defs/probe_description" },
+        "command": {
+          "description": "Without the colon, e.g. \"Trim\" or \"%Trim\".",
+          "type": "string",
+          "minLength": 1
+        },
+        "lines": { "$ref": "#/$defs/lines" },
+        "expect": { "$ref": "#/$defs/lines" }
+      }
+    },
+    "probe_source_twice": {
+      "description": "Sourcing the config a second time doesn't add autocommands for this event.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "event"],
+      "properties": {
+        "kind": { "const": "source_twice" },
+        "description": { "$ref": "#/$defs/probe_description" },
+        "event": { "type": "string", "minLength": 1 }
+      }
+    },
+    "probe_extmarks_after": {
+      "description": "Typing keys in a fixture file leaves extmarks behind (e.g. the yank highlight).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "keys"],
+      "properties": {
+        "kind": { "const": "extmarks_after" },
+        "description": { "$ref": "#/$defs/probe_description" },
+        "keys": {
+          "description": "Key notation typed as the player would, so mappings apply. <leader> means the leader the config set.",
+          "type": "string",
+          "minLength": 1
+        },
+        "lines": {
+          "description": "The fixture file's lines. Defaults to one empty line.",
+          "$ref": "#/$defs/lines"
+        },
+        "cursor": {
+          "description": "Where the cursor starts in the fixture file.",
+          "$ref": "#/$defs/position"
+        },
+        "namespace": {
+          "description": "Only count this namespace. Omit to count all, which survives renames between Neovim versions.",
+          "type": "string",
+          "minLength": 1
+        },
+        "min": { "type": "integer", "minimum": 1, "default": 1 }
+      }
+    },
+    "probe_lua": {
+      "description": "Escape hatch: a Lua expression that must evaluate to true. Prefer a declarative probe.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "expr", "description"],
+      "properties": {
+        "kind": { "const": "lua" },
+        "description": { "$ref": "#/$defs/probe_description" },
+        "expr": { "type": "string", "minLength": 1 }
       }
     }
   }

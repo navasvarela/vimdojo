@@ -46,6 +46,7 @@ is written exactly once.
 | `cursor_at` | `{ "line", "col", "allow_edit"? }` | The cursor is there and the text is unchanged (unless `allow_edit`). |
 | `register_contains` | `{ "register", "value": [lines], "linewise"? }` | The register holds these lines (and has that type, if `linewise` is given). Registers a goal reads start empty. |
 | `all_of` | `{ "goals": [goal, ...] }` | Every inner goal holds at once. |
+| `config_probes` | `{ "probes": [probe, ...] }` | Setup levels: the buffer, loaded as an `init.lua` in a sandboxed Neovim, loads without errors and passes every probe. See below. |
 
 Goals are only checked in Normal mode, so an edit is done when the player
 leaves Insert mode.
@@ -58,6 +59,59 @@ Pack `order` is unique across all packs.
 
 The full contract is [`challenges/schema.json`](../challenges/schema.json).
 Point your editor's JSON support at it via `"$schema": "./schema.json"`.
+
+### Setup levels and probes
+
+A Setup level's `start_text` is an `init.lua` starter snippet (the room
+gives it filetype `lua`), and its goal is `config_probes`. Whenever the
+buffer settles in Normal mode (400 ms after the last change), the room
+writes it to a temporary `init.lua` and runs it in
+`nvim --headless --clean` with temporary `XDG_*` directories and a 3 s
+timeout. Load errors and failed probes show as diagnostics in the buffer and
+cost the player no keys. Probes check what the config **does**, not how it's
+written, so `vim.keymap.set(...)` and `vim.cmd("nnoremap ...")` both pass.
+
+```json
+"goal": {
+  "type": "config_probes",
+  "probes": [
+    { "kind": "option", "name": "relativenumber", "value": true },
+    {
+      "kind": "keys",
+      "description": "<leader>w saves a changed file",
+      "keys": "ccchanged<Esc><leader>w",
+      "lines": ["original"],
+      "expect": { "lines": ["changed"], "modified": false }
+    }
+  ]
+}
+```
+
+Every probe takes an optional `description` for the level header; each kind
+has a default. Probes run in order, each starting from one window on an
+empty buffer.
+
+| Kind | Shape | Passes when |
+|---|---|---|
+| `option` | `{ "name", "value" }` | The option has this value in a new buffer. |
+| `keys` | `{ "keys", "lines"?, "cursor"?, "expect" }` | After typing `keys` in a fixture file holding `lines`, every `expect` field matches: `lines`, `cursor`, `modified`, `hlsearch` (`v:hlsearch`), `windows` (in the tab). |
+| `filetype` | `{ "filetype", "expect": { option: value } }` | A new buffer of that filetype gets these options (e.g. from a `FileType` autocommand). |
+| `command` | `{ "command", "lines", "expect": [lines] }` | Running the Ex command (no colon) on `lines` leaves `expect`. |
+| `source_twice` | `{ "event" }` | Sourcing the config again doesn't add autocommands for the event (an augroup with `clear = true`). |
+| `extmarks_after` | `{ "keys", "lines"?, "cursor"?, "namespace"?, "min"? }` | Typing `keys` leaves at least `min` (1) extmarks, e.g. `vim.hl.on_yank()`. Leave out `namespace` to count all, which survives renames between Neovim versions. |
+| `lua` | `{ "expr", "description" }` | The Lua expression is `true`. An escape hatch, reviewed in PRs: prefer a declarative kind, and add a kind when the same expression shows up twice. |
+
+In `keys`, `<leader>` means the leader the config set, so a probe keeps
+working whatever leader the player picks. The fixture is a real file, so
+`:w` and `BufWritePre` work.
+
+- **The par is a keystroke edit of the starter snippet** (decision D2), like
+  any other level. The reference `solution` must reach a config that passes
+  every probe; `solutions_spec.lua` proves it in a real room.
+- **Mind the defaults.** Neovim's own ftplugins set options too (Python's
+  sets `shiftwidth=4`), so pick a filetype whose defaults don't already pass.
+- **Setup levels never get `web_demo`**: the browser can't run a config.
+  Loading a pack rejects the combination.
 
 ## Rules of thumb
 
@@ -133,6 +187,6 @@ needed: the plugin, the demo and the landing page pick it up automatically.
 
 A new goal type touches three places that must stay in sync:
 `challenges/schema.json`, `lua/vimdojo/goals.lua` (plus the presentation
-in `lua/vimdojo/ui.lua`) and `web/src/goals.ts` (plus
+in `lua/vimdojo/goal_views.lua`) and `web/src/goals.ts` (plus
 `web/src/game/goal-view.ts`). Add cases to `tests/fixtures/goals.json` so both
 implementations are tested against the same expectations.

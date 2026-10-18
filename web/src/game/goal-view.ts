@@ -58,6 +58,13 @@ function presentNode(level: Level, goal: Goal): GoalPresentation {
         extension: [],
       }
     }
+    case "config_probes":
+      return {
+        element: h("p", { className: "goal" }, [
+          `Goal: make this init.lua pass ${goal.probes.length} checks (Neovim only).`,
+        ]),
+        extension: [],
+      }
     case "all_of": {
       const parts = goal.goals.map((inner) => presentNode(level, inner))
       return {

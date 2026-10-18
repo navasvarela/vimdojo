@@ -4,6 +4,7 @@
 --
 -- The parent starts the child with VIMDOJO_PARENT (its server address) and
 -- VIMDOJO_ROOM (an id) in the environment.
+local config_check = require("vimdojo.room.config_check")
 local goals = require("vimdojo.goals")
 local goal_views = require("vimdojo.goal_views")
 
@@ -14,7 +15,7 @@ local M = {}
 ---@field keymaps vimdojo.Controls
 ---@field leader string The parent's mapleader, so <leader> means the same here.
 
----@type { parent: integer|nil, room: string|nil, level: vimdojo.Level|nil, buf: integer|nil, solved: boolean, augroup: integer|nil }
+---@type { parent: integer|nil, room: string|nil, level: vimdojo.Level|nil, buf: integer|nil, solved: boolean, augroup: integer|nil, config_check: vimdojo.ConfigCheck|nil }
 local state = { solved = false }
 
 ---@param event string
@@ -84,6 +85,7 @@ function M.snapshot()
     lines = vim.api.nvim_buf_get_lines(state.buf, 0, -1, false),
     cursor = vim.api.nvim_win_get_cursor(win),
     registers = registers,
+    config_passed = state.config_check and state.config_check:passed(),
   }
 end
 
@@ -124,6 +126,39 @@ local function watch(buf)
     pattern = "*:n",
     callback = check,
   })
+end
+
+--- Setup levels: the buffer is an init.lua, checked in the sandbox whenever
+--- it settles in Normal mode. Each verdict re-runs the goal check.
+---@param buf integer
+---@param probes vimdojo.Probe[]
+local function watch_config(buf, probes)
+  vim.bo[buf].filetype = "lua"
+  local checker = config_check.new(buf, probes, check)
+  state.config_check = checker
+  vim.api.nvim_create_autocmd("TextChanged", {
+    group = state.augroup,
+    buffer = buf,
+    callback = function()
+      checker:schedule()
+    end,
+  })
+  vim.api.nvim_create_autocmd("ModeChanged", {
+    group = state.augroup,
+    pattern = "*:n",
+    callback = function()
+      checker:schedule()
+    end,
+  })
+  -- Shows what the starter config is missing before the first edit.
+  checker:schedule()
+end
+
+local function stop_config_check()
+  if state.config_check then
+    state.config_check:stop()
+    state.config_check = nil
+  end
 end
 
 ---@param lines string[]
@@ -168,6 +203,7 @@ end
 ---@param spec vimdojo.RoomSpec
 function M.load(spec)
   vim.cmd("stopinsert")
+  stop_config_check()
   state.level, state.solved = spec.level, false
   vim.g.mapleader = spec.leader
 
@@ -185,11 +221,16 @@ function M.load(spec)
   goal_views.decorate(buf, spec.level.goal)
   map_controls(buf, spec.keymaps)
   watch(buf)
+  local probes = goals.probes(spec.level.goal)
+  if #probes > 0 then
+    watch_config(buf, probes)
+  end
   vim.cmd("nohlsearch | echo ''")
 end
 
 --- Stops edits once the attempt is over.
 function M.freeze()
+  stop_config_check()
   if state.buf and vim.api.nvim_buf_is_valid(state.buf) then
     vim.bo[state.buf].modifiable = false
   end

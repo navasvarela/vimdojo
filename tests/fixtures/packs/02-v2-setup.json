@@ -17,6 +17,76 @@
       "hint": "x",
       "solution": "x",
       "teaches": ["x"]
+    },
+    {
+      "id": "v2-setup-relativenumber",
+      "title": "Relative thinking",
+      "description": "Turn on relative line numbers as well, so counts like 5j are easy to read off.",
+      "start_text": ["-- Line numbers that count from the cursor", "vim.o.number = true"],
+      "cursor_start": [2, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [{ "kind": "option", "name": "relativenumber", "value": true }]
+      },
+      "par_keys": 15,
+      "par_seconds": 20,
+      "hint": "Copy the line with yyp, then insert 'relative' before 'number'.",
+      "solution": "yypfnirelative<Esc>",
+      "teaches": ["vim.o"]
+    },
+    {
+      "id": "v2-setup-leader-write",
+      "title": "Save shortcut",
+      "description": "The mapping is there, but it reloads the file instead of saving it. Make <leader>w write the buffer.",
+      "start_text": [
+        "vim.g.mapleader = \" \"",
+        "vim.keymap.set(\"n\", \"<leader>w\", vim.cmd.edit)"
+      ],
+      "cursor_start": [2, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "keys",
+            "description": "<leader>w saves a changed file",
+            "keys": "ccchanged<Esc><leader>w",
+            "lines": ["original"],
+            "expect": { "lines": ["changed"], "modified": false }
+          }
+        ]
+      },
+      "par_keys": 10,
+      "par_seconds": 15,
+      "hint": "vim.cmd.write saves the buffer: change the word edit with cw.",
+      "solution": "$bcwwrite<Esc>",
+      "teaches": ["vim.keymap.set"]
+    },
+    {
+      "id": "v2-setup-trim",
+      "title": ":Trim",
+      "description": ":Trim should strip trailing whitespace, but its pattern strips leading whitespace instead.",
+      "start_text": [
+        "vim.api.nvim_create_user_command(\"Trim\", function()",
+        "  vim.cmd([[%s/^\\s\\+//e]])",
+        "end, {})"
+      ],
+      "cursor_start": [2, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "command",
+            "command": "Trim",
+            "lines": ["  keep my indent  ", "tabs\t\t"],
+            "expect": ["  keep my indent", "tabs"]
+          }
+        ]
+      },
+      "par_keys": 8,
+      "par_seconds": 15,
+      "hint": "Drop the ^ anchor and anchor the match at the end of the line with $.",
+      "solution": "f^xf+a$<Esc>",
+      "teaches": ["nvim_create_user_command"]
     }
   ]
 }

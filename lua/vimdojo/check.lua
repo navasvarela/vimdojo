@@ -27,4 +27,24 @@ function M.is_string_list(value)
   return true
 end
 
+--- A [line, col] pair: 1-based line, 0-based byte column.
+---@param value any
+---@return boolean
+function M.is_position(value)
+  return type(value) == "table"
+    and #value == 2
+    and M.is_integer(value[1])
+    and M.is_integer(value[2])
+    and value[1] >= 1
+    and value[2] >= 0
+end
+
+--- Whether Neovim knows an option by this name, so a typo in a level fails
+--- validation instead of silently not applying.
+---@param name any
+---@return boolean
+function M.is_option_name(name)
+  return type(name) == "string" and (pcall(vim.api.nvim_get_option_info2, name, {}))
+end
+
 return M

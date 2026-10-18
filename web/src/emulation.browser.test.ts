@@ -3,7 +3,7 @@ import { userEvent } from "vitest/browser"
 import fixtureMotions from "../../tests/fixtures/packs/01-v2-motions.json"
 import { loadPacks, parsePacks, type Level } from "./challenges"
 import { createEditor, isNormalMode, snapshot } from "./game/editor"
-import { isMet, registersFor } from "./goals"
+import { isMet, needsNeovim, registersFor } from "./goals"
 import { splitNotation } from "./keys"
 
 // Runs every level's reference solution through the CodeMirror Vim emulation
@@ -56,7 +56,10 @@ async function solveInEmulation(level: Level): Promise<boolean> {
   }
 }
 
-const levels = loadPacks().flatMap((pack) => pack.levels)
+// Setup levels check a Neovim config, which the emulation can't run.
+const levels = loadPacks()
+  .flatMap((pack) => pack.levels)
+  .filter((level) => !needsNeovim(level.goal))
 
 describe("CodeMirror Vim emulation", () => {
   it.each(levels.filter((l) => l.web_demo === true).map((l) => [l.id, l] as const))(

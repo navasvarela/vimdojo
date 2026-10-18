@@ -1,6 +1,7 @@
 -- Goal checkers. Pure: they inspect a buffer snapshot and never call the
 -- Neovim API, so they can be unit-tested and mirrored in the web port.
 local check = require("vimdojo.check")
+local probes = require("vimdojo.probes")
 
 local M = {}
 
@@ -12,6 +13,7 @@ local M = {}
 ---@field lines string[]
 ---@field cursor integer[] [line, col]: 1-based line, 0-based byte column.
 ---@field registers table<string, vimdojo.Register>|nil Only those the goal reads (see M.registers).
+---@field config_passed boolean|nil Setup levels: the sandbox verdict for the current text, nil until there is one.
 
 ---@class vimdojo.Goal
 ---@field type string
@@ -22,6 +24,7 @@ local M = {}
 ---@field register string|nil register_contains
 ---@field linewise boolean|nil register_contains
 ---@field goals vimdojo.Goal[]|nil all_of
+---@field probes vimdojo.Probe[]|nil config_probes
 
 ---@param a string[]
 ---@param b string[]
@@ -46,8 +49,22 @@ local REGISTER_PATTERN = '^[a-z0-9"%-]$'
 ---@field validate fun(goal: vimdojo.Goal): string|nil
 ---@field is_met fun(goal: vimdojo.Goal, state: vimdojo.Snapshot, start_lines: string[]): boolean
 ---@field registers (fun(goal: vimdojo.Goal, into: table<string, true>))|nil
+---@field probes (fun(goal: vimdojo.Goal, into: vimdojo.Probe[]))|nil
 
 local kinds
+
+--- Calls each inner goal's `hook` (registers, probes), for composite goals.
+---@param hook "registers"|"probes"
+---@param goals vimdojo.Goal[]
+---@param into table
+local function gather(hook, goals, into)
+  for _, inner in ipairs(goals) do
+    local collect = kinds[inner.type][hook]
+    if collect then
+      collect(inner, into)
+    end
+  end
+end
 
 ---@type table<string, vimdojo.GoalKind>
 kinds = {
@@ -125,12 +142,25 @@ kinds = {
       return true
     end,
     registers = function(goal, into)
-      for _, inner in ipairs(goal.goals) do
-        local kind = kinds[inner.type]
-        if kind.registers then
-          kind.registers(inner, into)
-        end
-      end
+      gather("registers", goal.goals, into)
+    end,
+    probes = function(goal, into)
+      gather("probes", goal.goals, into)
+    end,
+  },
+
+  -- Setup levels. The probes run in a sandboxed Neovim (sandbox.lua), which
+  -- is asynchronous, so the room runs them and records the verdict in the
+  -- snapshot; checking the goal stays a pure lookup.
+  config_probes = {
+    validate = function(goal)
+      return probes.validate_list(goal.probes)
+    end,
+    is_met = function(_, state)
+      return state.config_passed == true
+    end,
+    probes = function(goal, into)
+      vim.list_extend(into, goal.probes)
     end,
   },
 }
@@ -167,12 +197,19 @@ end
 ---@return string[]
 function M.registers(goal)
   local names = {}
-  local kind = kinds[goal.type]
-  if kind and kind.registers then
-    kind.registers(goal, names)
-  end
+  gather("registers", { goal }, names)
   local list = vim.tbl_keys(names)
   table.sort(list)
+  return list
+end
+
+--- Every probe the goal runs against the player's config, in order. Empty
+--- for goals that aren't about a config. Callers must pass a validated goal.
+---@param goal vimdojo.Goal
+---@return vimdojo.Probe[]
+function M.probes(goal)
+  local list = {}
+  gather("probes", { goal }, list)
   return list
 end
 

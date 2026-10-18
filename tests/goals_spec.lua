@@ -52,6 +52,21 @@ describe("goals.validate", function()
     },
     { "empty all_of", { type = "all_of", goals = {} }, "goals must be a non-empty array" },
     {
+      "valid config_probes",
+      { type = "config_probes", probes = { { kind = "option", name = "list", value = true } } },
+      nil,
+    },
+    {
+      "empty config_probes",
+      { type = "config_probes", probes = {} },
+      "probes must be a non-empty array",
+    },
+    {
+      "invalid probe",
+      { type = "config_probes", probes = { { kind = "nope" } } },
+      'probes[1]: unknown probe kind "nope"',
+    },
+    {
       "invalid goal inside all_of",
       { type = "all_of", goals = { { type = "cursor_at", line = 0, col = 0 } } },
       "goals[1]: line must be an integer >= 1",
@@ -86,6 +101,32 @@ describe("goals.registers", function()
   end)
 end)
 
+describe("config_probes", function()
+  local goal = {
+    type = "config_probes",
+    probes = { { kind = "option", name = "list", value = true } },
+  }
+
+  it("is met only once the sandbox passed the current text", function()
+    local state = { lines = { "x" }, cursor = { 1, 0 } }
+    assert.is_false(goals.is_met(goal, state, { "x" }))
+    state.config_passed = false
+    assert.is_false(goals.is_met(goal, state, { "x" }))
+    state.config_passed = true
+    assert.is_true(goals.is_met(goal, state, { "x" }))
+  end)
+
+  it("lists its probes, including nested ones, in order", function()
+    local other = { kind = "option", name = "number", value = true }
+    local nested = {
+      type = "all_of",
+      goals = { goal, { type = "config_probes", probes = { other } } },
+    }
+    assert.are.same({ goal.probes[1], other }, goals.probes(nested))
+    assert.are.same({}, goals.probes({ type = "cursor_at", line = 1, col = 0 }))
+  end)
+end)
+
 describe("goal_views", function()
   local goal_views = require("vimdojo.goal_views")
 
@@ -103,5 +144,28 @@ describe("goal_views", function()
       "Goal: make the text read exactly:",
       "  │ x",
     }, lines)
+  end)
+
+  it("lists every check of a config goal and leaves room to add lines", function()
+    local goal = {
+      type = "config_probes",
+      probes = {
+        { kind = "option", name = "list", value = true },
+        {
+          kind = "command",
+          command = "Trim",
+          lines = { "a " },
+          expect = { "a" },
+          description = "Trim it",
+        },
+      },
+    }
+    local lines = goal_views.describe(goal)
+    assert.are.same(
+      { "Goal: make this init.lua pass every check:", "  • 'list' is true", "  • Trim it" },
+      vim.list_slice(lines, 1, 3)
+    )
+    assert.is_true(goal_views.extra_rows(goal) > 0)
+    assert.are.equal(0, goal_views.extra_rows({ type = "buffer_equals", value = { "x" } }))
   end)
 end)

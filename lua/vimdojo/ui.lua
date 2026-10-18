@@ -322,7 +322,7 @@ local function level_sizes(level, header)
         - wrapped_height({ header.lines[header.hint_line + 1] }, width)
     )
   -- The text, plus the parent's winbar and the child's command line.
-  local room_height = math.max(#level.start_text + 2, 4)
+  local room_height = math.max(#level.start_text + goal_views.extra_rows(level.goal) + 2, 4)
   room_height = math.min(room_height, math.max(4, vim.o.lines - header_height - 8))
   return { width = width, header_height = header_height, room_height = room_height }
 end

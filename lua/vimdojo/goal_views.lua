@@ -1,6 +1,8 @@
 -- How each goal type is explained in the level header (parent Neovim) and
 -- marked in the level buffer (clean-room child). Adding a goal type means
 -- adding an entry here and one in goals.lua.
+local probes = require("vimdojo.probes")
+
 local M = {}
 
 M.namespace = vim.api.nvim_create_namespace("vimdojo.goal")
@@ -8,6 +10,7 @@ M.namespace = vim.api.nvim_create_namespace("vimdojo.goal")
 ---@class vimdojo.GoalView
 ---@field describe fun(goal: vimdojo.Goal): string[]
 ---@field decorate fun(buf: integer, goal: vimdojo.Goal)
+---@field extra_rows (fun(goal: vimdojo.Goal): integer)|nil Room rows beyond the start text, for goals that grow it.
 
 local views
 
@@ -63,6 +66,31 @@ views = {
         views[inner.type].decorate(buf, inner)
       end
     end,
+    extra_rows = function(goal)
+      local rows = 0
+      for _, inner in ipairs(goal.goals) do
+        rows = math.max(rows, M.extra_rows(inner))
+      end
+      return rows
+    end,
+  },
+  config_probes = {
+    describe = function(goal)
+      local lines = { "Goal: make this init.lua pass every check:" }
+      for _, probe in ipairs(goal.probes) do
+        table.insert(lines, "  • " .. probes.describe(probe))
+      end
+      table.insert(
+        lines,
+        "Checks run in a fresh Neovim when you pause in Normal mode; problems show in the editor."
+      )
+      return lines
+    end,
+    decorate = function() end,
+    -- Players add lines to a config; leave room so it doesn't scroll at once.
+    extra_rows = function()
+      return 6
+    end,
   },
 }
 
@@ -70,6 +98,14 @@ views = {
 ---@return string[]
 function M.describe(goal)
   return views[goal.type].describe(goal)
+end
+
+--- Rows the room needs beyond the level's start text.
+---@param goal vimdojo.Goal
+---@return integer
+function M.extra_rows(goal)
+  local extra_rows = views[goal.type].extra_rows
+  return extra_rows and extra_rows(goal) or 0
 end
 
 ---@param buf integer
