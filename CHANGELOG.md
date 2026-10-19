@@ -1,19 +1,26 @@
 # Changelog
 
-## Unreleased
+## v0.3.0 (2026-10-19)
 
 ### Added
 
 - **Usage track:** 13 levels in three packs (Windows and Buffers,
-  Project-Wide Edits, Neovim Built-ins), played in a real workspace of files.
-- **Setup-track engine** (M12): levels where you edit an `init.lua` checked by
-  behavior probes in a sandboxed Neovim. The curriculum is still to come.
+  Project-Wide Edits, Neovim Built-ins), played in a real workspace of files:
+  splits, the alternate file, `gf`, `:find`, `:vimgrep` with `:cdo`, `gc`,
+  `g&`, `]q` and `]d`. 66 levels in total. The quickfix level needs
+  Neovim 0.11.
+- **Setup-track engine:** levels where you edit an `init.lua` that behavior
+  probes check in a sandboxed Neovim. The Setup curriculum comes in a later
+  release.
 - **For authors:** workspace `files` with `open`, `preset.commands`, and the
-  `files_equal`, `layout` and `config_probes` goals.
+  `files_equal`, `layout` and `config_probes` goals. Failing solution tests
+  print the level's `:messages`.
 
 ### Fixed
 
 - `<C-^>` and other modifier + punctuation keys count as one key.
+- Windows: quitting Neovim mid-level no longer leaves the level's Neovim
+  running.
 
 ## v0.2.0 (2026-10-18)
 
