@@ -405,3 +405,9 @@ the player's mappings nor their plugins apply, unless they choose
   trivially honest. PLAN-v2's "global marks" and "Breathing room"
   (`]<Space>`) levels were dropped: the first needs uppercase-mark presets
   across files, and the second ties `o<Esc>`.
+- **Windows `:find` quirk:** on Windows, file-in-path completion returns
+  nothing when `path` is exactly `.,**` and the current file sits in the
+  working directory (measured in CI; `**`, `./**` and `.,,,**` all work).
+  `project-03` uses `.,,,**`, which is what Neovim's default `.,,` becomes
+  after the common `set path+=**`. Diagnosed by probing a real room on a
+  Windows runner. Failing solution tests now print the room's `:messages`.

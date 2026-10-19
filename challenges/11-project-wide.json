@@ -81,10 +81,10 @@
       },
       "par_keys": 20,
       "par_seconds": 28,
-      "hint": ":find searches 'path' (set to ** here) for a file name, and Tab completes it. :fin is enough.",
+      "hint": ":find searches 'path', which here includes ** (as after set path+=**) for a file name, and Tab completes it. :fin is enough.",
       "solution": ":fin set<Tab><CR>jffcwtrue<Esc>",
       "teaches": [":find"],
-      "options": { "path": ".,**" }
+      "options": { "path": ".,,,**" }
     }
   ]
 }
