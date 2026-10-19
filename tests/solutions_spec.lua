@@ -62,11 +62,16 @@ for _, source in ipairs(sources) do
                 local final = player:lua(
                   "local p = require('vimdojo.app').current(); return p and p.room:snapshot()"
                 )
+                local messages = record and ""
+                  or player:lua(
+                    "local p = require('vimdojo.app').current(); return p and p.room:call('messages')"
+                  )
                 assert.is_truthy(
                   record,
-                  ("solution %q did not solve it; final state %s"):format(
+                  ("solution %q did not solve it; final state %s; messages:%s"):format(
                     level.solution,
-                    vim.inspect(final)
+                    vim.inspect(final),
+                    tostring(messages)
                   )
                 )
                 assert.are.equal(keys.count(level.solution), record.best_keys)

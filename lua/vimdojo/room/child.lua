@@ -373,6 +373,13 @@ function M.load(spec)
   vim.cmd("nohlsearch | echo ''")
 end
 
+--- The child's message history, for diagnosing a level that doesn't solve
+--- (an Ex command that errored shows up here).
+---@return string
+function M.messages()
+  return vim.fn.execute("messages")
+end
+
 --- Stops edits once the attempt is over.
 function M.freeze()
   stop_config_check()
