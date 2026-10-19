@@ -75,25 +75,19 @@
     },
     {
       "id": "fix-04",
-      "title": "vim.o is not vim.opt",
-      "description": "This config fails to load. Show tabs as '> ' and trailing spaces as '-'.",
-      "start_text": ["vim.o.list = true", "vim.o.listchars = { tab = \"> \", trail = \"-\" }"],
+      "title": "vim.g is not vim.o",
+      "description": "Line numbers never show up. The config loads without errors; it just sets the wrong thing.",
+      "start_text": ["-- Show line numbers", "vim.g.number = true"],
       "cursor_start": [2, 0],
       "goal": {
         "type": "config_probes",
-        "probes": [
-          {
-            "kind": "lua",
-            "description": "listchars shows trailing spaces as -",
-            "expr": "vim.opt.listchars:get().trail == '-' and vim.opt.listchars:get().tab == '> '"
-          }
-        ]
+        "probes": [{ "kind": "option", "name": "number", "value": true }]
       },
-      "par_keys": 6,
-      "par_seconds": 17,
-      "hint": "vim.o takes strings like Vim's :set. vim.opt also accepts Lua tables for list and map options.",
-      "solution": "foapt<Esc>",
-      "teaches": ["vim.opt"]
+      "par_keys": 4,
+      "par_seconds": 14,
+      "hint": "vim.g sets a global variable (g:number), which nothing reads. Options live in vim.o.",
+      "solution": "fgro",
+      "teaches": ["vim.g vs vim.o"]
     },
     {
       "id": "fix-05",

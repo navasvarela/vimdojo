@@ -435,3 +435,8 @@ the player's mappings nor their plugins apply, unless they choose
 - When a starter config already passes, the level solves itself and the
   checks stop. The solution test now reports exactly that, instead of "never
   checked".
+- **Version drift caught by CI:** Neovim nightly accepts Lua tables for
+  `vim.o` list options, so a "vim.o is not vim.opt" level stopped being a
+  bug there. It was replaced by `vim.g.number = true`, which is wrong on
+  every version. On 0.10 the `extmarks_after` probe skips namespaces that
+  `nvim_buf_get_extmarks` rejects.

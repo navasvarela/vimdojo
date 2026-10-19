@@ -14,7 +14,12 @@ local function count(buf, namespace)
   local total = 0
   for name, id in pairs(vim.api.nvim_get_namespaces()) do
     if namespace == nil or name == namespace then
-      total = total + #vim.api.nvim_buf_get_extmarks(buf, id, 0, -1, {})
+      -- Neovim 0.10 lists namespaces nvim_buf_get_extmarks rejects
+      -- ("Invalid 'ns_id'"); they hold no extmarks a config could set.
+      local ok, marks = pcall(vim.api.nvim_buf_get_extmarks, buf, id, 0, -1, {})
+      if ok then
+        total = total + #marks
+      end
     end
   end
   return total
