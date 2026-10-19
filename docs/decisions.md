@@ -440,3 +440,15 @@ the player's mappings nor their plugins apply, unless they choose
   bug there. It was replaced by `vim.g.number = true`, which is wrong on
   every version. On 0.10 the `extmarks_after` probe skips namespaces that
   `nvim_buf_get_extmarks` rejects.
+
+## Web refresh (M14)
+
+- The landing page's curriculum is grouped by track (Motions, Usage, Setup),
+  each with a one-line explanation and its level count, still rendered at
+  build time from `challenges/*.json`. Usage and Setup carry a "Neovim only"
+  badge: they need real files, windows or a config, which the browser demo
+  can't provide.
+- Pack cards lay out in a responsive grid (two columns where they fit), so
+  16 packs don't make the page endless.
+- Copy now covers all three tracks and invites level contributions. The
+  stale "coming next" note is gone.

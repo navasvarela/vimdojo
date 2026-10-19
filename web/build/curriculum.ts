@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 import type { Plugin } from "vite"
-import { parsePacks, type Pack } from "../src/challenges"
+import { TRACKS, parsePacks, type Pack, type Track } from "../src/challenges"
 
 // Renders the curriculum section into index.html at build time, straight from
 // challenges/*.json, so the landing page lists the real packs without
@@ -27,7 +27,7 @@ function renderPack(pack: Pack): string {
     .join(" ")
   return [
     `<li class="pack">`,
-    `<h3><span class="pack-number">${String(pack.order).padStart(2, "0")}</span> ${escapeHtml(pack.title)}</h3>`,
+    `<h4><span class="pack-number">${String(pack.order).padStart(2, "0")}</span> ${escapeHtml(pack.title)}</h4>`,
     pack.description === undefined ? "" : `<p>${escapeHtml(pack.description)}</p>`,
     `<p class="pack-keys">${keys}</p>`,
     `<p class="pack-count">${pack.levels.length} levels</p>`,
@@ -42,8 +42,54 @@ export function readPacks(challengesDir: string): Pack[] {
   )
 }
 
+type TrackInfo = {
+  readonly title: string
+  readonly blurb: string
+  /** The browser demo can't play it: it needs files, windows or a config. */
+  readonly neovimOnly: boolean
+}
+
+const TRACK_INFO = {
+  motions: {
+    title: "Motions",
+    blurb: "The editing language: from hjkl to text objects, registers, macros and Ex commands.",
+    neovimOnly: false,
+  },
+  usage: {
+    title: "Usage",
+    blurb: "Working in Neovim: windows, buffers, the quickfix list and the defaults it ships with. Each level opens a small project of real files.",
+    neovimOnly: true,
+  },
+  setup: {
+    title: "Setup",
+    blurb: "Write and fix an init.lua. Your config runs in a sandboxed Neovim that checks what it does, and shows you as you type what still fails.",
+    neovimOnly: true,
+  },
+} as const satisfies Record<Track, TrackInfo>
+
+function levelCount(packs: readonly Pack[]): number {
+  return packs.reduce((sum, pack) => sum + pack.levels.length, 0)
+}
+
+function renderTrack(track: Track, packs: readonly Pack[]): string {
+  const info = TRACK_INFO[track]
+  const badge = info.neovimOnly ? ` <span class="badge">Neovim only</span>` : ""
+  return [
+    `<section class="track" aria-labelledby="track-${track}">`,
+    `<h3 class="track-title" id="track-${track}">${escapeHtml(info.title)}${badge}`,
+    ` <span class="track-count">${levelCount(packs)} levels</span></h3>`,
+    `<p class="track-blurb">${escapeHtml(info.blurb)}</p>`,
+    `<ol class="packs">${packs.map(renderPack).join("")}</ol>`,
+    `</section>`,
+  ].join("")
+}
+
+/** One section per track, in curriculum order; tracks with no packs are left out. */
 export function renderCurriculum(packs: readonly Pack[]): string {
-  return `<ol class="packs">${packs.map(renderPack).join("")}</ol>`
+  return TRACKS.map((track) => [track, packs.filter((pack) => pack.track === track)] as const)
+    .filter(([, trackPacks]) => trackPacks.length > 0)
+    .map(([track, trackPacks]) => renderTrack(track, trackPacks))
+    .join("")
 }
 
 /**

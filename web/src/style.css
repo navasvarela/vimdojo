@@ -589,7 +589,6 @@ h2::before {
 }
 
 .steps h3,
-.pack h3,
 .install-grid h3 {
   margin: 0 0 6px;
   font-size: 1rem;
@@ -646,6 +645,8 @@ pre[data-copy] {
 
 .packs {
   display: grid;
+  /* Two columns where they fit, one on phones. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
   gap: 12px;
   margin: 0;
   padding: 0;
@@ -681,4 +682,45 @@ pre[data-copy] {
 
 .footer a {
   color: var(--text);
+}
+
+.track + .track {
+  margin-top: 32px;
+}
+
+.track-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 12px;
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+  color: var(--accent);
+}
+
+.track-count {
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: normal;
+}
+
+.track-blurb {
+  margin: 0 0 12px;
+  max-width: 70ch;
+  color: var(--muted);
+}
+
+.badge {
+  padding: 0 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: normal;
+  letter-spacing: 0.02em;
+}
+
+.pack h4 {
+  margin: 0 0 6px;
+  font-size: 1rem;
 }

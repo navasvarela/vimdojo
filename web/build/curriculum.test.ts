@@ -15,6 +15,19 @@ describe("curriculum rendering", () => {
     expect(positions).toEqual([...positions].sort((a, b) => a - b))
   })
 
+  it("groups packs by track in curriculum order and badges Neovim-only tracks", () => {
+    const html = renderCurriculum(readPacks(CHALLENGES_DIR))
+    const motions = html.indexOf('id="track-motions"')
+    const usage = html.indexOf('id="track-usage"')
+    const setup = html.indexOf('id="track-setup"')
+    expect(motions).toBeGreaterThanOrEqual(0)
+    expect(motions).toBeLessThan(usage)
+    expect(usage).toBeLessThan(setup)
+    expect(html.slice(motions, usage)).not.toContain("Neovim only")
+    expect(html.slice(usage, setup)).toContain("Neovim only")
+    expect(html.slice(setup)).toContain("Neovim only")
+  })
+
   it("escapes pack text and lists each taught key once", () => {
     const [pack] = parsePacks([
       {
