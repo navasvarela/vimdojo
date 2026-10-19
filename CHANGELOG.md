@@ -1,19 +1,22 @@
 # Changelog
 
-## Unreleased
+## v0.4.0 (2026-10-19)
 
 ### Added
 
 - **Setup track:** 18 levels in four packs (Options and Keymaps,
-  Autocommands and Commands, Fix the Broken Config, Modern Neovim), where you
-  edit an `init.lua` and behavior probes check what it does. Modern Neovim
-  needs 0.11.
-- CI runs the plugin tests on Neovim 0.10.4 too.
+  Autocommands and Commands, Fix the Broken Config, Modern Neovim). You edit
+  an `init.lua`; the game runs it in a sandboxed Neovim and shows inline,
+  as you type, which checks still fail. Modern Neovim needs 0.11. All three
+  tracks are complete: 84 levels.
+- CI runs the plugin tests on Neovim 0.10.4, the oldest supported release,
+  as well as stable, nightly and Windows.
 
 ### Fixed
 
 - Packs no longer fail to load on Neovim 0.10 because a 0.11-only level
   names a 0.11 option.
+- The yank-highlight check works on Neovim 0.10.
 
 ## v0.3.0 (2026-10-19)
 
