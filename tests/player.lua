@@ -97,8 +97,18 @@ function Player:wait_for_record(level_id)
   return self:wait_for(("require('vimdojo.app').progress().levels[%q]"):format(level_id))
 end
 
+-- How long to wait for the player's Neovim to exit after asking it to quit.
+local EXIT_TIMEOUT_MS = 2000
+
+--- Quits the level first so the room's Neovim is stopped by its owner: on
+--- Windows, killing the player doesn't take its terminal child with it, and
+--- orphaned rooms pile up until new Neovims fail to start.
 function Player:stop()
-  vim.fn.jobstop(self.chan)
+  pcall(vim.rpcrequest, self.chan, "nvim_exec_lua", "require('vimdojo.app').quit()", {})
+  pcall(vim.rpcnotify, self.chan, "nvim_command", "qa!")
+  if vim.fn.jobwait({ self.chan }, EXIT_TIMEOUT_MS)[1] == -1 then
+    vim.fn.jobstop(self.chan)
+  end
 end
 
 return M

@@ -38,6 +38,17 @@ Room.__index = Room
 local rooms = {}
 local next_id = 0
 
+-- Stop every room when Neovim exits. On Windows a terminal job's process can
+-- outlive the Neovim that started it, which would leave an orphaned room.
+vim.api.nvim_create_autocmd("VimLeavePre", {
+  group = vim.api.nvim_create_augroup("vimdojo.rooms", { clear = true }),
+  callback = function()
+    for _, room in pairs(rooms) do
+      room:close()
+    end
+  end,
+})
+
 -- The child is started without this plugin on its runtimepath (--clean), so
 -- it gets the directory holding the `vimdojo` modules through the
 -- environment. Works for git checkouts (lua/) and LuaRocks trees alike.
