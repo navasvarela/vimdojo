@@ -1,0 +1,126 @@
+{
+  "$schema": "./schema.json",
+  "pack": "autocmds-commands",
+  "title": "Autocommands and Commands",
+  "description": "React to events: yank highlights, filetype settings, trim on save, and augroups that survive re-sourcing.",
+  "order": 14,
+  "track": "setup",
+  "levels": [
+    {
+      "id": "autocmds-01",
+      "title": "Flash the yank",
+      "description": "Briefly highlight whatever you yank.",
+      "start_text": [
+        "vim.api.nvim_create_autocmd(\"TextYankPost\", {",
+        "  callback = function()",
+        "    -- highlight the yanked text here",
+        "  end,",
+        "})"
+      ],
+      "cursor_start": [2, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "extmarks_after",
+            "description": "yanking highlights the text",
+            "keys": "yy",
+            "lines": ["yank me"]
+          }
+        ]
+      },
+      "par_keys": 18,
+      "par_seconds": 35,
+      "hint": "vim.hl.on_yank() does the highlighting. Call it from the callback.",
+      "solution": "ovim.hl.on_yank()<Esc>",
+      "teaches": ["TextYankPost", "vim.hl.on_yank"],
+      "requires": { "nvim": "0.11" }
+    },
+    {
+      "id": "autocmds-02",
+      "title": "What's in a name",
+      "description": "Markdown files should get spell checking, but the autocommand never fires.",
+      "start_text": [
+        "vim.api.nvim_create_autocmd(\"FileType\", {",
+        "  pattern = \"md\",",
+        "  callback = function()",
+        "    vim.opt_local.spell = true",
+        "  end,",
+        "})"
+      ],
+      "cursor_start": [2, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "filetype",
+            "description": "markdown buffers get 'spell'",
+            "filetype": "markdown",
+            "expect": { "spell": true }
+          }
+        ]
+      },
+      "par_keys": 12,
+      "par_seconds": 26,
+      "hint": "FileType patterns match the filetype's name, not the file extension. :set filetype? in a .md file says markdown.",
+      "solution": "ci\"markdown<Esc>",
+      "teaches": ["FileType"]
+    },
+    {
+      "id": "autocmds-03",
+      "title": "Trim on save",
+      "description": "Trailing whitespace should be gone from the file you save, but it only disappears after saving, leaving the buffer modified.",
+      "start_text": [
+        "vim.api.nvim_create_autocmd(\"BufWritePost\", {",
+        "  command = [[keeppatterns %s/\\s\\+$//e]],",
+        "})"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "keys",
+            "description": ":w saves the trimmed text to disk",
+            "keys": ":w<CR>:e!<CR>",
+            "lines": ["trailing   "],
+            "expect": { "lines": ["trailing"] }
+          }
+        ]
+      },
+      "par_keys": 8,
+      "par_seconds": 20,
+      "hint": "BufWritePost runs after the write; BufWritePre runs before it.",
+      "solution": "fPlcwre<Esc>",
+      "teaches": ["BufWritePre"]
+    },
+    {
+      "id": "autocmds-04",
+      "title": "Source it twice",
+      "description": "Re-sourcing this config adds a second copy of the autocommand every time. Make it idempotent.",
+      "start_text": [
+        "local group = vim.api.nvim_create_augroup(\"yank_notice\", { clear = false })",
+        "vim.api.nvim_create_autocmd(\"TextYankPost\", {",
+        "  group = group,",
+        "  callback = function() vim.g.yanks = (vim.g.yanks or 0) + 1 end,",
+        "})"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "source_twice",
+            "description": "sourcing twice doesn't duplicate it",
+            "event": "TextYankPost"
+          }
+        ]
+      },
+      "par_keys": 9,
+      "par_seconds": 22,
+      "hint": "An augroup created with clear = true deletes its old autocommands, so re-sourcing replaces them.",
+      "solution": "ffcwtrue<Esc>",
+      "teaches": ["augroup"]
+    }
+  ]
+}

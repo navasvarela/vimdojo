@@ -129,6 +129,18 @@ describe("challenges.validate_pack", function()
     assert.is_true(challenges.needs_neovim(decoded.levels[1]))
   end)
 
+  it("only checks the shape of levels this Neovim can't run", function()
+    local errors = challenges.validate_pack(pack_with({
+      requires = { nvim = "99.0" },
+      options = { option_from_the_future = true },
+      goal = {
+        type = "config_probes",
+        probes = { { kind = "option", name = "option_from_the_future", value = true } },
+      },
+    }))
+    assert.are.same({}, errors)
+  end)
+
   it("accepts v2 fields", function()
     local errors = challenges.validate_pack(pack_with({
       requires = { nvim = "0.11" },

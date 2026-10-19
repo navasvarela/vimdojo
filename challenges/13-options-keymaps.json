@@ -1,0 +1,164 @@
+{
+  "$schema": "./schema.json",
+  "pack": "options-keymaps",
+  "title": "Options and Keymaps",
+  "description": "Write your own init.lua: options, the leader key, and keymaps that do what they say.",
+  "order": 13,
+  "track": "setup",
+  "levels": [
+    {
+      "id": "options-01",
+      "title": "Relative thinking",
+      "description": "Keep the absolute line number on the cursor line, and show relative numbers on the others, so counts like 5j can be read straight off the screen.",
+      "start_text": ["-- Line numbers", "vim.o.number = true"],
+      "cursor_start": [2, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          { "kind": "option", "name": "number", "value": true },
+          { "kind": "option", "name": "relativenumber", "value": true }
+        ]
+      },
+      "par_keys": 15,
+      "par_seconds": 30,
+      "hint": "Duplicate the line with yyp, then insert 'relative' in front of 'number'.",
+      "solution": "yypfnirelative<Esc>",
+      "teaches": ["vim.o"]
+    },
+    {
+      "id": "options-02",
+      "title": "Space leader",
+      "description": "Use <Space> as the leader key. The mapping below should then save on <Space>w.",
+      "start_text": [
+        "vim.g.mapleader = \"\\\\\"",
+        "vim.keymap.set(\"n\", \"<leader>w\", \"<cmd>write<CR>\")"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "keys",
+            "description": "<Space>w saves a changed file",
+            "keys": "ccchanged<Esc><Space>w",
+            "lines": ["original"],
+            "expect": { "lines": ["changed"], "modified": false }
+          }
+        ]
+      },
+      "par_keys": 5,
+      "par_seconds": 16,
+      "hint": "vim.g.mapleader must be set before the mappings that use <leader>. Here, just change the string: ci\" works from anywhere on the line.",
+      "solution": "ci\" <Esc>",
+      "teaches": ["vim.g.mapleader"]
+    },
+    {
+      "id": "options-03",
+      "title": "Two spaces",
+      "description": "Indent with two spaces: >> on a line should add exactly two.",
+      "start_text": ["vim.o.expandtab = true", "vim.o.shiftwidth = 8"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "keys",
+            "description": ">> indents by two spaces",
+            "keys": ">>",
+            "lines": ["x"],
+            "expect": { "lines": ["  x"] }
+          }
+        ]
+      },
+      "par_keys": 4,
+      "par_seconds": 14,
+      "hint": "'shiftwidth' is the indent step; 'expandtab' makes it spaces.",
+      "solution": "j$r2",
+      "teaches": ["shiftwidth", "expandtab"]
+    },
+    {
+      "id": "options-04",
+      "title": "Smart search",
+      "description": "Searches should ignore case, unless the pattern has a capital letter in it.",
+      "start_text": ["vim.o.ignorecase = true"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "keys",
+            "description": "/foo matches Foo",
+            "keys": "/foo<CR>",
+            "lines": ["bar Foo"],
+            "expect": { "cursor": [1, 4] }
+          },
+          {
+            "kind": "keys",
+            "description": "/Foo skips foo",
+            "keys": "/Foo<CR>",
+            "lines": ["x foo Foo"],
+            "expect": { "cursor": [1, 6] }
+          }
+        ]
+      },
+      "par_keys": 18,
+      "par_seconds": 35,
+      "hint": "'smartcase' only works together with 'ignorecase'. Duplicate the line and change the option name.",
+      "solution": "yypfgciwsmartcase<Esc>",
+      "teaches": ["smartcase"]
+    },
+    {
+      "id": "options-05",
+      "title": "Clear the glare",
+      "description": "Make <Esc> in Normal mode clear the search highlight. The mapping exists, but does nothing yet.",
+      "start_text": ["vim.o.hlsearch = true", "vim.keymap.set(\"n\", \"<Esc>\", \"\")"],
+      "cursor_start": [2, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "keys",
+            "description": "<Esc> clears the search highlight",
+            "keys": "/x<CR><Esc>",
+            "lines": ["x"],
+            "expect": { "hlsearch": false }
+          }
+        ]
+      },
+      "par_keys": 23,
+      "par_seconds": 42,
+      "hint": "A <cmd>...<CR> right-hand side runs an Ex command without leaving Normal mode: <cmd>nohlsearch<CR>.",
+      "solution": "$hi<lt>cmd>nohlsearch<lt>CR><Esc>",
+      "teaches": ["<cmd>"]
+    },
+    {
+      "id": "options-06",
+      "title": "Say what it does",
+      "description": "Give the save mapping a description, so :map and which-key style menus can show it.",
+      "start_text": ["vim.keymap.set(\"n\", \"<leader>w\", \"<cmd>write<CR>\")"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "keys",
+            "description": "<leader>w saves a changed file",
+            "keys": "ccchanged<Esc><leader>w",
+            "lines": ["original"],
+            "expect": { "lines": ["changed"], "modified": false }
+          },
+          {
+            "kind": "lua",
+            "description": "<leader>w has a description",
+            "expr": "(vim.fn.maparg('<leader>w', 'n', false, true).desc or '') ~= ''"
+          }
+        ]
+      },
+      "par_keys": 23,
+      "par_seconds": 42,
+      "hint": "vim.keymap.set takes an options table as its fourth argument: { desc = \"...\" }.",
+      "solution": "$i, { desc = \"Save\" }<Esc>",
+      "teaches": ["desc"]
+    }
+  ]
+}

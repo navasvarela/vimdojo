@@ -1,0 +1,73 @@
+{
+  "$schema": "./schema.json",
+  "pack": "modern-neovim",
+  "title": "Modern Neovim",
+  "description": "APIs and defaults from Neovim 0.11: diagnostics, window borders and the new LSP config.",
+  "order": 16,
+  "track": "setup",
+  "levels": [
+    {
+      "id": "modern-01",
+      "title": "Speak up, diagnostics",
+      "description": "Since 0.11, diagnostics no longer show inline by default. This config turns it off on purpose. Turn it back on.",
+      "start_text": ["vim.diagnostic.config({ virtual_text = false })"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "lua",
+            "description": "diagnostics show as virtual text",
+            "expr": "vim.diagnostic.config().virtual_text == true"
+          }
+        ]
+      },
+      "par_keys": 10,
+      "par_seconds": 23,
+      "hint": "vim.diagnostic.config takes a table of settings; virtual_text = true shows messages at the end of the line.",
+      "solution": "ff;cwtrue<Esc>",
+      "teaches": ["vim.diagnostic.config"],
+      "requires": { "nvim": "0.11" }
+    },
+    {
+      "id": "modern-02",
+      "title": "Rounded everywhere",
+      "description": "Give every floating window a rounded border with one option.",
+      "start_text": ["vim.o.winborder = \"none\""],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [{ "kind": "option", "name": "winborder", "value": "rounded" }]
+      },
+      "par_keys": 11,
+      "par_seconds": 24,
+      "hint": "'winborder' (0.11) sets the default border for all floats.",
+      "solution": "ci\"rounded<Esc>",
+      "teaches": ["winborder"],
+      "requires": { "nvim": "0.11" }
+    },
+    {
+      "id": "modern-03",
+      "title": "Find the root",
+      "description": "Every language server should treat the folder with .git as the project root. This config says .hg.",
+      "start_text": ["vim.lsp.config(\"*\", { root_markers = { \".hg\" } })"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "lua",
+            "description": "the shared LSP config uses .git as a root marker",
+            "expr": "vim.tbl_contains(vim.lsp.config['*'].root_markers or {}, '.git')"
+          }
+        ]
+      },
+      "par_keys": 8,
+      "par_seconds": 20,
+      "hint": "vim.lsp.config(\"*\", ...) sets defaults for every server, no server needed. Change hg to git.",
+      "solution": "fhcwgit<Esc>",
+      "teaches": ["vim.lsp.config"],
+      "requires": { "nvim": "0.11" }
+    }
+  ]
+}

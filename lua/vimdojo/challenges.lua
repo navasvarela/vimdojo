@@ -239,10 +239,23 @@ local function level_errors(level)
 
   local cursor_error = cursor_start_error(level)
   expect(cursor_error == nil, cursor_error)
-  local goal_error = goals.validate(level.goal)
+  -- A level for a newer Neovim may name options, probes or APIs this one
+  -- doesn't have, so only its shape is checked here; CI on newer versions
+  -- validates it fully. It can't be played here anyway (compat.supports).
+  local runnable = level.requires == nil or compat.supports(level, compat.running())
+  local goal_error = nil
+  if runnable then
+    goal_error = goals.validate(level.goal)
+  elseif type(level.goal) ~= "table" or type(level.goal.type) ~= "string" then
+    goal_error = "goal must be an object with a type"
+  end
   expect(goal_error == nil, "goal: " .. tostring(goal_error))
   expect(
-    goal_error ~= nil or text_err ~= nil or level.web_demo ~= true or not M.needs_neovim(level),
+    not runnable
+      or goal_error ~= nil
+      or text_err ~= nil
+      or level.web_demo ~= true
+      or not M.needs_neovim(level),
     "web_demo can't be set on a level that needs Neovim (a config, files, windows or Ex setup)"
   )
   expect(
@@ -250,7 +263,7 @@ local function level_errors(level)
       or (type(level.requires) == "table" and compat.parse(level.requires.nvim) ~= nil),
     'requires must be { "nvim": "MAJOR.MINOR" }'
   )
-  local options_err = options_error(level.options)
+  local options_err = runnable and options_error(level.options) or nil
   expect(options_err == nil, options_err)
   local preset_err = preset_error(level.preset)
   expect(preset_err == nil, preset_err)

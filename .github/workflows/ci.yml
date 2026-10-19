@@ -35,7 +35,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        neovim: [stable, nightly]
+        # v0.10.4: the oldest supported release (D4 in PLAN-v2).
+        neovim: [v0.10.4, stable, nightly]
     steps:
       - uses: actions/checkout@v5
       - uses: rhysd/action-setup-vim@v1

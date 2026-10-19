@@ -49,6 +49,13 @@ for _, source in ipairs(sources) do
                     "(function() local s = require('vimdojo.app').current().room:snapshot();"
                       .. " return s and s.config_passed ~= nil and s end)()"
                   )
+                  local solved_itself = player:lua(
+                    ("return require('vimdojo.app').progress().levels[%q] ~= nil"):format(level.id)
+                  )
+                  assert.is_false(
+                    solved_itself,
+                    "the starter config already passes every probe (the level solved itself)"
+                  )
                   assert.is_truthy(checked, "the starter config was never checked")
                   assert.is_false(
                     goals.is_met(level.goal, checked, level.start_text),

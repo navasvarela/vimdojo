@@ -27,7 +27,8 @@ of keystrokes, the time taken, and the level's par.
 Packs belong to tracks. Motions has nine packs, from basic motions to
 macros and Ex commands. Usage has three, about windows, buffers, files
 and Neovim's built-in defaults; its levels open a small project of real
-files in the level's Neovim. Setup is coming. Each
+files in the level's Neovim. Setup has four, where you edit an init.lua
+and the game runs it in a sandboxed Neovim to check what it does. Each
 track's first pack is open from the start. Within a track, levels unlock in
 order, and finishing a pack unlocks the next one. A level that needs a newer
 Neovim than yours is marked "needs Neovim X" and never blocks the levels

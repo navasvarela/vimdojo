@@ -14,10 +14,12 @@ game.
 **[Try the browser demo](https://navasvarela.github.io/vimdojo/)**, then
 install the plugin for the real thing.
 
-- 66 levels in twelve packs across two tracks. **Motions** covers basic
+- 84 levels in sixteen packs across three tracks. **Motions** covers basic
   motions through macros and Ex commands. **Usage** covers windows and
   buffers, project-wide edits with the quickfix list, and Neovim's built-in
-  defaults.
+  defaults. **Setup** teaches writing (and fixing) an `init.lua`: options,
+  keymaps, autocommands and user commands, checked by running your config in
+  a sandboxed Neovim.
 - A live timer and key counter, with stars and points against par
 - Hints, instant reset, and progress saved across sessions
 - Every level runs in a clean, isolated Neovim (or with your own config, if

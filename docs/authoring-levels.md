@@ -125,8 +125,12 @@ working whatever leader the player picks. The fixture is a real file, so
 `:w` and `BufWritePre` work.
 
 - **The par is a keystroke edit of the starter snippet** (decision D2), like
-  any other level. The reference `solution` must reach a config that passes
+  any other level. The Setup track is independent of Motions, so par is the
+  best known edit with any keys, not just the taught ones. The reference `solution` must reach a config that passes
   every probe; `solutions_spec.lua` proves it in a real room.
+- **Test the real outcome.** If a level is about saving, reload the file
+  (`:w<CR>:e!<CR>`) before comparing lines: `BufWritePost` can leave the
+  buffer looking saved while the file on disk isn't.
 - **Mind the defaults.** Neovim's own ftplugins set options too (Python's
   sets `shiftwidth=4`), so pick a filetype whose defaults don't already pass.
 - **Setup levels never get `web_demo`**: the browser can't run a config.

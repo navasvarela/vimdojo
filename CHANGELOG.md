@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Setup track:** 18 levels in four packs (Options and Keymaps,
+  Autocommands and Commands, Fix the Broken Config, Modern Neovim), where you
+  edit an `init.lua` and behavior probes check what it does. Modern Neovim
+  needs 0.11.
+- CI runs the plugin tests on Neovim 0.10.4 too.
+
+### Fixed
+
+- Packs no longer fail to load on Neovim 0.10 because a 0.11-only level
+  names a 0.11 option.
+
 ## v0.3.0 (2026-10-19)
 
 ### Added

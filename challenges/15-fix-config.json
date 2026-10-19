@@ -1,0 +1,128 @@
+{
+  "$schema": "./schema.json",
+  "pack": "fix-config",
+  "title": "Fix the Broken Config",
+  "description": "Each config is broken in a way people really break theirs. Find the bug, fix it with as few keys as possible.",
+  "order": 15,
+  "track": "setup",
+  "levels": [
+    {
+      "id": "fix-01",
+      "title": "Leader too late",
+      "description": "<leader>w should save, with <Space> as the leader. Both lines are right; something else is wrong.",
+      "start_text": [
+        "vim.keymap.set(\"n\", \"<leader>w\", \"<cmd>write<CR>\")",
+        "vim.g.mapleader = \" \""
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "keys",
+            "description": "<Space>w saves a changed file",
+            "keys": "ccchanged<Esc><Space>w",
+            "lines": ["original"],
+            "expect": { "lines": ["changed"], "modified": false }
+          }
+        ]
+      },
+      "par_keys": 3,
+      "par_seconds": 12,
+      "hint": "<leader> is read when the mapping is made, so the leader must be set first.",
+      "solution": "ddp",
+      "teaches": ["mapleader order"]
+    },
+    {
+      "id": "fix-02",
+      "title": "Type error",
+      "description": "This config fails to load. Make 'shiftwidth' 2.",
+      "start_text": ["vim.opt.shiftwidth = \"2\""],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [{ "kind": "option", "name": "shiftwidth", "value": 2 }]
+      },
+      "par_keys": 5,
+      "par_seconds": 16,
+      "hint": "Number options take Lua numbers, not strings.",
+      "solution": "f\"x$x",
+      "teaches": ["option types"]
+    },
+    {
+      "id": "fix-03",
+      "title": "Missing enter",
+      "description": "<leader>w types :w but never runs it.",
+      "start_text": ["vim.keymap.set(\"n\", \"<leader>w\", \":w\")"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "keys",
+            "description": "<leader>w saves a changed file",
+            "keys": "ccchanged<Esc><leader>w",
+            "lines": ["original"],
+            "expect": { "lines": ["changed"], "modified": false }
+          }
+        ]
+      },
+      "par_keys": 8,
+      "par_seconds": 20,
+      "hint": "A ':' mapping types into the command line; it needs a <CR> at the end to run.",
+      "solution": "$hi<lt>CR><Esc>",
+      "teaches": ["<CR> in mappings"]
+    },
+    {
+      "id": "fix-04",
+      "title": "vim.o is not vim.opt",
+      "description": "This config fails to load. Show tabs as '> ' and trailing spaces as '-'.",
+      "start_text": ["vim.o.list = true", "vim.o.listchars = { tab = \"> \", trail = \"-\" }"],
+      "cursor_start": [2, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "lua",
+            "description": "listchars shows trailing spaces as -",
+            "expr": "vim.opt.listchars:get().trail == '-' and vim.opt.listchars:get().tab == '> '"
+          }
+        ]
+      },
+      "par_keys": 6,
+      "par_seconds": 17,
+      "hint": "vim.o takes strings like Vim's :set. vim.opt also accepts Lua tables for list and map options.",
+      "solution": "foapt<Esc>",
+      "teaches": ["vim.opt"]
+    },
+    {
+      "id": "fix-05",
+      "title": "Mind the case",
+      "description": "This config fails to load. :Trim should strip trailing whitespace.",
+      "start_text": [
+        "local function trim()",
+        "  vim.cmd([[keeppatterns %s/\\s\\+$//e]])",
+        "end",
+        "vim.api.nvim_create_user_command(\"trim\", trim, {})"
+      ],
+      "cursor_start": [4, 0],
+      "goal": {
+        "type": "config_probes",
+        "probes": [
+          {
+            "kind": "command",
+            "description": ":Trim strips trailing whitespace",
+            "command": "Trim",
+            "lines": ["a  ", "b\t"],
+            "expect": ["a", "b"]
+          }
+        ]
+      },
+      "par_keys": 4,
+      "par_seconds": 14,
+      "hint": "User command names must start with an uppercase letter. ~ flips the case of a character.",
+      "solution": "f\"l~",
+      "teaches": ["user commands"]
+    }
+  ]
+}

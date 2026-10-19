@@ -411,3 +411,27 @@ the player's mappings nor their plugins apply, unless they choose
   `project-03` uses `.,,,**`, which is what Neovim's default `.,,` becomes
   after the common `set path+=**`. Diagnosed by probing a real room on a
   Windows runner. Failing solution tests now print the room's `:messages`.
+
+## Setup curriculum (M13)
+
+- **Four packs, 18 levels:** Options and Keymaps (6), Autocommands and
+  Commands (4), Fix the Broken Config (5), Modern Neovim (3, `requires`
+  0.11). Each starter config fails its probes (the solution tests now prove
+  it), and each reference edit passes them in a real room.
+- **Par rule for Setup:** the track is independent (D3), so "motions taught
+  so far" doesn't apply. Par is the best known keystroke edit of the
+  starter config, with any keys.
+- **Probes must test the real outcome.** The first "Trim on save" probe
+  checked the buffer after `:w`. With `BufWritePost`, Neovim clears
+  `modified` after the autocommand, so the buffer looked clean although the
+  file on disk was untrimmed, and the wrong config passed. The probe now
+  runs `:w<CR>:e!<CR>` and compares what was actually saved.
+- **Comment continuation:** `o` on a Lua comment line continues the comment,
+  so levels that add a line start the cursor on code, not on a comment.
+- **Levels this Neovim can't run** (`requires` newer) only get their goal's
+  shape checked when packs load. Otherwise a 0.11 option name in a probe
+  (`winborder`) would make every pack fail to load on 0.10. CI now also runs
+  the plugin tests on **Neovim 0.10.4**, the oldest supported release.
+- When a starter config already passes, the level solves itself and the
+  checks stop. The solution test now reports exactly that, instead of "never
+  checked".
