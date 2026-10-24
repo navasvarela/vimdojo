@@ -31,8 +31,8 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
-          # Project sites are served from /<repo-name>/.
-          VITE_BASE: /${{ github.event.repository.name }}/
+          # The site lives at the root of the custom domain (vimdojo.org), so
+          # the default base "/" applies (see web/vite.config.ts).
           VITE_REPO: ${{ github.repository }}
       - uses: actions/upload-pages-artifact@v4
         with:

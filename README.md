@@ -11,7 +11,7 @@ cursor on the last word"). Solve it with Vim keys. You're scored on keystrokes,
 time and the level's par. Every key counts, so finding the short way is the
 game.
 
-**[Try the browser demo](https://navasvarela.github.io/vimdojo/)**, then
+**[Try the browser demo](https://vimdojo.org)**, then
 install the plugin for the real thing.
 
 - 84 levels in sixteen packs across three tracks. **Motions** covers basic

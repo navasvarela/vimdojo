@@ -2,7 +2,7 @@
 
 Author:  Juan Miguel Salamanca Zafra
 License: MIT
-Website: https://navasvarela.github.io/vimdojo/
+Website: https://vimdojo.org
 
 ==============================================================================
 CONTENTS                                                    *vimdojo-contents*

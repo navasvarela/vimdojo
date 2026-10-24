@@ -19,7 +19,7 @@ Web demo:
 cd web
 npm install
 npx playwright install chromium
-npm run dev    # http://localhost:5173/vimdojo/
+npm run dev    # http://localhost:5173/
 npm test       # unit tests (jsdom) and emulation tests (Chromium)
 ```
 

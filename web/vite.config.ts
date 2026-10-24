@@ -6,9 +6,9 @@ import { curriculumPlugin } from "./build/curriculum"
 const CHALLENGES_DIR = fileURLToPath(new URL("../challenges", import.meta.url))
 const INDEX_HTML = fileURLToPath(new URL("index.html", import.meta.url))
 
-// GitHub Pages serves the site from /<repo-name>/. Override with VITE_BASE
-// (e.g. "/" for a custom domain).
-const DEFAULT_BASE = "/vimdojo/"
+// The site is served from the root of its custom domain (vimdojo.org).
+// Set VITE_BASE=/<repo-name>/ to serve it from a github.io project page instead.
+const DEFAULT_BASE = "/"
 
 export default defineConfig({
   base: process.env["VITE_BASE"] ?? DEFAULT_BASE,

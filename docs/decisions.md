@@ -452,3 +452,11 @@ the player's mappings nor their plugins apply, unless they choose
   16 packs don't make the page endless.
 - Copy now covers all three tracks and invites level contributions. The
   stale "coming next" note is gone.
+
+## Custom domain
+
+The site moved to https://vimdojo.org (GitHub Pages custom domain, deployed
+by Actions; the domain is set in the repository's Pages settings, so no CNAME
+file is needed). It is served from the domain root, so Vite's `base` is now
+`/` by default. With the old `/vimdojo/` base, every script, stylesheet and
+image 404'd on the custom domain, and the page rendered unstyled with no demo.
