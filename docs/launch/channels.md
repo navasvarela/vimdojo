@@ -209,8 +209,9 @@ each sidebar before posting:** the current wording is *unverified*.
   - Tick "I am the author" when you submit.
 - **Accounts younger than 70 days can't:**
   - use the `show`, `announce` or `ask` tags;
-  - submit domains Lobsters hasn't seen before. `navasvarela.github.io`
-    hasn't been submitted before, so link GitHub instead.
+  - submit domains Lobsters hasn't seen before. `vimdojo.org` hasn't been
+    submitted before ([domain page](https://lobste.rs/domains/vimdojo.org)
+    is a 404), so link GitHub instead.
 - **Tags** ([tags.json](https://lobste.rs/tags.json)): `vim` (there's no
   `neovim` tag; Neovim stories use `vim`), `show`, `games`, `education`,
   `editors`, `lua`, `release`.

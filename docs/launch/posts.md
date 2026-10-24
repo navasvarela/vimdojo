@@ -13,7 +13,7 @@ browser demo.
 Links used throughout:
 
 - Repo: https://github.com/navasvarela/vimdojo
-- Browser demo: https://navasvarela.github.io/vimdojo/
+- Browser demo: https://vimdojo.org
 - GIF: https://raw.githubusercontent.com/navasvarela/vimdojo/main/docs/demo.gif
 
 ---
@@ -56,9 +56,8 @@ link instead, put the GIF first in the body.
 >   `{ "navasvarela/vimdojo", cmd = "VimDojo", opts = {} }`, or packer,
 >   vim-plug, `:Rocks install vimdojo`.
 >
-> There's also a [browser demo](https://navasvarela.github.io/vimdojo/) with
-> 19 levels on CodeMirror's Vim emulation, if you want to try it before
-> installing.
+> There's also a [browser demo](https://vimdojo.org) with 19 levels on
+> CodeMirror's Vim emulation, if you want to try it before installing.
 >
 > Levels are plain JSON with a reference solution, so new ones are easy to
 > add and CI tells you if the par is wrong. I'd love level ideas, and
@@ -93,8 +92,8 @@ against par (browser demo + Neovim plugin)
 > taught you, so knowing more Vim lets you beat it.
 >
 > You can try 19 levels in the browser without installing anything:
-> https://navasvarela.github.io/vimdojo/ (CodeMirror's Vim emulation, so key
-> counts can differ slightly from real Vim).
+> https://vimdojo.org (CodeMirror's Vim emulation, so key counts can differ
+> slightly from real Vim).
 >
 > The full game (84 levels) is a Neovim plugin: it needs Neovim 0.10+, and
 > each level runs in a clean `nvim --clean`. The Motions track (hjkl through
@@ -111,8 +110,8 @@ against par (browser demo + Neovim plugin)
 - Show HN: Vimdojo – Vim puzzles scored on keystrokes against par
 - Show HN: Vimdojo – Learn Vim motions by golfing tiny puzzles in Neovim
 
-**URL:** the browser demo, https://navasvarela.github.io/vimdojo/ (HN asks
-that people can try it without signing up; the demo links to the repo).
+**URL:** the browser demo, https://vimdojo.org (HN asks that people can try
+it without signing up; the demo links to the repo).
 
 **First comment.** Post it right after submitting. HN wants the backstory and
 what's different, in your words, so use these as notes:
@@ -160,7 +159,8 @@ emulation), and comparisons with VimGolf and vim-be-good (credit both).
 
 You need an invite. Accounts younger than 70 days can't use the `show` tag
 or submit domains the site hasn't seen, so link the GitHub repo (github.com
-is known) rather than the github.io demo. Tick "I am the author".
+is known) rather than vimdojo.org, which is new to Lobsters. Tick "I am the
+author".
 
 **Title:** vimdojo: Vim puzzles scored on keystrokes, with pars proven in CI
 
@@ -208,7 +208,7 @@ then the next level starts."
 **4/4**
 
 > No install needed to try it: 19 levels in the browser.
-> https://navasvarela.github.io/vimdojo/
+> https://vimdojo.org
 >
 > Levels are plain JSON; contributions welcome. #OpenSource #NeovimPlugin
 

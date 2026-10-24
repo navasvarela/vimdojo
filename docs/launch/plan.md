@@ -45,7 +45,8 @@ preview.
    previews.
    - Description: "Learn Vim motions by solving tiny puzzles, right inside
      Neovim. Scored on keystrokes against par."
-   - Website: https://navasvarela.github.io/vimdojo/
+   - Website: https://vimdojo.org (the custom domain is live; the old
+     github.io address redirects there)
    - Topics: `neovim`, `neovim-plugin`, `vim`, `lua`, `game`, `puzzle-game`,
      `learning`, `vim-motions`
 3. **Upload a social preview image** (Settings → Social preview, 1280×640):
@@ -64,7 +65,12 @@ preview.
 
    `docs/demo.tape` (VHS) can be copied for this. Keep it silent with no
    captions over the editor, so the keys stay readable.
-6. **Smoke-test the first-run path** on a machine without your config:
+6. **Check https://vimdojo.org serves over HTTPS.** On 2026-10-24 the
+   certificate didn't cover `vimdojo.org` yet, and the old github.io address
+   redirected to plain `http://vimdojo.org/`. Once GitHub Pages has issued
+   the certificate, tick "Enforce HTTPS" in the Pages settings and check
+   both addresses load over HTTPS. Every draft links `https://vimdojo.org`.
+7. **Smoke-test the first-run path** on a machine without your config:
    - lazy.nvim, vim-plug and `:Rocks install vimdojo` installs
    - `:VimDojo`, one level from each track
    - Windows, if you can
@@ -74,7 +80,7 @@ preview.
    - CPU use while idle
    - what a phone shows (earlier Vim-trainer threads on HN complained about
      all three)
-7. **Publish the article on your own blog** (or keep it ready). It's the
+8. **Publish the article on your own blog** (or keep it ready). It's the
    canonical copy for the dev.to and Hashnode cross-posts and the best thing
    to submit to Lobsters.
 
@@ -189,6 +195,7 @@ How to handle what comes in:
 
 - [ ] v0.4.0 tagged, on LuaRocks, release notes written
 - [ ] Repo description, website and topics set
+- [ ] vimdojo.org serves over HTTPS (Enforce HTTPS on)
 - [ ] Social preview image uploaded
 - [ ] Discussions enabled or issue templates added
 - [ ] Second clip recorded (beat par + a Setup level)

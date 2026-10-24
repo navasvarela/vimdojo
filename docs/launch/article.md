@@ -145,10 +145,10 @@ machine. The point is that it never touches your real config or data.
 
 ## Try it
 
-There's a [browser demo](https://navasvarela.github.io/vimdojo/) with 19
-levels, using CodeMirror's Vim emulation. Every demo level's solution is
-checked against the emulation in real Chromium, but browser key counts can
-differ from Neovim's in edge cases, so treat web scores as indicative.
+There's a [browser demo](https://vimdojo.org) with 19 levels, using
+CodeMirror's Vim emulation. Every demo level's solution is checked against
+the emulation in real Chromium, but browser key counts can differ from
+Neovim's in edge cases, so treat web scores as indicative.
 
 For the real thing, install the plugin (Neovim 0.10+, no dependencies). With
 lazy.nvim:
