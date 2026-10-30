@@ -72,7 +72,9 @@ export class Demo {
     const daily = h("div", { className: "daily" })
     const list = h("ol", { className: "level-list", attrs: { "aria-label": "Demo levels" } })
     const stage = h("section", { className: "stage", attrs: { "aria-live": "polite" } }, [
-      h("p", { className: "stage-empty" }, ["Pick a level to start. The timer waits for your first key."]),
+      h("p", { className: "stage-empty" }, [
+        "Pick a level to start. The timer waits for your first key.",
+      ]),
     ])
     const message = h("p", { className: "demo-message", attrs: { role: "status" } })
     const exportButton = h("button", { className: "link-button", attrs: { type: "button" } }, [
@@ -82,9 +84,11 @@ export class Demo {
       className: "visually-hidden",
       attrs: { type: "file", accept: "application/json,.json", id: "import-progress" },
     })
-    const importLabel = h("label", { className: "link-button", attrs: { for: "import-progress" } }, [
-      "Import progress",
-    ])
+    const importLabel = h(
+      "label",
+      { className: "link-button", attrs: { for: "import-progress" } },
+      ["Import progress"],
+    )
     exportButton.addEventListener("click", () => this.exportProgress())
     importInput.addEventListener("change", () => void this.importProgress(importInput))
 
@@ -135,12 +139,17 @@ export class Demo {
         },
       },
       [
-        h("span", { className: "stars", attrs: { "aria-hidden": "true" } }, [stars(record?.stars ?? 0)]),
+        h("span", { className: "stars", attrs: { "aria-hidden": "true" } }, [
+          stars(record?.stars ?? 0),
+        ]),
         h("span", {}, [today.level.title]),
       ],
     )
     button.addEventListener("click", () => this.startDaily())
-    container.replaceChildren(h("p", { className: "pack-title" }, [`Daily · ${today.date}`]), button)
+    container.replaceChildren(
+      h("p", { className: "pack-title" }, [`Daily · ${today.date}`]),
+      button,
+    )
   }
 
   private renderList(list: HTMLOListElement): void {
@@ -233,9 +242,14 @@ export class Demo {
         " next level",
       ]),
     )
-    const view = createEditor(editorHost, level, { onChange: () => this.scheduleCheck() }, {
-      extensions: goal.extension,
-    })
+    const view = createEditor(
+      editorHost,
+      level,
+      { onChange: () => this.scheduleCheck() },
+      {
+        extensions: goal.extension,
+      },
+    )
     const play: Play = {
       level,
       dailyDate,
@@ -322,9 +336,14 @@ export class Demo {
     if (hinted) {
       play.session.useHint()
     }
-    resetEditor(play.view, play.level, { onChange: () => this.scheduleCheck() }, {
-      extensions: play.goal.extension,
-    })
+    resetEditor(
+      play.view,
+      play.level,
+      { onChange: () => this.scheduleCheck() },
+      {
+        extensions: play.goal.extension,
+      },
+    )
     play.view.focus()
   }
 
@@ -391,17 +410,18 @@ export class Demo {
         attrs: { role: "dialog", "aria-label": `${play.level.title} solved`, tabindex: "-1" },
       },
       [
-        h("p", { className: "results-stars", attrs: { "aria-label": `${outcome.stars} of 3 stars` } }, [
-          stars(outcome.stars),
-        ]),
+        h(
+          "p",
+          { className: "results-stars", attrs: { "aria-label": `${outcome.stars} of 3 stars` } },
+          [stars(outcome.stars)],
+        ),
         h("p", { className: "results-points" }, [`${outcome.points} points`]),
         h("dl", { className: "results-stats" }, [
           h("dt", {}, ["Keys"]),
           h("dd", {}, [`${outcome.keys} (par ${play.level.par_keys})`]),
           h("dt", {}, ["Time"]),
           h("dd", {}, [`${outcome.seconds.toFixed(1)}s (par ${play.level.par_seconds}s)`]),
-          record &&
-            h("dt", {}, ["Best"]),
+          record && h("dt", {}, ["Best"]),
           record &&
             h("dd", {}, [
               `${record.best_keys} keys · ${record.best_seconds.toFixed(1)}s · ${stars(record.stars)}`,

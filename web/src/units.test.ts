@@ -97,7 +97,10 @@ describe("progress", () => {
     const firstOfEachTrack = TRACKS.map(
       (track) => packs.find((pack) => pack.track === track)?.levels[0]?.id,
     ).filter((id): id is string => id !== undefined)
-    expect([...unlockedByProgress(emptyProgress(), packs)].sort()).toEqual(firstOfEachTrack.sort())
+    const byId = (a: string, b: string): number => a.localeCompare(b)
+    expect([...unlockedByProgress(emptyProgress(), packs)].sort(byId)).toEqual(
+      firstOfEachTrack.sort(byId),
+    )
   })
 
   it("progresses each track independently, skipping unsupported levels", () => {
@@ -222,7 +225,9 @@ describe("daily", () => {
 
   it("never repeats a level two days running", () => {
     const picks = Array.from({ length: 50 * pool.length }, (_, day) => pickDaily(pool, day))
-    picks.slice(1).forEach((level, index) => expect(level).not.toBe(picks[index]))
+    for (const [index, level] of picks.slice(1).entries()) {
+      expect(level).not.toBe(picks[index])
+    }
   })
 
   it("picks from the demo levels, sorted by id", () => {

@@ -10,7 +10,8 @@
   --good: #9ad48f;
   --on-accent: #1a1300;
   --radius: 6px;
-  --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-mono:
+    ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
   color-scheme: dark;
 }
 
@@ -24,7 +25,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 15px/1.6 var(--font-mono);
+  font: 15px / 1.6 var(--font-mono);
 }
 
 main {
@@ -448,6 +449,10 @@ h2::before {
   background: rgb(255 255 255 / 3%);
 }
 
+/* CodeMirror's base theme styles the fat cursor and selection with
+   higher-specificity selectors injected at runtime, so these overrides need
+   !important to win. */
+/* biome-ignore-start lint/complexity/noImportantStyles: overrides CodeMirror's injected theme */
 .editor .cm-fat-cursor {
   background: var(--accent) !important;
   color: var(--on-accent) !important;
@@ -471,6 +476,7 @@ h2::before {
 .editor .cm-focused .cm-selectionBackground {
   background: rgb(255 176 0 / 25%) !important;
 }
+/* biome-ignore-end lint/complexity/noImportantStyles: overrides CodeMirror's injected theme */
 
 .statusline {
   margin: 0;

@@ -68,7 +68,11 @@ function presentNode(level: Level, goal: Goal): GoalPresentation {
     case "all_of": {
       const parts = goal.goals.map((inner) => presentNode(level, inner))
       return {
-        element: h("div", { className: "goal" }, parts.map((part) => part.element)),
+        element: h(
+          "div",
+          { className: "goal" },
+          parts.map((part) => part.element),
+        ),
         extension: parts.map((part) => part.extension),
       }
     }
@@ -76,7 +80,9 @@ function presentNode(level: Level, goal: Goal): GoalPresentation {
       return {
         element: h("p", { className: "goal" }, [
           "Goal: edit ",
-          Object.keys(goal.files).sort().join(", "),
+          Object.keys(goal.files)
+            .sort((a, b) => a.localeCompare(b))
+            .join(", "),
           " (Neovim only).",
         ]),
         extension: [],

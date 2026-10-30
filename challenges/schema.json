@@ -89,7 +89,11 @@
           "minLength": 1
         },
         "authors": { "$ref": "#/$defs/authors" },
-        "teaches": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "teaches": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
         "web_demo": {
           "description": "Include this level in the browser demo. Only set it for levels verified to behave identically in the CodeMirror Vim emulation.",
           "type": "boolean",

@@ -93,10 +93,13 @@ const DailyFixture = z.object({
 
 describe("daily.pickDaily (shared fixtures)", () => {
   const fixture = DailyFixture.parse(dailyFixture)
-  it.each(fixture.picks.map((p) => [p.level, p.day, p] as const))("picks %s on day %i", (_l, _d, p) => {
-    expect(pickDaily(fixture.pool, p.day)).toBe(p.level)
-    expect(dailyDate(p.day)).toBe(p.date)
-  })
+  it.each(fixture.picks.map((p) => [p.level, p.day, p] as const))(
+    "picks %s on day %i",
+    (_l, _d, p) => {
+      expect(pickDaily(fixture.pool, p.day)).toBe(p.level)
+      expect(dailyDate(p.day)).toBe(p.date)
+    },
+  )
 })
 
 const ShareCase = z.object({
@@ -105,7 +108,12 @@ const ShareCase = z.object({
     level_title: z.string(),
     par_keys: z.number(),
     daily_date: z.string().optional(),
-    outcome: z.object({ keys: z.number(), seconds: z.number(), stars: z.number(), hinted: z.boolean() }),
+    outcome: z.object({
+      keys: z.number(),
+      seconds: z.number(),
+      stars: z.number(),
+      hinted: z.boolean(),
+    }),
   }),
   expected: z.string(),
 })

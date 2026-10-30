@@ -1,0 +1,58 @@
+{
+  "$schema": "./web/node_modules/@biomejs/biome/configuration_schema.json",
+  "files": {
+    "includes": [
+      "web/src/**",
+      "web/build/**",
+      "web/*.ts",
+      "web/*.json",
+      "!web/package-lock.json",
+      "challenges/*.json",
+      "tests/fixtures/**/*.json"
+    ]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100
+  },
+  "javascript": {
+    "formatter": {
+      "semicolons": "asNeeded",
+      "quoteStyle": "double",
+      "trailingCommas": "all",
+      "arrowParentheses": "always"
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "domains": {
+      "types": "all"
+    },
+    "rules": {
+      "preset": "recommended",
+      "suspicious": {
+        "noExplicitAny": "error"
+      },
+      "style": {
+        "noNonNullAssertion": "error",
+        "useImportType": "error",
+        "useExportType": "error"
+      },
+      "nursery": {
+        "noFloatingPromises": "error",
+        "noMisusedPromises": "error"
+      },
+      "complexity": {
+        "useLiteralKeys": "off"
+      }
+    }
+  },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": "off"
+      }
+    }
+  }
+}
