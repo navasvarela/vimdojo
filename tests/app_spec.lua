@@ -1,5 +1,6 @@
 -- End-to-end: a player's Neovim (tests/player.lua) plays levels in the clean
 -- room, with keys fed through nvim_input() exactly as if typed.
+local keylog = require("vimdojo.keylog")
 local player_mod = require("player")
 
 local CURRENT = "require('vimdojo.app').current()"
@@ -26,6 +27,58 @@ describe("playing a level", function()
       assert.are.equal(1, record.attempts)
       local saved = vim.json.decode(table.concat(vim.fn.readfile(player.progress_path), "\n"))
       assert.are.equal(5, saved.levels["basic-motions-01"].best_keys)
+    end)
+
+    it("keeps the run's keys privately, apart from the progress file", function()
+      assert.is_true(player:start("basic-motions-01"))
+      player:type("jjjll")
+      player:wait_for_record("basic-motions-01")
+
+      local run = keylog.load(player.keylog_dir, "basic-motions-01")
+      assert.are.same({ "j", "j", "j", "l", "l" }, run.keys)
+      assert.are.equal(5, #run.deltas_ms)
+      assert.are.equal(5, run.claimed.keys)
+      assert.is_truthy(run.level_hash:match("^sha256:%x+$"))
+      local saved = table.concat(vim.fn.readfile(player.progress_path), "\n")
+      assert.is_nil(saved:find("deltas_ms", 1, true))
+    end)
+
+    it("leaves game controls out of the key log", function()
+      assert.is_true(player:start("basic-motions-01"))
+      player:type("j\\h")
+      assert.is_true(player:wait_for(CURRENT .. ".session.hinted"))
+      player:type("jjll")
+      player:wait_for_record("basic-motions-01")
+
+      local run = keylog.load(player.keylog_dir, "basic-motions-01")
+      assert.are.same({ "j", "j", "j", "l", "l" }, run.keys)
+      assert.is_true(run.claimed.hinted)
+    end)
+
+    it("starts the key log over when the level is reset", function()
+      assert.is_true(player:start("basic-motions-01"))
+      player:type("kk\\r")
+      assert.is_true(player:wait_for(CURRENT .. ".session.keys == 0"))
+      player:type("jjjll")
+      player:wait_for_record("basic-motions-01")
+
+      assert.are.same(
+        { "j", "j", "j", "l", "l" },
+        keylog.load(player.keylog_dir, "basic-motions-01").keys
+      )
+    end)
+
+    it("keeps no key log for a run with pasted text", function()
+      assert.is_true(player:start("basic-motions-01"))
+      assert.is_true(player:wait_for(CURRENT .. ".ready"))
+      -- Bracketed paste inserts the text even in Normal mode, which typing the
+      -- same keys wouldn't: that is why such a run can't be replayed.
+      player:lua("vim.api.nvim_paste('x', false, -1)")
+      assert.is_true(player:wait_for(CURRENT .. ".session.pasted"))
+      player:type("ujjjll")
+
+      assert.is_truthy(player:wait_for_record("basic-motions-01"))
+      assert.is_nil(keylog.load(player.keylog_dir, "basic-motions-01"))
     end)
 
     it("does not count the hint key and marks the attempt as hinted", function()

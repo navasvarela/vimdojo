@@ -76,9 +76,12 @@ describe("keys.capture", function()
     local counted = 0
     stop = keys.capture(function()
       return true
-    end, function(count)
-      counted = counted + count
-    end)
+    end, {
+      on_keys = function() end,
+      on_paste = function(count)
+        counted = counted + count
+      end,
+    })
     vim.api.nvim_paste("ab\ncd", false, -1)
     assert.are.equal(5, counted)
   end)
@@ -87,9 +90,12 @@ describe("keys.capture", function()
     local counted = 0
     stop = keys.capture(function()
       return false
-    end, function(count)
-      counted = counted + count
-    end)
+    end, {
+      on_keys = function() end,
+      on_paste = function(count)
+        counted = counted + count
+      end,
+    })
     vim.api.nvim_paste("ab", false, -1)
     assert.are.equal(0, counted)
   end)
@@ -98,7 +104,7 @@ describe("keys.capture", function()
     local original = vim.paste
     keys.capture(function()
       return true
-    end, function() end)()
+    end, { on_keys = function() end, on_paste = function() end })()
     assert.are.equal(original, vim.paste)
   end)
 end)
