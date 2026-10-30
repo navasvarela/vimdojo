@@ -72,11 +72,12 @@ export default {
     try {
       return Response.json(await runBatch(env))
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? `${error.name}: ${error.message}\n${error.stack ?? ""}`
-          : String(error)
-      return new Response(message, { status: 500 })
+      if (error instanceof Error) {
+        console.error("runBatch failed:", error.stack ?? `${error.name}: ${error.message}`)
+      } else {
+        console.error("runBatch failed:", String(error))
+      }
+      return new Response("internal server error", { status: 500 })
     }
   },
 } satisfies ExportedHandler<Env>
