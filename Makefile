@@ -3,7 +3,7 @@ DEPS_DIR := .deps
 PLENARY_DIR := $(abspath $(DEPS_DIR)/plenary.nvim)
 AJV := npx --yes ajv-cli@5.0.0
 
-.PHONY: all deps test lint fmt validate par doc gif
+.PHONY: all check deps test lint fmt validate par doc gif web-deps web-check workflows
 
 all: lint validate doc test
 
@@ -25,6 +25,24 @@ lint:
 
 fmt:
 	stylua .
+	npm --prefix web run fix
+
+# Everything CI runs, in one command: Lua lint and format, level validation,
+# the help file, plugin tests, Biome (web code, level packs, fixtures),
+# typecheck, web tests and build, and the workflow linter.
+check: all web-check workflows
+
+web-deps:
+	npm --prefix web ci
+
+web-check: web-deps
+	npm --prefix web run lint
+	npm --prefix web run typecheck
+	npm --prefix web test
+	npm --prefix web run build
+
+workflows:
+	scripts/actionlint.sh
 
 validate:
 	$(AJV) validate --spec=draft2020 -s challenges/schema.json -d "challenges/[0-9]*.json" -d "tests/fixtures/packs/*.json"

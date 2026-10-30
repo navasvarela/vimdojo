@@ -27,6 +27,8 @@ You need Neovim 0.10+, `make`, `git`, [stylua](https://github.com/JohnnyMorganz/
 ```sh
 make deps   # clones plenary.nvim into .deps/ (dev only)
 make all    # lint, schema validation, help-file check, plugin tests
+make check  # everything CI runs: the above, plus the web checks and actionlint
+make fmt    # format Lua (stylua) and the web code and level JSON (Biome)
 ```
 
 Web demo:
@@ -37,6 +39,8 @@ npm install
 npx playwright install chromium
 npm run dev    # http://localhost:5173/
 npm test       # unit tests (jsdom) and emulation tests (Chromium)
+npm run lint   # Biome lint and format check (web code, level packs, fixtures)
+npm run fix    # apply Biome's formatting and safe fixes
 ```
 
 ## Layout
@@ -55,8 +59,11 @@ npm test       # unit tests (jsdom) and emulation tests (Chromium)
 - The plugin has no runtime dependencies. Keep it that way.
 - Scoring and goal logic exist in Lua and TypeScript. Change both, and update
   `tests/fixtures/` so the shared tests pin the new behavior.
-- Run `make fmt` before committing. CI runs `stylua --check`, `selene`, the
-  plugin tests on Neovim stable and nightly, and the web tests.
+- Run `make fmt` before committing, and `make check` before pushing. CI runs
+  the same checks: stylua and selene for Lua, Biome for TypeScript, CSS and
+  JSON (including level packs), schema validation, the plugin tests on Neovim
+  0.10.4, stable, nightly and Windows, the web tests and build, and actionlint
+  for the workflows.
 - Record non-obvious decisions in `docs/decisions.md`.
 - CI runs every pull request's own levels, so treat workflow changes with
   care: keep `pull_request` (never `pull_request_target`), read-only
