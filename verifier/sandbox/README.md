@@ -14,33 +14,25 @@ and the bundled harness, with the network denied.
    `prj_…`).
 4. Create an **access token** (Account Settings → Tokens), scoped to that
    team, with an expiry.
-5. Copy `api/.dev.vars.example` to `api/.dev.vars` (gitignored) and fill in
-   `VERCEL_TOKEN`, `VERCEL_TEAM_ID`, `VERCEL_PROJECT_ID` and a random
-   `SPIKE_SECRET`. Never commit it or paste the token anywhere else.
+5. Put `VERCEL_TOKEN`, `VERCEL_TEAM_ID` and `VERCEL_PROJECT_ID` in
+   `verifier/.env` (gitignored). Never commit it or paste the token anywhere else.
 
 ## Build the snapshot
 
 ```sh
 cd verifier
 npm run build && npm run build:sandbox
-set -a; . ../api/.dev.vars; set +a
+set -a; . ./.env; set +a
 node dist/build-snapshot.js     # prints VERIFIER_SNAPSHOT_ID=snap_…
 ```
 
-Add `VERIFIER_SNAPSHOT_ID` to `api/.dev.vars`. Rebuild the snapshot whenever
+Add `VERIFIER_SNAPSHOT_ID` to `verifier/.env`. Rebuild the snapshot whenever
 the room's Lua, the goal rules or the harness change.
 
 ## Run a batch
 
-From Node, every Motions and Usage reference solution:
+Every Motions and Usage reference solution:
 
 ```sh
 node dist/run-batch.js
-```
-
-From the Worker, on workerd (the API's runtime):
-
-```sh
-cd ../api && npx wrangler dev
-curl -X POST -H "authorization: Bearer $SPIKE_SECRET" http://127.0.0.1:8787/spike
 ```

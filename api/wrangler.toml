@@ -6,8 +6,14 @@ compatibility_date = "2026-10-01"
 SITE_ORIGIN = "https://vimdojo.org"
 API_ORIGIN = "https://api.vimdojo.org"
 
-# Secrets, set with `wrangler secret put`: GITHUB_CLIENT_SECRET, RATE_LIMIT_SALT.
+# Secrets: GITHUB_CLIENT_SECRET and RATE_LIMIT_SALT (see README.md).
 # GITHUB_CLIENT_ID is a var, not a secret, and is added once the OAuth app exists.
+
+[[d1_databases]]
+binding = "DB"
+database_name = "vimdojo"
+database_id = "3ae0e0d9-f95e-40f7-91d7-e65396ee3c85"
+migrations_dir = "migrations"
 
 [triggers]
 # Daily cleanup of expired logins and counters, at a quiet time.

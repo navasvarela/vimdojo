@@ -1,6 +1,6 @@
 node_modules/
 .wrangler/
-# Local secrets for `wrangler dev`: VERCEL_TOKEN, VERCEL_TEAM_ID,
-# VERCEL_PROJECT_ID, VERIFIER_SNAPSHOT_ID, SPIKE_SECRET.
+# Local config for `wrangler dev`, and secrets for the first deploy (README.md).
 .dev.vars
+.secrets
 dist/

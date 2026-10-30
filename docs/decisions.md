@@ -632,3 +632,29 @@ PLAN-v3.md records the full table. The two departures from the proposal:
 - **Not yet:** the uid split between the harness and the replayed Neovim
   (the spike runs both as the sandbox's default user). It comes with the
   production verifier in M18.
+
+## M17: the API and accounts
+
+- **Cross-origin, by necessity.** The site stays on GitHub Pages (PLAN-v3, L6), so
+  the proposal's "same origin, no CORS" doesn't apply. CORS allows exactly one
+  origin, the site. The session cookie is `__Host-` (host-only) and `SameSite=Lax`,
+  and `vimdojo.org` and `api.vimdojo.org` are the same site, so it still counts as
+  first-party. Any cookie-authenticated write must come with that exact `Origin`.
+- **The login state is a cookie, not a signed ticket.** `state` and the PKCE
+  verifier sit in a 10-minute `HttpOnly` cookie. Nothing needs signing, so the
+  proposal's signing key and its rotation aren't needed.
+- **Tokens are 256 random bits, stored as SHA-256 hashes**, so a database leak can't
+  log anyone in. That needs no slow password hash: nothing here can be guessed.
+  They expire after 30 days unused. Each use extends them, written at most daily to
+  stay within D1's free writes.
+- **The Sandbox SDK left the Worker for now.** The API's bundle is 127 KiB gzipped,
+  against 539 with the SDK. M18 decides how the verifier job runs, with the CPU
+  measurements from M15 in mind.
+- **Reserved handles only, no word list.** Lists of offensive words are easy to get
+  around and catch innocent handles. Reports go through moderation.
+- **Tests use the real D1, not a mock**: the actual migrations on SQLite through
+  Miniflare, pinned to stable 4.x because wrangler brings in a 5.x beta with a
+  different API. GitHub is the only stand-in.
+- **The account page's CSP is a `<meta>`,** since GitHub Pages can't set headers, so
+  it can't include `frame-ancestors`. Delete needs a typed phrase, and the API checks
+  the same phrase, so a stray call can't delete anyone.
