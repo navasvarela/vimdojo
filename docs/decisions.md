@@ -585,3 +585,22 @@ features that need no server, so the game stays offline and free to host.
   adversarial tests (short and long logs, `:lua` routes, a hostile
   callback, an infinite loop, `:qa!`), so a change to the room or the goal
   rules can't silently break verification.
+
+## M15: Vercel Sandbox and the Worker
+
+- **Replays can run in the EU too.** The Sandbox SDK takes a `region`, and
+  `fra1` (Frankfurt) is one, so the verifier runs next to the EU D1
+  database rather than in the default `iad1`.
+- **The Sandbox SDK loads and calls Vercel from workerd.** Under
+  `wrangler dev` with `nodejs_compat`, `Sandbox.create` with a fake token
+  reached Vercel's API and came back `403 Not authorized`, so the SDK's Node
+  dependencies (undici, fs, os) don't stop it on the Workers runtime. The
+  streaming calls (`writeFiles`, `runCommand`) still need a real token to
+  confirm. The bundle is 539 KiB gzipped, under the free plan's limit.
+- **The snapshot** pins Neovim 0.12.6 by the SHA-256 of each Linux build,
+  holds vimdojo's Lua and the bundled `cli.js`, and has its network denied
+  before it's saved. It never expires; it's rebuilt when the room's Lua, the
+  goal rules or the harness change.
+- **Not yet:** the uid split between the harness and the replayed Neovim
+  (the spike runs both as the sandbox's default user). It comes with the
+  production verifier in M18.

@@ -4,5 +4,5 @@
     "lib": ["ES2022"],
     "types": ["node", "../web/node_modules/vite/client"]
   },
-  "include": ["src"]
+  "include": ["src", "sandbox"]
 }

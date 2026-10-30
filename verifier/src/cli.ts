@@ -1,9 +1,9 @@
 // The verifier's entry point inside the sandbox: reads a JSON array of jobs
-// ({ level, keys }) on stdin and writes a JSON array of verdicts on stdout,
-// in the same order. Jobs run one at a time, each in its own Neovim.
+// ({ level, keys }) from a file and writes a JSON array of verdicts on
+// stdout, in the same order. Jobs run one at a time, each in its own Neovim.
 //
-// Usage: node dist/cli.js <plugin-dir> [nvim] < jobs.json
-import { text } from "node:stream/consumers"
+// Usage: node dist/cli.js <plugin-dir> <nvim> <jobs.json>
+import { readFile } from "node:fs/promises"
 import { parseLevel } from "./packs"
 import { replay, type Verdict } from "./replay"
 
@@ -31,13 +31,13 @@ async function runJob(raw: unknown, pluginDir: string, nvim: string): Promise<Ve
 }
 
 async function main(): Promise<void> {
-  const [pluginDir, nvim = "nvim"] = process.argv.slice(2)
-  if (pluginDir === undefined) {
-    throw new Error("usage: cli.js <plugin-dir> [nvim] < jobs.json")
+  const [pluginDir, nvim, jobsFile] = process.argv.slice(2)
+  if (pluginDir === undefined || nvim === undefined || jobsFile === undefined) {
+    throw new Error("usage: cli.js <plugin-dir> <nvim> <jobs.json>")
   }
-  const jobs: unknown = JSON.parse(await text(process.stdin))
+  const jobs: unknown = JSON.parse(await readFile(jobsFile, "utf8"))
   if (!Array.isArray(jobs)) {
-    throw new Error("stdin must be a JSON array of jobs")
+    throw new Error("the jobs file must hold a JSON array of jobs")
   }
   const verdicts: Verdict[] = []
   for (const job of jobs) {

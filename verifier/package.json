@@ -7,13 +7,15 @@
     "build": "esbuild src/cli.ts src/check-solutions.ts src/replay.test.ts --bundle --platform=node --format=esm --target=node22 --outdir=dist --log-level=warning",
     "check-solutions": "npm run build && node dist/check-solutions.js",
     "typecheck": "tsc --noEmit -p .",
-    "test": "npm run build && node --test dist/replay.test.js && node dist/check-solutions.js"
+    "test": "npm run build && node --test dist/replay.test.js && node dist/check-solutions.js",
+    "build:sandbox": "esbuild sandbox/build-snapshot.ts sandbox/run-batch.ts --bundle --platform=node --format=esm --target=node22 --outdir=dist --packages=external --log-level=warning"
   },
   "dependencies": {
     "@msgpack/msgpack": "3.1.3"
   },
   "devDependencies": {
     "@types/node": "26.6.5",
+    "@vercel/sandbox": "3.6.1",
     "esbuild": "0.28.2",
     "typescript": "7.0.2"
   }

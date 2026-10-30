@@ -10,6 +10,10 @@
       "verifier/src/**",
       "verifier/*.json",
       "!verifier/package-lock.json",
+      "verifier/sandbox/**",
+      "api/src/**",
+      "api/*.json",
+      "!api/package-lock.json",
       "challenges/*.json",
       "tests/fixtures/**/*.json"
     ]
