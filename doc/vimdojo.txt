@@ -69,9 +69,15 @@ timer and keystroke counter.
   - The timer starts on your first keystroke, not when the level opens.
   - Every physical key counts once: `d2w` is 3 keys and <Esc> is 1.
     Mouse events are never counted, and the mouse is disabled while you
-    play.
+    play. Pasted text costs what typing it would: one key per character.
   - A level is solved as soon as the goal holds in Normal mode. If you are
     editing, leave Insert mode with <Esc> to finish (and that <Esc> counts).
+
+                                                              *vimdojo-daily*
+The daily challenge is one level a day, the same for everyone and on
+https://vimdojo.org, picked from the date (UTC) with no network access. It
+sits at the top of the menu, or run `:VimDojo daily`. It ignores pack locks,
+and solving it counts toward that level's progress too.
 
                                                                *vimdojo-setup*
 Setup levels hand you an `init.lua` to fix or extend instead of plain text.
@@ -113,6 +119,7 @@ type `:q` inside a level, the level closes.
     Without a subcommand, opens the level menu. Subcommands:
 
     menu    Open the level menu.
+    daily   Play today's daily challenge (see |vimdojo-daily|).
     hint    Show the current level's hint (same as <leader>h).
     reset   Restart the current level (same as <leader>r).
     quit    Leave the current level (same as <Esc><Esc>).

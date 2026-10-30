@@ -472,3 +472,21 @@ features that need no server, so the game stays offline and free to host.
   events), so `keys.capture` wraps `vim.paste` while a level is active and
   restores it afterwards. The web demo counts `paste` and `drop` events on
   the editor. Before this, pasting a solution cost zero keys.
+- **Key logs are not recorded yet**, although the proposal lists them in
+  phase 0. Nothing reads them until phase 1 submits runs, they would change
+  the progress format in both clients, and `progress.json` is exportable,
+  so storing them there would hand solutions to anyone a player shares
+  progress with. They come with phase 1, in their own file.
+- **Daily challenge:** one level per UTC day from the date alone, so it
+  works offline and the plugin and the site agree. The pool is the demo
+  levels (anyone can play the daily in the browser), sorted by id. Days run
+  in cycles as long as the pool: each cycle plays every level once in an
+  order shuffled from the cycle number with MINSTD (Park-Miller), whose
+  products stay exact in both Lua doubles and JS numbers. A cycle never
+  starts with the level the previous one ended on. `tests/fixtures/daily.json`
+  pins both ports. The daily ignores pack locks, and solving it is recorded
+  as that level's progress.
+- Accepted: adding or removing a demo level reshuffles the schedule, so for
+  a while an older plugin and the site can show different dailies. A
+  hand-written `daily.json` rotation would avoid it, at the cost of someone
+  keeping it filled in.

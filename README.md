@@ -62,6 +62,7 @@ Then run `:VimDojo`. Full documentation: `:help vimdojo`.
 | Key / command | Action |
 |---|---|
 | `:VimDojo` | Open the level menu (`<CR>` to play, `q` to close) |
+| `:VimDojo daily` | Play today's daily challenge, the same level for everyone and on the site |
 | `<leader>h` | Show the hint (caps the attempt at 2 stars) |
 | `<leader>r` | Restart the level |
 | `<Esc><Esc>` | Leave the level |

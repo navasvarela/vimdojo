@@ -1,6 +1,7 @@
 import type { EditorView } from "@codemirror/view"
 import { nextLevel, type Level, type Pack } from "../challenges"
 import { isMet, registersFor } from "../goals"
+import { dailyDate, dailyPool, dayNumber, pickDaily } from "../daily"
 import { isCountableKeydown, pastedKeyCount } from "../keys"
 import { recordResult, unlockedAll, type Progress } from "../progress"
 import {
@@ -25,6 +26,8 @@ const Control = { Hint: "KeyH", Reset: "KeyR", Next: "KeyN" } as const
 
 type Play = {
   readonly level: Level
+  /** Set when this is the daily challenge. */
+  readonly dailyDate: string | undefined
   readonly view: EditorView
   readonly goal: GoalPresentation
   readonly hint: HTMLElement
@@ -33,7 +36,10 @@ type Play = {
   ticker: number | undefined
 }
 
+type Daily = { readonly date: string; readonly level: Level }
+
 type DemoElements = {
+  readonly daily: HTMLElement
   readonly list: HTMLOListElement
   readonly stage: HTMLElement
   readonly message: HTMLParagraphElement
@@ -62,6 +68,7 @@ export class Demo {
   }
 
   private render(): DemoElements {
+    const daily = h("div", { className: "daily" })
     const list = h("ol", { className: "level-list", attrs: { "aria-label": "Demo levels" } })
     const stage = h("section", { className: "stage", attrs: { "aria-live": "polite" } }, [
       h("p", { className: "stage-empty" }, ["Pick a level to start. The timer waits for your first key."]),
@@ -88,6 +95,7 @@ export class Demo {
       ]),
       h("div", { className: "demo-grid" }, [
         h("nav", { className: "sidebar" }, [
+          daily,
           list,
           h("div", { className: "progress-actions" }, [exportButton, importLabel, importInput]),
         ]),
@@ -95,9 +103,43 @@ export class Demo {
       ]),
       message,
     )
-    const elements = { list, stage, message }
+    const elements = { daily, list, stage, message }
+    this.renderDaily(elements.daily)
     this.renderList(elements.list)
     return elements
+  }
+
+  /** Today's (UTC) daily challenge: the same level the plugin picks. */
+  private todaysDaily(): Daily | undefined {
+    const day = dayNumber(Date.now())
+    const levelId = pickDaily(dailyPool(this.packs), day)
+    const level = this.packs.flatMap((pack) => pack.levels).find((l) => l.id === levelId)
+    return level === undefined ? undefined : { date: dailyDate(day), level }
+  }
+
+  private renderDaily(container: HTMLElement): void {
+    const today = this.todaysDaily()
+    if (today === undefined) {
+      container.replaceChildren()
+      return
+    }
+    const record = this.progress.levels[today.level.id]
+    const button = h(
+      "button",
+      {
+        className: "level-button",
+        attrs: {
+          type: "button",
+          ...(this.play?.dailyDate === today.date ? { "aria-current": "true" } : {}),
+        },
+      },
+      [
+        h("span", { className: "stars", attrs: { "aria-hidden": "true" } }, [stars(record?.stars ?? 0)]),
+        h("span", {}, [today.level.title]),
+      ],
+    )
+    button.addEventListener("click", () => this.startDaily())
+    container.replaceChildren(h("p", { className: "pack-title" }, [`Daily · ${today.date}`]), button)
   }
 
   private renderList(list: HTMLOListElement): void {
@@ -143,9 +185,24 @@ export class Demo {
 
   start(levelId: string): void {
     const level = this.packs.flatMap((pack) => pack.levels).find((l) => l.id === levelId)
-    if (level === undefined) {
-      return
+    if (level !== undefined) {
+      this.open(level, undefined)
     }
+  }
+
+  /** The daily ignores locks: everyone plays the same level that day. */
+  startDaily(): void {
+    const today = this.todaysDaily()
+    if (today !== undefined) {
+      this.open(today.level, today.date)
+    }
+  }
+
+  private retry(play: Play): void {
+    this.open(play.level, play.dailyDate)
+  }
+
+  private open(level: Level, dailyDate: string | undefined): void {
     this.stop()
     const goal = presentGoal(level)
     const editorHost = h("div", { className: "editor" })
@@ -180,6 +237,7 @@ export class Demo {
     })
     const play: Play = {
       level,
+      dailyDate,
       view,
       goal,
       hint,
@@ -198,6 +256,7 @@ export class Demo {
     })
     play.ticker = window.setInterval(() => this.renderStatus(play), STATUS_REFRESH_MS)
     this.renderStatus(play)
+    this.renderDaily(this.elements.daily)
     this.renderList(this.elements.list)
     view.focus()
   }
@@ -305,6 +364,7 @@ export class Demo {
     if (!saveProgress(this.storage, this.progress)) {
       this.say("Solved! (Progress could not be saved in this browser.)")
     }
+    this.renderDaily(this.elements.daily)
     this.renderList(this.elements.list)
     this.showResults(play, outcome)
   }
@@ -344,11 +404,11 @@ export class Demo {
       ],
     )
     nextButton?.addEventListener("click", () => this.startNext(play.level.id))
-    retryButton.addEventListener("click", () => this.start(play.level.id))
+    retryButton.addEventListener("click", () => this.retry(play))
     card.addEventListener("keydown", (event) => {
       if (event.key === "r" || event.key === "R") {
         event.preventDefault()
-        this.start(play.level.id)
+        this.retry(play)
       } else if ((event.key === "n" || event.key === "N") && next) {
         event.preventDefault()
         this.startNext(play.level.id)
