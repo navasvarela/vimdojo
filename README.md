@@ -66,7 +66,7 @@ Then run `:VimDojo`. Full documentation: `:help vimdojo`.
 | `<leader>h` | Show the hint (caps the attempt at 2 stars) |
 | `<leader>r` | Restart the level |
 | `<Esc><Esc>` | Leave the level |
-| `n` / `r` / `m` | On the results card: next level, retry, menu |
+| `n` / `r` / `y` / `m` | On the results card: next level, retry, copy a spoiler-free result to share, menu |
 
 The timer starts on your first key. Every physical key counts (`d2w` is 3
 keys, `<Esc>` is 1), and the game's own control keys never do. A level is

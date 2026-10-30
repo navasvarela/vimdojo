@@ -490,3 +490,9 @@ features that need no server, so the game stays offline and free to host.
   a while an older plugin and the site can show different dailies. A
   hand-written `daily.json` rotation would avoid it, at the cost of someone
   keeping it filled in.
+- **Share text** (`y` in the plugin's results card, "Copy result" on the
+  site) names the level or the daily's date and the score, never the keys,
+  so it can be posted without spoiling the solution. Seconds are rounded
+  half up to tenths before formatting: Lua's `%.1f` rounds an exact tie such
+  as 4.25 to even and JavaScript's `toFixed` rounds it up, and the shared
+  fixture caught the two texts disagreeing.

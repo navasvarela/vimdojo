@@ -11,6 +11,7 @@ import {
   saveProgress,
   serializeProgress,
 } from "../storage"
+import { shareText } from "../share"
 import { h, stars } from "../ui/dom"
 import { createEditor, freezeEditor, isNormalMode, resetEditor, snapshot, vimMode } from "./editor"
 import { presentGoal, type GoalPresentation } from "./goal-view"
@@ -376,6 +377,13 @@ export class Demo {
       ? h("button", { className: "primary", attrs: { type: "button" } }, ["Next level (N)"])
       : undefined
     const retryButton = h("button", { attrs: { type: "button" } }, ["Retry (R)"])
+    const copyButton = h("button", { attrs: { type: "button" } }, ["Copy result (C)"])
+    const share = shareText({
+      levelTitle: play.level.title,
+      parKeys: play.level.par_keys,
+      dailyDate: play.dailyDate,
+      outcome,
+    })
     const card = h(
       "section",
       {
@@ -400,15 +408,19 @@ export class Demo {
             ]),
         ]),
         outcome.hinted && h("p", { className: "results-note" }, ["Hint used: capped at 2 stars."]),
-        h("div", { className: "results-actions" }, [nextButton, retryButton]),
+        h("div", { className: "results-actions" }, [nextButton, retryButton, copyButton]),
       ],
     )
     nextButton?.addEventListener("click", () => this.startNext(play.level.id))
     retryButton.addEventListener("click", () => this.retry(play))
+    copyButton.addEventListener("click", () => void this.copyResult(share))
     card.addEventListener("keydown", (event) => {
       if (event.key === "r" || event.key === "R") {
         event.preventDefault()
         this.retry(play)
+      } else if (event.key === "c" || event.key === "C") {
+        event.preventDefault()
+        void this.copyResult(share)
       } else if ((event.key === "n" || event.key === "N") && next) {
         event.preventDefault()
         this.startNext(play.level.id)
@@ -416,6 +428,17 @@ export class Demo {
     })
     this.elements.stage.append(card)
     ;(nextButton ?? retryButton).focus()
+  }
+
+  private async copyResult(text: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(text)
+      this.say("Result copied. Paste it anywhere: it doesn't give the solution away.")
+    } catch {
+      // The Clipboard API needs a secure context and permission; show the text
+      // so it can still be copied by hand.
+      this.say(text)
+    }
   }
 
   private renderStatus(play: Play): void {

@@ -95,6 +95,9 @@ and your best so far:
 
   n or <CR>   Next level (when it is unlocked)
   r           Retry the level
+  y           Copy a spoiler-free result to share, such as
+              `vimdojo daily 2026-10-30 ★★★ 7 keys (par 7) 4.3s`, to the
+              clipboard (and the unnamed register)
   m           Back to the menu
   q or <Esc>  Quit
 
