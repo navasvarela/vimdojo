@@ -53,11 +53,8 @@ These settle the proposal's open decisions (its §11).
 | Can Vercel Sandbox be used from outside Vercel? | Yes: the SDK takes an access token, a team id and a project id instead of a Vercel OIDC token. | A Cloudflare Worker can drive it. The token is a Worker secret. |
 | Can D1 guarantee EU residency? | Yes, with `jurisdiction: "eu"` at creation. A location hint (`weur`) is only a preference. | Create the database with the jurisdiction. |
 | Do Workers' free limits fit the orchestrator? | 10 ms CPU per invocation (time spent waiting on `fetch` and D1 doesn't count), 50 external subrequests per invocation, cron down to 1 minute, 5 cron triggers per account, 100,000 requests a day. | One cron run verifies a batch with a handful of Sandbox calls. Verdict parsing must stay small. |
-| Where does Vercel Sandbox run? | Not confirmed; assume outside the EU. | Jobs carry only the level JSON and the key log: no user id, handle or token. No personal data leaves the EU. |
-
-Still to prove (M15): that the Sandbox SDK runs on the Workers runtime
-(`nodejs_compat`). If it doesn't, the Worker calls the Sandbox REST API
-directly.
+| Where does Vercel Sandbox run? | In the region you ask for; `fra1` (Frankfurt) is one. | The verifier runs in the EU too. Jobs still carry only the level JSON and the key log: no user id, handle or token. |
+| Does the Sandbox SDK run on Workers? (M15) | Yes, deployed on the free plan with `nodejs_compat`. 30 batches used 8-81 ms of CPU against the documented 10 ms, and all finished `ok`. | Keep the SDK, but treat a killed run as normal: pending runs stay pending and are retried. See the risk below. |
 
 ## 4. Architecture
 
@@ -109,12 +106,15 @@ files, so they can run in parallel once M15 proves the verifier.
 
 ## 6. Risks
 
-- **The Sandbox SDK may not run on Workers.** M15 tests it first. Fallback:
-  call the Sandbox REST API from the Worker.
+- **The free plan's CPU limit.** Verification batches went over the
+  documented 10 ms without being stopped (M15), but that isn't a guarantee.
+  M18 watches for `exceededCpu`. Fallbacks: call the Sandbox REST API with
+  `fetch` from a smaller bundle, or the $5 Workers plan.
 - **Verifier fidelity.** The `--embed` path has no terminal in between, so a
   few keys (Alt chords, `<C-i>` vs `<Tab>`) may differ from the live room.
-  M15 measures this on every reference solution before anything else is
-  built.
+  All 66 reference solutions match (M15), but real players' logs may find
+  cases they don't; those runs come out `mismatch` or `rejected` and keep
+  their local result.
 - **Free-tier limits and changes.** Workers' 10 ms CPU, Sandbox's Hobby
   allowance, D1's daily caps. Only runs that would improve a player's best
   are verified, identical logs hit the cache, and every limit pauses rather
