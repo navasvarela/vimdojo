@@ -10,6 +10,7 @@ import { decode, decodeMultiStream, Encoder, ExtensionCodec } from "@msgpack/msg
 const MessageType = { Request: 0, Response: 1, Notification: 2 } as const
 
 const REFUSED = "vimdojo verifier: requests from the replayed Neovim are refused"
+const EXITED = "Neovim exited"
 
 // Neovim sends Buffer, Window and Tabpage handles as msgpack extension types
 // 0, 1 and 2, each wrapping the handle's integer. The API accepts plain
@@ -38,9 +39,15 @@ function errorMessage(error: unknown): string {
 
 export class NvimClient {
   private nextId = 0
+  private exited: boolean = false
   private readonly pending = new Map<number, Pending>()
 
   private constructor(private readonly child: ChildProcessWithoutNullStreams) {
+    // A replayed log can quit Neovim at any moment (`:qa!`), and the next
+    // write then fails with EPIPE. Without these handlers that is an uncaught
+    // exception: one hostile job would take down the whole batch.
+    child.stdin.on("error", () => this.failPending())
+    child.on("error", () => this.failPending())
     void this.readLoop()
   }
 
@@ -54,6 +61,10 @@ export class NvimClient {
     const id = this.nextId++
     const message = encoder.encode([MessageType.Request, id, method, params])
     return new Promise((resolve, reject) => {
+      if (this.exited) {
+        reject(new NvimError(EXITED))
+        return
+      }
       this.pending.set(id, { resolve, reject })
       this.child.stdin.write(message)
     })
@@ -73,8 +84,13 @@ export class NvimClient {
       // The stream ends badly when the process is killed; pending requests
       // are failed below either way.
     }
+    this.failPending()
+  }
+
+  private failPending(): void {
+    this.exited = true
     for (const { reject } of this.pending.values()) {
-      reject(new NvimError("Neovim exited"))
+      reject(new NvimError(EXITED))
     }
     this.pending.clear()
   }

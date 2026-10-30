@@ -7,6 +7,7 @@ import type { Level } from "../../web/src/challenges"
 import { splitNotation } from "../../web/src/keys"
 import { readPacks } from "./packs"
 import { replay, type ReplayOptions } from "./replay"
+import { NvimClient, NvimError } from "./rpc"
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url))
 const OPTIONS: ReplayOptions = {
@@ -76,6 +77,21 @@ describe("replay", () => {
   it("reports a log that quits Neovim as an error", async () => {
     const verdict = await replayKeys("basic-motions-01", ":qa!<CR>jjjll")
     assert.equal(verdict.status, "error")
+  })
+
+  it("survives writing to a Neovim that has quit", async () => {
+    // The EPIPE this provokes used to crash the process, batch and all.
+    for (let round = 0; round < 5; round++) {
+      const nvim = NvimClient.spawn(OPTIONS.nvim, ["--clean"])
+      await nvim.request("nvim_input", [":qa!<CR>"])
+      await assert.rejects(async () => {
+        for (let write = 0; write < 200; write++) {
+          await nvim.request("nvim_get_mode")
+        }
+      }, NvimError)
+      await assert.rejects(nvim.request("nvim_get_mode"), NvimError)
+      nvim.close()
+    }
   })
 
   it("checks workspace files and window layouts", async () => {
