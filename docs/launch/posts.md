@@ -7,13 +7,14 @@ channel's rules first, and [plan.md](plan.md) for the order.
 it outright: Hacker News says "Please don't put generated text in HN posts"
 (this covers your first comment), and dev.to and Medium require AI-assisted
 posts to say so. Treat the text below as a fact-checked outline. The numbers
-are correct for v0.4.0: 84 levels, 16 packs, three tracks, 19 levels in the
-browser demo.
+are correct for v0.5.0: 84 levels, 16 packs, three tracks, 19 levels in the
+browser demo, and a daily challenge picked from those 19.
 
 Links used throughout:
 
 - Repo: https://github.com/navasvarela/vimdojo
-- Browser demo: https://vimdojo.org
+- Browser demo and today's daily: https://vimdojo.org
+- Discussions: https://github.com/navasvarela/vimdojo/discussions
 - GIF: https://raw.githubusercontent.com/navasvarela/vimdojo/main/docs/demo.gif
 
 ---
@@ -42,6 +43,11 @@ link instead, put the GIF first in the body.
 > so far. The first level's par is `jjjll`; if you already know `Gw`, you beat
 > it.
 >
+> There's a **daily challenge**: one level a day, the same for everyone, at
+> the top of the menu (`:VimDojo daily`) and in the browser. `y` on the
+> results card copies a spoiler-free line like
+> `vimdojo daily 2026-11-03 ★★★ 7 keys (par 7) 4.3s`, so post yours below.
+>
 > - 84 levels in three tracks: **Motions** (hjkl through text objects,
 >   registers, macros, `:g` and `:s`), **Usage** (splits, `gf`, `:find`,
 >   `:vimgrep` + `:cdo`, `gc`, `]d`) and **Setup** (write or fix an
@@ -56,13 +62,15 @@ link instead, put the GIF first in the body.
 >   `{ "navasvarela/vimdojo", cmd = "VimDojo", opts = {} }`, or packer,
 >   vim-plug, `:Rocks install vimdojo`.
 >
-> There's also a [browser demo](https://vimdojo.org) with 19 levels on
-> CodeMirror's Vim emulation, if you want to try it before installing.
+> There's also a [browser demo](https://vimdojo.org) with 19 levels and
+> today's daily on CodeMirror's Vim emulation, if you want to try it before
+> installing.
 >
 > Levels are plain JSON with a reference solution, so new ones are easy to
 > add and CI tells you if the par is wrong. I'd love level ideas, and
 > especially reports of pars you beat using only the taught motions: that
-> means the par is wrong.
+> means the par is wrong. Both are welcome in
+> [Discussions](https://github.com/navasvarela/vimdojo/discussions).
 >
 > Repo: https://github.com/navasvarela/vimdojo
 >
@@ -91,9 +99,10 @@ against par (browser demo + Neovim plugin)
 > par for keystrokes and time. Par only uses motions the game has already
 > taught you, so knowing more Vim lets you beat it.
 >
-> You can try 19 levels in the browser without installing anything:
-> https://vimdojo.org (CodeMirror's Vim emulation, so key counts can differ
-> slightly from real Vim).
+> You can try 19 levels in the browser without installing anything, plus a
+> daily puzzle that's the same for everyone: https://vimdojo.org
+> (CodeMirror's Vim emulation, so key counts can differ slightly from real
+> Vim).
 >
 > The full game (84 levels) is a Neovim plugin: it needs Neovim 0.10+, and
 > each level runs in a clean `nvim --clean`. The Motions track (hjkl through
@@ -123,9 +132,10 @@ what's different, in your words, so use these as notes:
 > the shortest solution using only the motions taught so far, so beginners
 > can always get three stars and people who know more Vim can beat it.
 >
-> The browser demo is 19 levels on CodeMirror's Vim emulation. The real game
-> is a Neovim plugin with 84 levels, and a few things there were fun to
-> build:
+> The browser demo is 19 levels on CodeMirror's Vim emulation, with a daily
+> puzzle picked from the date, so everyone gets the same one with no server.
+> The real game is a Neovim plugin with 84 levels, and a few things there
+> were fun to build:
 >
 > - Each level runs in a child `nvim --clean` inside a terminal window. The
 >   parent counts keys with `vim.on_key`; the child checks the goal itself
@@ -207,10 +217,9 @@ then the next level starts."
 
 **4/4**
 
-> No install needed to try it: 19 levels in the browser.
-> https://vimdojo.org
->
-> Levels are plain JSON; contributions welcome. #OpenSource #NeovimPlugin
+> No install needed: 19 levels and today's daily puzzle in the browser.
+> Everyone gets the same daily, and you can copy a spoiler-free score to
+> reply with. https://vimdojo.org #OpenSource #NeovimPlugin
 
 ---
 
@@ -269,4 +278,6 @@ Neovim developers specifically: the parent/child RPC design
 (`nvim_set_client_info` to find the child's channel, goal checks pushed with
 notifications), and that the Setup sandbox found a real-world gotcha
 (`vim.system`'s timeout sends SIGTERM, which a busy-looping config never
-handles).
+handles). The daily challenge is picked from the date with a seeded
+shuffle (MINSTD, exact in both Lua and JavaScript), so the plugin and the
+site agree with no server.

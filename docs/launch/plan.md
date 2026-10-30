@@ -5,13 +5,20 @@ that's easy to try, and for the first wave of feedback to turn into fixes and
 new levels. Channel rules and sources are in [channels.md](channels.md); the
 drafts are in [posts.md](posts.md) and [article.md](article.md).
 
-Dates below assume v0.4.0 ships this week (week of 2026-10-19). Shift them
-together if it slips.
+v0.5.0 shipped on 2026-10-30 with the daily challenge and shareable
+results, and vimdojo.org has served over HTTPS since 2026-10-24. The dates
+below give the rest of Phase 0 until Monday 2026-11-02. If prep takes
+longer, move all the dates together.
 
 ## Principles
 
 - **Launch the game, not a release.** Lead with "a Vim puzzle game scored on
-  par", not "v0.4.0 is out". Show HN says routine releases don't qualify.
+  par", not "v0.5.0 is out". Show HN says routine releases don't qualify.
+- **Lead with the daily.** "Today's puzzle, the same for everyone, share
+  your score" gives readers a reason to try it now and something to post
+  back in the thread. The copied result line (`vimdojo daily … ★★★ 7 keys
+  (par 7)`) is spoiler-free by design, so replies can compare scores
+  without giving solutions away.
 - **One community at a time.** Post in the friendliest, best-fitting place
   first (r/neovim), fix what it finds, then go wider. Don't cross-post the
   same text to several subreddits on the same day.
@@ -28,48 +35,44 @@ together if it slips.
   - The CI-proven levels and the written-down decisions are your evidence
     that it's carefully made.
 - **Don't promise what isn't built.** There are no accounts, servers or
-  leaderboards. If asked, say so; don't hint at a roadmap you haven't
-  committed to.
+  leaderboards yet. A design for opt-in, verified leaderboards is in
+  `docs/proposals/leaderboard-and-community.md`, but nothing is scheduled.
+  If asked, say it's being considered, that offline stays the default, and
+  ask what they'd want from it. Don't give dates.
 
 ## Phase 0: prepare (before the first post)
 
 Do these in order; the first four are quick and visible on every link
 preview.
 
-1. **Ship v0.4.0.** Tag it, check the LuaRocks upload, and write GitHub
-   release notes from CHANGELOG.md. The Setup track is the most distinctive
-   feature, so launch after it's released, and make sure the README, the demo
-   page and the posts all say 84 levels.
-2. **Fill in the GitHub repo metadata.** It's empty right now (no
-   description, homepage or topics), which hurts GitHub search and link
-   previews.
-   - Description: "Learn Vim motions by solving tiny puzzles, right inside
-     Neovim. Scored on keystrokes against par."
-   - Website: https://vimdojo.org (the custom domain is live; the old
-     github.io address redirects there)
-   - Topics: `neovim`, `neovim-plugin`, `vim`, `lua`, `game`, `puzzle-game`,
-     `learning`, `vim-motions`
-3. **Upload a social preview image** (Settings → Social preview, 1280×640):
-   the torii logo, the name and the one-line tagline on a dark background.
-   Reddit, Mastodon, Bluesky and Slack use it when someone pastes the repo
-   link.
-4. **Give feedback a home.** Enable GitHub Discussions (it's off) or add two
-   issue templates: "Level idea" and "I beat a par". Link it from the README
-   and the posts, so feedback lands in one place.
+1. **Ship a current release.** Done: v0.5.0 is tagged, on LuaRocks, with
+   release notes and a changelog that covers the landing refresh and the
+   move to vimdojo.org.
+2. **Fill in the GitHub repo metadata.** Done: the description, website
+   (https://vimdojo.org) and topics (`neovim`, `neovim-plugin`, `vim`,
+   `lua`, `game`, `puzzle-game`, `learning`, `vim-motions`) are set.
+3. **Upload the social preview image** (Settings → General → Social
+   preview): `docs/brand/social-preview.png`, 1280×640, with the torii
+   logo, the name and the tagline. Reddit, Mastodon, Bluesky and Slack use
+   it when someone pastes the repo link. GitHub has no API for this.
+4. **Give feedback a home.** Discussions are on and linked from the README
+   and the site. Add two categories in the web UI (the API can't create
+   them): "Levels" (ideas and beaten pars, discussion format) and "Daily"
+   (one thread per day's puzzle, solutions in spoiler blocks). Then link
+   Discussions from the posts.
 5. **Record a second clip that shows what's new.** The README GIF shows two
    Basic Motions levels. Make a 20 to 40 second clip, as MP4 for Reddit and
    Bluesky and GIF for the README, that shows:
-   - a level solved under par (e.g. `Gw` on the first level), and
+   - the daily at the top of the menu, solved under par, and `y` copying
+     the result line,
    - a Setup level: a broken `init.lua`, the diagnostic on the bad line, the
      fix, and the level solving itself.
 
    `docs/demo.tape` (VHS) can be copied for this. Keep it silent with no
    captions over the editor, so the keys stay readable.
-6. **Check https://vimdojo.org serves over HTTPS.** On 2026-10-24 the
-   certificate didn't cover `vimdojo.org` yet, and the old github.io address
-   redirected to plain `http://vimdojo.org/`. Once GitHub Pages has issued
-   the certificate, tick "Enforce HTTPS" in the Pages settings and check
-   both addresses load over HTTPS. Every draft links `https://vimdojo.org`.
+6. **HTTPS on vimdojo.org.** Done: the certificate covers `vimdojo.org`
+   and `www.vimdojo.org`, Enforce HTTPS is on, and both `http://vimdojo.org`
+   and the old github.io address redirect to `https://vimdojo.org/`.
 7. **Smoke-test the first-run path** on a machine without your config:
    - lazy.nvim, vim-plug and `:Rocks install vimdojo` installs
    - `:VimDojo`, one level from each track
@@ -83,8 +86,12 @@ preview.
 8. **Publish the article on your own blog** (or keep it ready). It's the
    canonical copy for the dev.to and Hashnode cross-posts and the best thing
    to submit to Lobsters.
+9. **Measure.** Merge the Cloudflare Web Analytics PR before the first
+   post, so launch traffic on vimdojo.org is counted (cookieless, no
+   banner). GitHub's Insights → Traffic keeps views and referrers for only
+   14 days, so save a screenshot of it a few days after each post.
 
-## Phase 1: soft launch (Tuesday 2026-10-27)
+## Phase 1: soft launch (Tuesday 2026-11-03)
 
 - **r/neovim** with the `Plugin` flair and the clip as native media.
   - Post between 08:00 and 13:00 UTC. In the archive, Tuesday and Wednesday
@@ -101,18 +108,19 @@ preview.
   GitHub Discussions, with the parent/child RPC and sandbox details that
   interest Neovim developers.
 - **Spend the first four to six hours replying.** Fix what's quick, and cut
-  v0.4.1 within a few days if real bugs show up.
+  v0.5.1 within a few days if real bugs show up.
 
-## Phase 2: awesome lists (week of 2026-10-26)
+## Phase 2: awesome lists (any time now)
 
 - **awesome-neovim** PR, under `## Game`. The list wants plugins to be at
-  least a week old, and the repo was created on 2026-10-17. This is the
-  highest-value, lowest-risk step. Dotfyle, Neovimcraft and the weekly Track
+  least a week old, and the repo was created on 2026-10-17, so it qualifies
+  since 2026-10-24, and the repo metadata is in place. This is the highest-value, lowest-risk step, and it doesn't
+  depend on Phase 1. Dotfyle, Neovimcraft and the weekly Track
   Awesome List digest all pull from it.
 - Skip akrawchyk/awesome-vim for now. It hasn't merged anything since June
   2025, and similar PRs are sitting open. vim-galore is dormant.
 
-## Phase 3: wider launch (Tuesday 2026-11-03 or Wednesday 2026-11-04)
+## Phase 3: wider launch (Tuesday 2026-11-10 or Wednesday 2026-11-11)
 
 Wait a week after r/neovim, so the obvious bugs are fixed and you can
 mention what changed.
@@ -131,7 +139,7 @@ mention what changed.
 - **Console.dev:** email hello@console.dev with a two-line pitch and the
   links. They feature pre-1.0 developer tools, which vimdojo is.
 
-## Phase 4: long tail (week of 2026-11-09 onwards)
+## Phase 4: long tail (week of 2026-11-16 onwards)
 
 - **dev.to** (tags `vim`, `neovim`, `showdev`, `opensource`) and **Hashnode**:
   cross-post the article with the canonical URL set to your blog. Disclose AI
@@ -170,8 +178,10 @@ earlier Vim-trainer threads:
     - a curriculum where par only uses what's been taught
     - every level in a clean Neovim
     - the Usage and Setup tracks
-- **"Leaderboards?"** Not today: there are no servers or accounts, and
-  progress stays on your machine.
+- **"Leaderboards?"** Not yet. Progress stays on your machine, and there
+  are no servers or accounts. Opt-in leaderboards that replay each run to
+  verify the key count are designed but not scheduled. Ask what they'd
+  want; the daily's share line is the low-tech version for now.
 
 How to handle what comes in:
 
@@ -193,20 +203,25 @@ How to handle what comes in:
 
 ## Checklist
 
-- [ ] v0.4.0 tagged, on LuaRocks, release notes written
-- [ ] Repo description, website and topics set
-- [ ] vimdojo.org serves over HTTPS (Enforce HTTPS on)
-- [ ] Social preview image uploaded
-- [ ] Discussions enabled or issue templates added
-- [ ] Second clip recorded (beat par + a Setup level)
+- [x] A current release (v0.5.0) tagged, on LuaRocks, with release notes
+- [x] Changelog covers the landing refresh and vimdojo.org
+- [x] Repo description, website and topics set
+- [x] vimdojo.org serves over HTTPS (Enforce HTTPS on)
+- [x] Discussions enabled and linked from the README and the site
+- [x] Outside contributors' workflow runs need approval
+- [ ] Social preview image uploaded (`docs/brand/social-preview.png`)
+- [ ] "Levels" and "Daily" discussion categories added
+- [ ] Cloudflare Web Analytics merged and deployed
+- [ ] Second clip recorded (the daily with `y`, plus a Setup level)
 - [ ] Fresh-install smoke test passed; demo checked for focus, CPU and mobile
+- [ ] Manual terminal check: kitty, iTerm2, WezTerm, Windows Terminal
 - [ ] AI disclosure line decided
 - [ ] Article published on your blog
-- [ ] r/neovim post (Tue 2026-10-27)
+- [ ] r/neovim post (Tue 2026-11-03)
 - [ ] Mastodon/Bluesky thread
 - [ ] neovim/neovim Discussions, Show and tell
-- [ ] awesome-neovim PR (week of 2026-10-26)
-- [ ] Show HN (2026-11-03 or 11-04), first comment posted
+- [ ] awesome-neovim PR (eligible now)
+- [ ] Show HN (2026-11-10 or 11-11), first comment posted
 - [ ] Console.dev email
 - [ ] dev.to and Hashnode cross-posts with canonical URL
 - [ ] Lobsters (if invited)
