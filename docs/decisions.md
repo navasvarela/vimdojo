@@ -599,10 +599,17 @@ features that need no server, so the game stays offline and free to host.
   about 1 s to resume the snapshot and under 2 s for the replays, so about
   3.5 s for the batch. `curl` from inside the VM fails to resolve a host,
   and `run-batch` now fails outright if the VM can reach the network.
-- **Not measured: the free plan's 10 ms CPU limit.** `wrangler dev` doesn't
-  enforce it, and importing the SDK and parsing packs may use more. It needs
-  a deployed Worker to measure. If it's exceeded, the options are a smaller
-  bundle without the SDK (the REST API with `fetch`), or the $5 Workers plan.
+- **CPU on the free plan (measured 2026-10-30).** A throwaway Worker ran 30
+  batches of 9 jobs, and `wrangler tail` reported its CPU time. The first 5,
+  spaced apart, used 34-81 ms; the next 25, back to back, had a median of
+  12 ms (8-64 ms). 23 of the 30 went over the documented 10 ms, yet all 30
+  finished with outcome `ok`, so the limit wasn't enforced per request at
+  this volume. That is an observation, not a guarantee. The likely reading
+  is that the expensive runs are cold starts (loading the 539 KiB bundle),
+  which is what a once-a-minute cron would mostly see. So M18 must treat a
+  killed run as normal (pending runs stay pending and are retried), and watch
+  for `exceededCpu`. If it shows up, the options remain the REST API with
+  `fetch` and a smaller bundle, or the $5 Workers plan.
 - **The snapshot** pins Neovim 0.12.6 by the SHA-256 of each Linux build,
   holds vimdojo's Lua and the bundled `cli.js`, and has its network denied
   before it's saved. It never expires; it's rebuilt when the room's Lua, the
