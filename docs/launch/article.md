@@ -1,17 +1,18 @@
 # Article draft
 
-For dev.to, Hashnode or a personal blog. About 1,150 words of prose. Post
+For dev.to, Hashnode or a personal blog. About 1,300 words of prose. Post
 it on your own blog first if you have one, then cross-post with a
 `canonical_url` pointing at it (see [channels.md](channels.md)).
 
 Suggested tags: dev.to `#vim #neovim #showdev #opensource` (dev.to allows four).
 Hashnode: `vim`, `neovim`, `open-source`, `lua`.
 
-Cover image: `docs/brand/` logo on a dark background, or the first frame of
-`docs/demo.gif`. Put the GIF in the body right after the first section.
+Cover image: `docs/brand/social-preview.png` (1280×640), or the first frame
+of `docs/demo.gif`. Put the GIF in the body right after the first section.
 
 Before publishing, check the numbers against the release you're linking
-(they are correct for v0.4.0: 84 levels, 16 packs, 19 in the browser demo).
+(they are correct for v0.5.0: 84 levels, 16 packs, 19 in the browser demo,
+and a daily challenge picked from those 19).
 
 This draft is AI-assisted. Rewrite it in your own voice. dev.to and Medium
 require AI assistance to be disclosed if any of it remains, and readers on
@@ -143,9 +144,23 @@ A few things I learned on the way:
 This is isolation, not a security sandbox: it's your own code on your own
 machine. The point is that it never touches your real config or data.
 
+## A puzzle a day
+
+Every day there's one daily level, the same for everyone. It's at the top of
+the plugin's menu (`:VimDojo daily`) and on the site. There's no server
+behind it: both clients pick the level from the date, using the same seeded
+shuffle, written once in Lua and once in TypeScript and pinned by a shared
+test fixture. Each cycle plays every demo level once, and the same level
+never comes up two days running.
+
+When you solve it, `y` on the results card copies a line like
+`vimdojo daily 2026-11-03 ★★★ 7 keys (par 7) 4.3s`. It gives your score but
+not your keys, so you can post it without spoiling the solution for anyone
+else.
+
 ## Try it
 
-There's a [browser demo](https://vimdojo.org) with 19 levels, using
+There's a [browser demo](https://vimdojo.org) with 19 levels and the daily, using
 CodeMirror's Vim emulation. Every demo level's solution is checked against
 the emulation in real Chromium, but browser key counts can differ from
 Neovim's in edge cases, so treat web scores as indicative.
@@ -171,7 +186,9 @@ authoring guide is in
 [docs/authoring-levels.md](https://github.com/navasvarela/vimdojo/blob/main/docs/authoring-levels.md).
 
 Bug reports are welcome too, especially pars you managed to beat with only
-the taught motions. That means the par is wrong, and I'd like to know.
+the taught motions. That means the par is wrong, and I'd like to know. Ideas,
+beaten pars and daily scores go in
+[Discussions](https://github.com/navasvarela/vimdojo/discussions).
 
 The code is MIT-licensed on
 [GitHub](https://github.com/navasvarela/vimdojo). The design decisions,
