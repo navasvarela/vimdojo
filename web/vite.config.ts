@@ -1,6 +1,7 @@
 import { fileURLToPath } from "node:url"
 import { playwright } from "@vitest/browser-playwright"
 import { defineConfig } from "vitest/config"
+import { analyticsPlugin } from "./build/analytics"
 import { curriculumPlugin } from "./build/curriculum"
 
 const CHALLENGES_DIR = fileURLToPath(new URL("../challenges", import.meta.url))
@@ -12,7 +13,10 @@ const DEFAULT_BASE = "/"
 
 export default defineConfig({
   base: process.env["VITE_BASE"] ?? DEFAULT_BASE,
-  plugins: [curriculumPlugin(CHALLENGES_DIR, INDEX_HTML)],
+  plugins: [
+    curriculumPlugin(CHALLENGES_DIR, INDEX_HTML),
+    analyticsPlugin(INDEX_HTML, process.env["VITE_CF_BEACON_TOKEN"]),
+  ],
   build: {
     // The lazily loaded demo chunk (CodeMirror + Vim emulation) is ~500 kB
     // minified (~160 kB gzip). It is off the critical path, so allow it.

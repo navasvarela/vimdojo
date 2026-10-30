@@ -460,3 +460,28 @@ by Actions; the domain is set in the repository's Pages settings, so no CNAME
 file is needed). It is served from the domain root, so Vite's `base` is now
 `/` by default. With the old `/vimdojo/` base, every script, stylesheet and
 image 404'd on the custom domain, and the page rendered unstyled with no demo.
+
+## Visit analytics
+
+To see where launch visitors come from, the site counts visits with
+**Cloudflare Web Analytics**. This supersedes PLAN.md's "No analytics or
+third-party trackers in the MVP".
+
+- **Why Cloudflare:** the domains are already registered there, it's free,
+  and it's cookieless and doesn't fingerprint visitors, so no consent banner
+  is needed. It reports visits, pages, referrers and countries, which is
+  what a launch needs.
+- **Why not Google Analytics:** it sets cookies, so EU visitors would need a
+  consent banner, and the page used to promise "no tracking". The footer
+  now says what's counted instead.
+- **Beacon, not automatic setup:** Cloudflare only injects the script itself
+  when it proxies the site. vimdojo.org's DNS records point straight at
+  GitHub Pages (not proxied), because GitHub Pages issues and renews the
+  certificate and that's fragile behind a proxy. So `web/build/analytics.ts`
+  adds the beacon to index.html at build time.
+- **Only on the deployed site:** the beacon is added only when
+  `VITE_CF_BEACON_TOKEN` is set. The Pages workflow sets it from the
+  `CF_WEB_ANALYTICS_TOKEN` repository variable, so dev servers, tests and
+  forks never report. The token is public by design (it ends up in the page).
+- The plugin itself still makes no network calls.
+
