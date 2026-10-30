@@ -29,7 +29,9 @@ local function notify(event, payload)
   )
 end
 
-local function set_ui_options()
+--- Also called by the replay verifier (verifier/), so replays see the same
+--- options as the live room: `wrap` and `number` change what some motions do.
+function M.set_ui_options()
   local o = vim.o
   o.laststatus = 0
   o.ruler = false
@@ -61,7 +63,7 @@ function M.start()
     vim.empty_dict(),
     vim.empty_dict()
   )
-  set_ui_options()
+  M.set_ui_options()
   notify("ready")
 end
 
@@ -371,6 +373,13 @@ function M.load(spec)
     watch_config(buf, probes)
   end
   vim.cmd("nohlsearch | echo ''")
+end
+
+--- The level's buffer. Setup commands can split windows and change the
+--- current buffer, so the replay verifier asks for it after `load`.
+---@return integer|nil
+function M.buffer()
+  return state.buf
 end
 
 --- The child's message history, for diagnosing a level that doesn't solve
