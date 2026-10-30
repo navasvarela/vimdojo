@@ -1,5 +1,30 @@
 # Changelog
 
+## v0.5.0 (2026-10-30)
+
+### Added
+
+- **Daily challenge:** one level a day, the same for everyone, in the plugin
+  and on https://vimdojo.org. It sits at the top of the menu, or run
+  `:VimDojo daily`. It's picked from the date (UTC) with no network access,
+  plays every demo level once before any repeats, and ignores pack locks.
+- **Share your result:** `y` on the results card (Copy result on the site)
+  copies a spoiler-free line such as
+  `vimdojo daily 2026-10-30 ★★★ 7 keys (par 7) 4.3s` with the site link. It
+  gives your score, never your keys.
+- **Community:** GitHub Discussions for level ideas, dailies and beaten pars,
+  linked from the README and the site.
+- **For authors:** an optional `authors` field (GitHub handles) on packs and
+  levels, credited on the site; a pull request template with the level review
+  checklist; and a licensing note in CONTRIBUTING.
+- The site lists the curriculum by track, with a "Neovim only" badge on Usage
+  and Setup, and now lives at https://vimdojo.org.
+
+### Fixed
+
+- Pasted text now costs what typing it would (one key per character), in the
+  plugin and the browser demo. Before, pasting a solution cost no keys.
+
 ## v0.4.0 (2026-10-19)
 
 ### Added

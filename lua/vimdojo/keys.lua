@@ -52,6 +52,20 @@ function M.is_countable(name)
   return true
 end
 
+--- The keys a paste would have cost if typed: one per character, plus one
+--- `<CR>` per line break. `lines` is one chunk as `vim.paste` receives it;
+--- a streamed paste splits a line across chunks, so summing chunks still
+--- counts each line break once.
+---@param lines string[]
+---@return integer
+function M.paste_count(lines)
+  local count = math.max(#lines - 1, 0)
+  for _, line in ipairs(lines) do
+    count = count + vim.fn.strchars(line)
+  end
+  return count
+end
+
 local namespace = vim.api.nvim_create_namespace("vimdojo.keys")
 
 --- Calls `on_keys(count)` for every physical key typed while `is_active()`
@@ -59,9 +73,13 @@ local namespace = vim.api.nvim_create_namespace("vimdojo.keys")
 ---
 --- `typed` (the key before mapping expansion) is what gets counted, so a
 --- mapping counts as the keys the player pressed, not the keys it expands to.
+---
+--- Pasted text costs what typing it would. A paste (bracketed paste in a
+--- terminal, or a GUI's) reaches `vim.paste` without ever passing through
+--- `vim.on_key` (measured in terminal mode on 0.12), so it is counted there.
 ---@param is_active fun(): boolean
 ---@param on_keys fun(count: integer)
----@return fun() stop Removes the callback.
+---@return fun() stop Removes the callbacks.
 function M.capture(is_active, on_keys)
   vim.on_key(function(_, typed)
     if typed == nil or typed == "" or not is_active() then
@@ -72,8 +90,22 @@ function M.capture(is_active, on_keys)
       on_keys(M.count(name))
     end
   end, namespace)
+
+  local original_paste = vim.paste
+  local function counting_paste(lines, phase)
+    if is_active() then
+      on_keys(M.paste_count(lines))
+    end
+    return original_paste(lines, phase)
+  end
+  vim.paste = counting_paste
+
   return function()
     vim.on_key(nil, namespace)
+    -- Leave a handler that someone installed after us in place.
+    if vim.paste == counting_paste then
+      vim.paste = original_paste
+    end
   end
 end
 

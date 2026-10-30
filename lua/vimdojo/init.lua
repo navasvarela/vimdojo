@@ -35,6 +35,9 @@ local subcommands = {
   menu = function()
     require("vimdojo.app").open_menu()
   end,
+  daily = function()
+    require("vimdojo.app").start_daily()
+  end,
   reset = function()
     require("vimdojo.app").reset()
   end,

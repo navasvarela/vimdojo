@@ -4,6 +4,7 @@
   "title": "Fix the Broken Config",
   "description": "Each config is broken in a way people really break theirs. Find the bug, fix it with as few keys as possible.",
   "order": 15,
+  "authors": ["navasvarela"],
   "track": "setup",
   "levels": [
     {

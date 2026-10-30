@@ -1,0 +1,5 @@
+# Every change needs a maintainer's review. These paths run code on players'
+# machines or in CI, so they get a careful one: preset.commands, lua probes
+# and Setup starters (challenges/), the probe library, the sandbox, and the
+# workflows that run pull requests.
+* @navasvarela

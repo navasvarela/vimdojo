@@ -1,0 +1,74 @@
+{
+  "_comment": "Shared by tests/daily_spec.lua and web/src/fixtures.test.ts so both daily pickers stay in step.",
+  "pool": [
+    "a-01",
+    "a-02",
+    "b-01",
+    "b-02",
+    "c-01",
+    "c-02",
+    "c-03"
+  ],
+  "picks": [
+    {
+      "level": "c-02",
+      "day": 0,
+      "date": "1970-01-01"
+    },
+    {
+      "level": "b-01",
+      "day": 1,
+      "date": "1970-01-02"
+    },
+    {
+      "level": "b-02",
+      "day": 2,
+      "date": "1970-01-03"
+    },
+    {
+      "level": "c-03",
+      "day": 6,
+      "date": "1970-01-07"
+    },
+    {
+      "level": "b-01",
+      "day": 7,
+      "date": "1970-01-08"
+    },
+    {
+      "level": "c-01",
+      "day": 8,
+      "date": "1970-01-09"
+    },
+    {
+      "level": "c-02",
+      "day": 13,
+      "date": "1970-01-14"
+    },
+    {
+      "level": "b-01",
+      "day": 14,
+      "date": "1970-01-15"
+    },
+    {
+      "level": "a-02",
+      "day": 20755,
+      "date": "2026-10-29"
+    },
+    {
+      "level": "b-02",
+      "day": 20756,
+      "date": "2026-10-30"
+    },
+    {
+      "level": "c-01",
+      "day": 20757,
+      "date": "2026-10-31"
+    },
+    {
+      "level": "c-01",
+      "day": 100000,
+      "date": "2243-10-17"
+    }
+  ]
+}

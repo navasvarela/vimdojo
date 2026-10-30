@@ -1,0 +1,24 @@
+{
+  "_comment": "Shared by tests/share_spec.lua and web/src/fixtures.test.ts so both share texts stay identical.",
+  "cases": [
+    {
+      "name": "daily under par",
+      "view": {
+        "level_title": "Again and again",
+        "par_keys": 7,
+        "daily_date": "2026-10-30",
+        "outcome": { "keys": 7, "seconds": 4.25, "stars": 3, "hinted": false }
+      },
+      "expected": "vimdojo daily 2026-10-30 ★★★ 7 keys (par 7) 4.3s\nhttps://vimdojo.org"
+    },
+    {
+      "name": "level with a hint",
+      "view": {
+        "level_title": "Again and again",
+        "par_keys": 7,
+        "outcome": { "keys": 9, "seconds": 12, "stars": 2, "hinted": true }
+      },
+      "expected": "vimdojo \"Again and again\" ★★☆ 9 keys (par 7) 12.0s · hint\nhttps://vimdojo.org"
+    }
+  ]
+}

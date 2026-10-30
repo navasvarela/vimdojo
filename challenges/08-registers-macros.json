@@ -4,6 +4,7 @@
   "title": "Registers and Macros",
   "description": "Named and appending registers, pasting from Insert mode, and macros: record once, replay anywhere.",
   "order": 8,
+  "authors": ["navasvarela"],
   "levels": [
     {
       "id": "registers-01",

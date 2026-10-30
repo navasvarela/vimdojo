@@ -62,10 +62,11 @@ Then run `:VimDojo`. Full documentation: `:help vimdojo`.
 | Key / command | Action |
 |---|---|
 | `:VimDojo` | Open the level menu (`<CR>` to play, `q` to close) |
+| `:VimDojo daily` | Play today's daily challenge, the same level for everyone and on the site |
 | `<leader>h` | Show the hint (caps the attempt at 2 stars) |
 | `<leader>r` | Restart the level |
 | `<Esc><Esc>` | Leave the level |
-| `n` / `r` / `m` | On the results card: next level, retry, menu |
+| `n` / `r` / `y` / `m` | On the results card: next level, retry, copy a spoiler-free result to share, menu |
 
 The timer starts on your first key. Every physical key counts (`d2w` is 3
 keys, `<Esc>` is 1), and the game's own control keys never do. A level is
@@ -91,6 +92,12 @@ require("vimdojo").setup({
 Each level runs in its own clean Neovim inside a terminal window, so your
 registers, windows and settings are never touched, and your plugins can't
 interfere with par. Set `config = "mine"` to practice with your own setup.
+
+## Community
+
+Share your daily result (`y` on the results card copies it without the
+solution) and talk levels, beaten pars and ideas in
+[Discussions](https://github.com/navasvarela/vimdojo/discussions).
 
 ## Contributing
 

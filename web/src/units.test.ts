@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { TRACKS, demoPacks, loadPacks, nextLevel, parsePacks } from "./challenges"
-import { isCountableKeydown, splitNotation } from "./keys"
+import { dailyPool, dayNumber, pickDaily } from "./daily"
+import { isCountableKeydown, pastedKeyCount, splitNotation } from "./keys"
 import { emptyProgress, recordResult, unlockedByProgress } from "./progress"
 import { loadProgress, saveProgress, serializeProgress, parseJsonProgress } from "./storage"
 import { byteColToIndex, indexToByteCol } from "./text"
@@ -49,6 +50,16 @@ describe("keys", () => {
     ["", false],
   ])("keydown %s countable: %s", (key, expected) => {
     expect(isCountableKeydown({ key })).toBe(expected)
+  })
+
+  it.each([
+    ["hello", 5],
+    ["ab\ncd", 5],
+    ["ab\r\ncd", 5],
+    ["é", 1],
+    ["", 0],
+  ])("pasting %j costs %i keys, like the Lua port", (text, expected) => {
+    expect(pastedKeyCount(text)).toBe(expected)
   })
 })
 
@@ -203,5 +214,25 @@ describe("session", () => {
     session.finish()
     session.countKeys(5)
     expect(session.keys).toBe(1)
+  })
+})
+
+describe("daily", () => {
+  const pool = ["a", "b", "c", "d", "e"]
+
+  it("never repeats a level two days running", () => {
+    const picks = Array.from({ length: 50 * pool.length }, (_, day) => pickDaily(pool, day))
+    picks.slice(1).forEach((level, index) => expect(level).not.toBe(picks[index]))
+  })
+
+  it("picks from the demo levels, sorted by id", () => {
+    const ids = dailyPool(loadPacks())
+    expect(ids.length).toBeGreaterThan(0)
+    expect(ids).toEqual([...ids].sort())
+    expect(dailyPool(demoPacks(loadPacks()))).toEqual(ids)
+  })
+
+  it("counts UTC days", () => {
+    expect(dayNumber(Date.UTC(2026, 9, 30, 23, 59))).toBe(20756)
   })
 })

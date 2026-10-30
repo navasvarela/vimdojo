@@ -1,10 +1,12 @@
 -- The results card shown when an attempt reaches its goal.
+local share = require("vimdojo.share")
 local ui = require("vimdojo.ui")
 
 local M = {}
 
 ---@class vimdojo.ResultsView
 ---@field level vimdojo.Level
+---@field daily_date string|nil Set when this was the daily challenge.
 ---@field outcome vimdojo.Outcome
 ---@field record vimdojo.LevelRecord Best-so-far, including this attempt.
 ---@field has_next boolean
@@ -37,8 +39,8 @@ function M.content(view)
     table.insert(lines, "  Hint used: capped at 2 stars")
   end
   table.insert(lines, "")
-  local actions = view.has_next and "  [n] next   [r] retry   [m] menu   [q] quit"
-    or "  [r] retry   [m] menu   [q] quit"
+  local actions = view.has_next and "  [n] next   [r] retry   [y] copy result   [m] menu   [q] quit"
+    or "  [r] retry   [y] copy result   [m] menu   [q] quit"
   table.insert(lines, actions)
 
   local highlights = {
@@ -46,6 +48,24 @@ function M.content(view)
     { line = #lines - 1, col = 0, group = "VimDojoMuted" },
   }
   return lines, highlights
+end
+
+--- Puts the share text in the system clipboard when Neovim has one, and in
+--- the unnamed register either way, so `p` pastes it inside Neovim.
+---@param view vimdojo.ResultsView
+local function copy_result(view)
+  local text = share.text({
+    level_title = view.level.title,
+    par_keys = view.level.par_keys,
+    daily_date = view.daily_date,
+    outcome = view.outcome,
+  })
+  vim.fn.setreg('"', text)
+  local where = "the unnamed register"
+  if vim.fn.has("clipboard") == 1 and pcall(vim.fn.setreg, "+", text) then
+    where = "the clipboard"
+  end
+  vim.notify(("vimdojo: result copied to %s"):format(where), vim.log.levels.INFO)
 end
 
 ---@param view vimdojo.ResultsView
@@ -69,6 +89,9 @@ function M.open(view, actions)
   local mappings = {
     r = run(actions.retry),
     m = run(actions.menu),
+    y = function()
+      copy_result(view)
+    end,
     q = run(actions.close),
     ["<Esc>"] = run(actions.close),
   }

@@ -4,6 +4,7 @@
   "title": "Text Objects",
   "description": "Operate on structure from anywhere inside it: parentheses, brackets, tags, words and sentences.",
   "order": 6,
+  "authors": ["navasvarela"],
   "levels": [
     {
       "id": "textobj-01",

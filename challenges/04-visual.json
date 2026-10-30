@@ -4,6 +4,7 @@
   "title": "Visual Mode",
   "description": "Select first, act second: block selections that edit many lines at once, and pasting over a selection.",
   "order": 4,
+  "authors": ["navasvarela"],
   "levels": [
     {
       "id": "visual-01",

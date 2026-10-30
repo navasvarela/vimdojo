@@ -4,6 +4,7 @@
   "title": "Ex Power",
   "description": "Command-line editing: substitute, global, sort, normal on ranges, and moving lines.",
   "order": 9,
+  "authors": ["navasvarela"],
   "levels": [
     {
       "id": "ex-01",
