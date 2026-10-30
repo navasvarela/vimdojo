@@ -555,3 +555,19 @@ features that need no server, so the game stays offline and free to host.
   purpose. Line width 100 matched the existing code with the fewest changes.
 - The CodeMirror cursor and selection overrides keep `!important` (its
   runtime theme wins otherwise), inside a `biome-ignore` range.
+
+## Leaderboards: decisions for phase 1 (2026-10-30)
+
+PLAN-v3.md records the full table. The two departures from the proposal:
+
+- **Stack: Cloudflare Workers + D1, with Vercel Sandbox for replays**,
+  instead of all-Vercel with DynamoDB. The domain's DNS and the site's
+  analytics are already on Cloudflare, D1 needs no card and gives SQL for
+  boards, and Vercel Sandbox is still the free way to run Neovim in a
+  microVM. The SDK accepts an access token outside Vercel. Accepted: two
+  vendors, and the Workers runtime (10 ms CPU on the free plan) for the API.
+- **The site stays on GitHub Pages.** `api.vimdojo.org` is same-site with
+  vimdojo.org, so a `SameSite=Lax` cookie works without moving the site.
+- **EU residency:** D1 is created with `jurisdiction: "eu"`. Vercel Sandbox
+  may run elsewhere, so verifier jobs carry only the level and the key log,
+  never a user id or handle.
