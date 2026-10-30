@@ -86,13 +86,14 @@ export class AccountPage {
 
   private handleForm(me: Me, label: string, submit: string): HTMLFormElement {
     const input = h("input", {
+      className: "account-input",
       attrs: { id: "handle", type: "text", required: "", autocomplete: "off", spellcheck: "false" },
     })
     const form = h("form", { className: "account-form" }, [
-      h("label", { attrs: { for: "handle" } }, [label]),
+      h("label", { className: "account-label", attrs: { for: "handle" } }, [label]),
       input,
       h("button", { className: "button primary", attrs: { type: "submit" } }, [submit]),
-      h("p", { className: "aside" }, [me.handle_rules]),
+      h("p", { className: "aside account-note" }, [me.handle_rules]),
     ])
     form.addEventListener("submit", (event) => {
       event.preventDefault()
@@ -155,6 +156,7 @@ export class AccountPage {
   /** Stays disabled until the phrase is typed: deleting can't be undone. */
   private deleteForm(): HTMLFormElement {
     const input = h("input", {
+      className: "account-input",
       attrs: { id: "confirm-delete", type: "text", autocomplete: "off", spellcheck: "false" },
     })
     const button = h("button", { className: "button danger", attrs: { type: "submit" } }, [
@@ -165,7 +167,9 @@ export class AccountPage {
       button.disabled = input.value !== DELETE_PHRASE
     })
     const form = h("form", { className: "account-form" }, [
-      h("label", { attrs: { for: "confirm-delete" } }, [`Type "${DELETE_PHRASE}" to confirm:`]),
+      h("label", { className: "account-label", attrs: { for: "confirm-delete" } }, [
+        `Type "${DELETE_PHRASE}" to confirm:`,
+      ]),
       input,
       button,
     ])

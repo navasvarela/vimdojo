@@ -760,11 +760,11 @@ pre[data-copy] {
   margin: 12px 0;
 }
 
-.account-form label {
+.account-label {
   flex-basis: 100%;
 }
 
-.account-form input {
+.account-input {
   min-width: 0;
   flex: 1 1 200px;
   max-width: 320px;
@@ -776,7 +776,7 @@ pre[data-copy] {
   font: inherit;
 }
 
-.account-form .aside {
+.account-note {
   flex-basis: 100%;
   margin: 0;
 }
