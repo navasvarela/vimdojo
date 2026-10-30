@@ -555,3 +555,33 @@ features that need no server, so the game stays offline and free to host.
   purpose. Line width 100 matched the existing code with the fewest changes.
 - The CodeMirror cursor and selection overrides keep `!important` (its
   runtime theme wins otherwise), inside a `biome-ignore` range.
+
+## M15: the replay verifier, local half
+
+- **All 66 Motions and Usage reference solutions verify** in
+  `nvim --embed --clean --headless` with exactly their own key count, at a
+  median of about 40 ms per replay (Neovim 0.12.6, macOS). The divergences
+  the proposal feared (Alt chords from a fast `<Esc>`, `<C-i>` vs `<Tab>`)
+  don't show up in the shipped solutions: without a terminal in between,
+  no escape-sequence timeout applies, so no pause after `<Esc>` is needed.
+- **The level is built by the room's own Lua** (`room/child.lua`'s
+  `set_ui_options` and `load`, now exported with `buffer`), before any key
+  is replayed, so replays see what the live room shows. The room's goal
+  checks are removed straight after: the harness checks the goal itself.
+- **State is read through the C API and builtin Vimscript functions only**
+  (`nvim_buf_get_lines`, `getreg`, `winlayout`...). A replayed log can
+  redefine any Lua function in the child, including the room's snapshot,
+  but not those. A test redefines `snapshot` and checks it can't fake a
+  solve.
+- **The harness is a msgpack-RPC client, not a Neovim**, and answers every
+  request from the child with an error. A test makes the replayed Neovim
+  call back with `vim.rpcrequest(1, "nvim_exec_lua", ...)` and checks the
+  replay carries on.
+- **Ordering:** after `nvim_input`, the fast `nvim_get_mode` already sees
+  the key (measured over repeated `i`/`<Esc>` rounds), so the loop is: send
+  one key, read the mode, and snapshot only in Normal mode when not
+  blocking.
+- `make verifier-check` and a CI job run the solution replays and the
+  adversarial tests (short and long logs, `:lua` routes, a hostile
+  callback, an infinite loop, `:qa!`), so a change to the room or the goal
+  rules can't silently break verification.

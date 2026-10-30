@@ -112,6 +112,36 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  # The leaderboard verifier (PLAN-v3): replays every Motions and Usage
+  # reference solution through its harness and runs its adversarial tests.
+  verifier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: rhysd/action-setup-vim@febef33995d6649302e9d88dda81e071b68f16a7 # v1
+        with:
+          neovim: true
+          version: stable
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            web/package-lock.json
+            verifier/package-lock.json
+      # The verifier imports the rules (goals, keys, level schema) from web/src.
+      - run: npm ci
+        working-directory: web
+      - run: npm ci
+        working-directory: verifier
+      - run: npm run typecheck
+        working-directory: verifier
+      - run: npm test
+        working-directory: verifier
+
   workflows:
     runs-on: ubuntu-latest
     timeout-minutes: 5
