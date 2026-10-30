@@ -1,7 +1,7 @@
 import type { EditorView } from "@codemirror/view"
 import { nextLevel, type Level, type Pack } from "../challenges"
 import { isMet, registersFor } from "../goals"
-import { isCountableKeydown } from "../keys"
+import { isCountableKeydown, pastedKeyCount } from "../keys"
 import { recordResult, unlockedAll, type Progress } from "../progress"
 import {
   EXPORT_FILE_NAME,
@@ -189,6 +189,13 @@ export class Demo {
     }
     this.play = play
     view.dom.addEventListener("keydown", (event) => this.onKeydown(play, event), { capture: true })
+    // Pasted or dropped text costs what typing it would, so it can't beat par.
+    view.dom.addEventListener("paste", (event) => this.onInsertedText(play, event.clipboardData), {
+      capture: true,
+    })
+    view.dom.addEventListener("drop", (event) => this.onInsertedText(play, event.dataTransfer), {
+      capture: true,
+    })
     play.ticker = window.setInterval(() => this.renderStatus(play), STATUS_REFRESH_MS)
     this.renderStatus(play)
     this.renderList(this.elements.list)
@@ -215,6 +222,13 @@ export class Demo {
       return
     }
     play.session.countKeys(1)
+  }
+
+  private onInsertedText(play: Play, data: DataTransfer | null): void {
+    const text = data?.getData("text/plain") ?? ""
+    if (text !== "") {
+      play.session.countKeys(pastedKeyCount(text))
+    }
   }
 
   private onControl(play: Play, event: KeyboardEvent): void {

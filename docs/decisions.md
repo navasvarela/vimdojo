@@ -460,3 +460,15 @@ by Actions; the domain is set in the repository's Pages settings, so no CNAME
 file is needed). It is served from the domain root, so Vite's `base` is now
 `/` by default. With the old `/vimdojo/` base, every script, stylesheet and
 image 404'd on the custom domain, and the page rendered unstyled with no demo.
+
+## Community, phase 0 (no backend)
+
+The first step of `docs/proposals/leaderboard-and-community.md` (PR #2):
+features that need no server, so the game stays offline and free to host.
+
+- **Pasted text costs what typing it would**: one key per character, one
+  `<CR>` per line break. In the plugin a paste never reaches `vim.on_key`
+  (measured on 0.12: `nvim_paste` into a terminal buffer fired no key
+  events), so `keys.capture` wraps `vim.paste` while a level is active and
+  restores it afterwards. The web demo counts `paste` and `drop` events on
+  the editor. Before this, pasting a solution cost zero keys.

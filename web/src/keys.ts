@@ -41,3 +41,13 @@ export function isCountableKeydown(event: KeyEventLike): boolean {
   // Synthetic events (automation, some IMEs) can arrive with an empty key.
   return event.key !== "" && !MODIFIER_KEYS.has(event.key)
 }
+
+const LINE_BREAK = /\r\n|\r/g
+
+/**
+ * The keys pasted (or dropped) text would have cost if typed, matching
+ * `paste_count` in keys.lua: one per character, one `<CR>` per line break.
+ */
+export function pastedKeyCount(text: string): number {
+  return Array.from(text.replace(LINE_BREAK, "\n")).length
+}

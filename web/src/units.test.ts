@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import { TRACKS, demoPacks, loadPacks, nextLevel, parsePacks } from "./challenges"
-import { isCountableKeydown, splitNotation } from "./keys"
+import { isCountableKeydown, pastedKeyCount, splitNotation } from "./keys"
 import { emptyProgress, recordResult, unlockedByProgress } from "./progress"
 import { loadProgress, saveProgress, serializeProgress, parseJsonProgress } from "./storage"
 import { byteColToIndex, indexToByteCol } from "./text"
@@ -49,6 +49,16 @@ describe("keys", () => {
     ["", false],
   ])("keydown %s countable: %s", (key, expected) => {
     expect(isCountableKeydown({ key })).toBe(expected)
+  })
+
+  it.each([
+    ["hello", 5],
+    ["ab\ncd", 5],
+    ["ab\r\ncd", 5],
+    ["é", 1],
+    ["", 0],
+  ])("pasting %j costs %i keys, like the Lua port", (text, expected) => {
+    expect(pastedKeyCount(text)).toBe(expected)
   })
 })
 
