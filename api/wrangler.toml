@@ -1,8 +1,14 @@
-# M15 spike: proves the Worker can drive a Vercel Sandbox verification batch.
-# Local only for now (`npx wrangler dev`); secrets go in .dev.vars.
 name = "vimdojo-api"
 main = "src/index.ts"
 compatibility_date = "2026-10-01"
-# The Vercel Sandbox SDK is written for Node; nodejs_compat is what may let it
-# run on workerd. Finding out is the point of the spike.
-compatibility_flags = ["nodejs_compat"]
+
+[vars]
+SITE_ORIGIN = "https://vimdojo.org"
+API_ORIGIN = "https://api.vimdojo.org"
+
+# Secrets, set with `wrangler secret put`: GITHUB_CLIENT_SECRET, RATE_LIMIT_SALT.
+# GITHUB_CLIENT_ID is a var, not a secret, and is added once the OAuth app exists.
+
+[triggers]
+# Daily cleanup of expired logins and counters, at a quiet time.
+crons = ["17 3 * * *"]

@@ -14,6 +14,8 @@
       "api/src/**",
       "api/*.json",
       "!api/package-lock.json",
+      "api/test/**",
+      "api/vitest.config.ts",
       "challenges/*.json",
       "tests/fixtures/**/*.json"
     ]
