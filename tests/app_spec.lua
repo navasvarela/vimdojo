@@ -75,6 +75,8 @@ describe("playing a level", function()
       -- same keys wouldn't: that is why such a run can't be replayed.
       player:lua("vim.api.nvim_paste('x', false, -1)")
       assert.is_true(player:wait_for(CURRENT .. ".session.pasted"))
+      -- The room handles a paste asynchronously, so `u` must wait for the text.
+      assert.is_truthy(player:wait_for(CURRENT .. ".room:snapshot().lines[1]:find('x', 1, true)"))
       player:type("ujjjll")
 
       assert.is_truthy(player:wait_for_record("basic-motions-01"))

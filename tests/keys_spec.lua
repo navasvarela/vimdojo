@@ -100,6 +100,20 @@ describe("keys.capture", function()
     assert.are.equal(0, counted)
   end)
 
+  it("reports keys in the notation the verifier replays", function()
+    local seen = {}
+    stop = keys.capture(function()
+      return true
+    end, {
+      on_keys = function(names)
+        vim.list_extend(seen, names)
+      end,
+      on_paste = function() end,
+    })
+    vim.api.nvim_feedkeys(vim.keycode("i <|\\é<C-r><Esc><Esc>"), "tx", false)
+    assert.are.same({ "i", "<Space>", "<lt>", "|", "\\", "é", "<C-R>", "<Esc>", "<Esc>" }, seen)
+  end)
+
   it("restores vim.paste when stopped", function()
     local original = vim.paste
     keys.capture(function()
