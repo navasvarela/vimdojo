@@ -40,6 +40,16 @@ async function main(): Promise<void> {
   })
   console.log(`sandbox ready in ${seconds(started)}`)
   try {
+    // Replayed keys can run shell commands, so the batch fails outright if the
+    // VM can reach anything.
+    const network = await sandbox.runCommand({
+      cmd: "curl",
+      args: ["-sS", "-m", "5", "-o", "/dev/null", "https://example.com"],
+    })
+    if (network.exitCode === 0) {
+      throw new Error("the sandbox reached the network")
+    }
+    console.log(`network denied (curl exit ${network.exitCode})`)
     await sandbox.writeFiles([{ path: JOBS_PATH, content: Buffer.from(JSON.stringify(jobs)) }])
     const replayStarted = performance.now()
     const result = await sandbox.runCommand({

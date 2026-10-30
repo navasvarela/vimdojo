@@ -591,12 +591,18 @@ features that need no server, so the game stays offline and free to host.
 - **Replays can run in the EU too.** The Sandbox SDK takes a `region`, and
   `fra1` (Frankfurt) is one, so the verifier runs next to the EU D1
   database rather than in the default `iad1`.
-- **The Sandbox SDK loads and calls Vercel from workerd.** Under
-  `wrangler dev` with `nodejs_compat`, `Sandbox.create` with a fake token
-  reached Vercel's API and came back `403 Not authorized`, so the SDK's Node
-  dependencies (undici, fs, os) don't stop it on the Workers runtime. The
-  streaming calls (`writeFiles`, `runCommand`) still need a real token to
-  confirm. The bundle is 539 KiB gzipped, under the free plan's limit.
+- **The Sandbox SDK works on workerd**, streaming calls included. Under
+  `wrangler dev` with `nodejs_compat`, a Worker resumed the snapshot, wrote
+  the jobs, ran the harness and read its output: 9 of 9 jobs verified in
+  about 2.3 s. The bundle is 539 KiB gzipped, under the free plan's limit.
+- **All 66 reference solutions verify in the Sandbox** (`fra1`, 1 vCPU):
+  about 1 s to resume the snapshot and under 2 s for the replays, so about
+  3.5 s for the batch. `curl` from inside the VM fails to resolve a host,
+  and `run-batch` now fails outright if the VM can reach the network.
+- **Not measured: the free plan's 10 ms CPU limit.** `wrangler dev` doesn't
+  enforce it, and importing the SDK and parsing packs may use more. It needs
+  a deployed Worker to measure. If it's exceeded, the options are a smaller
+  bundle without the SDK (the REST API with `fetch`), or the $5 Workers plan.
 - **The snapshot** pins Neovim 0.12.6 by the SHA-256 of each Linux build,
   holds vimdojo's Lua and the bundled `cli.js`, and has its network denied
   before it's saved. It never expires; it's rebuilt when the room's Lua, the

@@ -141,6 +141,11 @@ jobs:
         working-directory: verifier
       - run: npm test
         working-directory: verifier
+      # The Worker spike imports the verifier's sandbox config and the rules.
+      - run: npm ci
+        working-directory: api
+      - run: npm run typecheck
+        working-directory: api
 
   workflows:
     runs-on: ubuntu-latest

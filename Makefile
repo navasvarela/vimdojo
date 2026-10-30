@@ -47,6 +47,8 @@ verifier-check: web-deps
 	npm --prefix verifier ci
 	npm --prefix verifier run typecheck
 	npm --prefix verifier test
+	npm --prefix api ci
+	npm --prefix api run typecheck
 
 workflows:
 	scripts/actionlint.sh
