@@ -501,3 +501,13 @@ features that need no server, so the game stays offline and free to host.
   rule in the schema, Lua and TS. The site renders a "Levels by" line from
   them at build time, like the curriculum. The 16 existing packs credit
   @navasvarela.
+- **Untrusted pull requests in CI:** a level PR runs its own content (keys
+  typed into Neovim, Lua in Setup levels and probes), so CI treats forks as
+  untrusted. Workflows trigger on `pull_request` only, the token is
+  read-only, checkouts don't persist it, jobs have timeouts, and
+  third-party actions are pinned to commit SHAs (GitHub's own `actions/*`
+  stay on tags). The PR template asks authors to flag `preset.commands`,
+  `lua` probes and Setup starters, which run on players' machines, and
+  CODEOWNERS requests the maintainer's review on every PR. In the repo
+  settings, "Require approval for all outside collaborators" should be on
+  for fork workflows.
