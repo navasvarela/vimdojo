@@ -34,6 +34,10 @@ jobs:
           # The site lives at the root of the custom domain (vimdojo.org), so
           # the default base "/" applies (see web/vite.config.ts).
           VITE_REPO: ${{ github.repository }}
+          # Cloudflare Web Analytics site token. It ends up in the public page
+          # anyway; it's a repository variable rather than a constant so forks
+          # that deploy their own Pages don't count visits in our dashboard.
+          VITE_CF_BEACON_TOKEN: ${{ vars.CF_WEB_ANALYTICS_TOKEN }}
       - uses: actions/upload-pages-artifact@v4
         with:
           path: web/dist
