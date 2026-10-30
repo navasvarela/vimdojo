@@ -4,6 +4,7 @@
   "title": "Find and Jump",
   "description": "Get anywhere in a few keys: f t ; , for characters, { } for paragraphs, % for brackets, and counts.",
   "order": 2,
+  "authors": ["navasvarela"],
   "levels": [
     {
       "id": "find-and-jump-01",

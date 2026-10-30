@@ -36,6 +36,7 @@ is written exactly once.
 | `web_demo` | Include the level in the browser demo. Only set it when the emulation test passes. |
 | `requires` | Optional. `{ "nvim": "0.11" }` for levels that need newer defaults or APIs. Older Neovims show the level as unavailable and skip it. |
 | `options` | Optional. Options set like `:set` before the level starts, e.g. `{ "shiftwidth": 2, "wrapscan": false }`. |
+| `authors` | Optional. GitHub handles without the `@`, e.g. `["your-handle"]`, credited on the site. Replaces the pack's `authors` for this level. |
 | `preset` | Optional. `registers` (`{ "a": "charwise text" }` or `{ "a": ["linewise", "lines"] }`) and buffer `marks` (`{ "m": [line, col] }`) set before the timer starts. |
 
 ### Levels with files (Usage track)
@@ -203,8 +204,9 @@ level. Any level marked `web_demo` must pass. Some features aren't emulated
 ## Adding a pack
 
 Create `challenges/NN-name.json` with `pack`, `title`, `description`, a
-unique `order` and its `levels`. Packs unlock in `order`. No code changes are
-needed: the plugin, the demo and the landing page pick it up automatically.
+unique `order` and its `levels`. Packs unlock in `order`. Add `authors`
+(your GitHub handle) to be credited on the site. No code changes are needed:
+the plugin, the demo and the landing page pick it up automatically.
 
 ## Adding a goal type
 

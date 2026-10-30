@@ -496,3 +496,8 @@ features that need no server, so the game stays offline and free to host.
   half up to tenths before formatting: Lua's `%.1f` rounds an exact tie such
   as 4.25 to even and JavaScript's `toFixed` rounds it up, and the shared
   fixture caught the two texts disagreeing.
+- **Authors:** packs and levels take an optional `authors` list of GitHub
+  handles (a level's replaces its pack's), validated with GitHub's handle
+  rule in the schema, Lua and TS. The site renders a "Levels by" line from
+  them at build time, like the curriculum. The 16 existing packs credit
+  @navasvarela.

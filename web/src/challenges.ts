@@ -102,6 +102,17 @@ const Preset = z.object({
   commands: z.array(z.string().min(1)).min(1).optional(),
 })
 
+// GitHub's rule, as in schema.json: letters, digits and single inner hyphens.
+const MAX_HANDLE_LENGTH = 39
+const GitHubHandle = z
+  .string()
+  .max(MAX_HANDLE_LENGTH)
+  .regex(/^[A-Za-z0-9](-?[A-Za-z0-9])*$/)
+const Authors = z
+  .array(GitHubHandle)
+  .min(1)
+  .refine((handles) => new Set(handles).size === handles.length, "authors are listed twice")
+
 export const TRACKS = ["motions", "usage", "setup"] as const
 export type Track = (typeof TRACKS)[number]
 
@@ -121,6 +132,8 @@ const LevelData = z.object({
   hint: z.string().min(1),
   solution: z.string().min(1),
   teaches: z.array(z.string()).min(1),
+  /** GitHub handles; replaces the pack's. */
+  authors: Authors.optional(),
   web_demo: z.boolean().optional(),
   requires: z.object({ nvim: z.string().regex(/^\d+\.\d+(\.\d+)?$/) }).optional(),
   options: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
@@ -145,6 +158,7 @@ const Pack = z.object({
   description: z.string().optional(),
   order: z.number().int().min(1),
   track: z.enum(TRACKS).default("motions"),
+  authors: Authors.optional(),
   levels: z.array(Level).min(1),
 })
 

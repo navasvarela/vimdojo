@@ -4,6 +4,7 @@
   "title": "Windows and Buffers",
   "description": "Split, swap, move and close windows, and hop between buffers.",
   "order": 10,
+  "authors": ["navasvarela"],
   "track": "usage",
   "levels": [
     {

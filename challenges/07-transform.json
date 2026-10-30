@@ -4,6 +4,7 @@
   "title": "Transform",
   "description": "Change text without retyping it: case, numbers, joining lines, swapping and overwriting characters.",
   "order": 7,
+  "authors": ["navasvarela"],
   "levels": [
     {
       "id": "transform-01",

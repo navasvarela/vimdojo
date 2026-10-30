@@ -40,6 +40,7 @@ end
 ---@field hint string
 ---@field solution string
 ---@field teaches string[]
+---@field authors string[]|nil GitHub handles; replaces the pack's.
 ---@field web_demo boolean|nil
 ---@field requires { nvim: string }|nil Minimum Neovim version, e.g. "0.11".
 ---@field options table<string, string|number|boolean>|nil Set (like :set) before the level starts.
@@ -58,6 +59,7 @@ end
 ---@field description string|nil
 ---@field order integer
 ---@field track string One of M.TRACKS; defaults to "motions".
+---@field authors string[]|nil GitHub handles credited for the pack.
 ---@field levels vimdojo.Level[]
 
 --- Where the packs ship with the plugin.
@@ -214,6 +216,41 @@ function M.needs_neovim(level)
     or goals.reads_layout(level.goal)
 end
 
+-- GitHub's own rule: letters, digits and single hyphens, not at either end,
+-- at most 39 characters. Mirrors the pattern in schema.json.
+local MAX_HANDLE_LENGTH = 39
+
+---@param value any
+---@return boolean
+local function is_github_handle(value)
+  return type(value) == "string"
+    and #value <= MAX_HANDLE_LENGTH
+    and value:match("^%w[%w%-]*$") ~= nil
+    and value:match("%-$") == nil
+    and value:find("--", 1, true) == nil
+end
+
+---@param authors any
+---@return string|nil error
+local function authors_error(authors)
+  if authors == nil then
+    return nil
+  end
+  if not check.is_string_list(authors) then
+    return "authors must be a non-empty array of GitHub handles"
+  end
+  local seen = {}
+  for _, handle in ipairs(authors) do
+    if not is_github_handle(handle) then
+      return ("authors: %q is not a GitHub handle"):format(handle)
+    end
+    if seen[handle] then
+      return ("authors: %q is listed twice"):format(handle)
+    end
+    seen[handle] = true
+  end
+end
+
 ---@param level table
 ---@return string[]
 local function level_errors(level)
@@ -236,6 +273,8 @@ local function level_errors(level)
     "par_seconds must be a positive number"
   )
   expect(level.web_demo == nil or type(level.web_demo) == "boolean", "web_demo must be a boolean")
+  local level_authors_err = authors_error(level.authors)
+  expect(level_authors_err == nil, level_authors_err)
 
   local cursor_error = cursor_start_error(level)
   expect(cursor_error == nil, cursor_error)
@@ -293,6 +332,10 @@ function M.validate_pack(pack)
       errors,
       ("track must be one of motions, usage, setup (got %q)"):format(tostring(pack.track))
     )
+  end
+  local pack_authors_err = authors_error(pack.authors)
+  if pack_authors_err then
+    table.insert(errors, pack_authors_err)
   end
   if type(pack.levels) ~= "table" or #pack.levels == 0 then
     table.insert(errors, "levels must be a non-empty array")
