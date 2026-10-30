@@ -654,6 +654,9 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   replaces any older one, whatever its keys, since that board is gone.
 - **Why a paste can't be logged:** bracketed paste inserts text even in Normal
   mode, which typing the same keys wouldn't do, so no replay would reproduce it.
+- **Keys are spelled the same on every Neovim.** `keytrans()` returns `|` and
+  `\\` on 0.12 but `<Bar>` and `<Bslash>` on nightly (CI caught it). Both replay
+  fine, but the server caches verdicts by key log, so the plugin normalizes them.
 - **Gaps are computed from rounded absolute times**, so 1,000 quick keys can't
   drift, and a removed control key's time goes with it.
 - **Proof:** `check-keylogs` plays all 66 ranked levels through the live room,

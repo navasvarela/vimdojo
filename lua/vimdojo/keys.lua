@@ -66,6 +66,20 @@ function M.paste_count(lines)
   return count
 end
 
+-- keytrans() returns these two as `|` and `\` on 0.12 but by name on nightly.
+-- The server caches verdicts by key log, so the same keys must log the same on
+-- every Neovim. Literal text can't collide: keytrans() writes a typed "<" as
+-- "<lt>".
+local KEY_SPELLINGS = { ["<Bar>"] = "|", ["<Bslash>"] = "\\" }
+
+--- A key's name in keytrans() notation, spelled the same on every Neovim.
+---@param typed string A key as vim.on_key() reports it.
+---@return string
+function M.name(typed)
+  local name = vim.fn.keytrans(typed)
+  return KEY_SPELLINGS[name] or name
+end
+
 local namespace = vim.api.nvim_create_namespace("vimdojo.keys")
 
 ---@class vimdojo.KeyHandlers
@@ -89,7 +103,7 @@ function M.capture(is_active, handlers)
     if typed == nil or typed == "" or not is_active() then
       return
     end
-    local name = vim.fn.keytrans(typed)
+    local name = M.name(typed)
     if M.is_countable(name) then
       handlers.on_keys(M.split(name))
     end

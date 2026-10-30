@@ -46,6 +46,32 @@ describe("keys.is_countable", function()
   end
 end)
 
+describe("keys.name", function()
+  local original = vim.fn.keytrans
+
+  after_each(function()
+    vim.fn.keytrans = original
+  end)
+
+  -- Nightly's keytrans() names these two; 0.12's returns them as they are.
+  for _, spelling in ipairs({ "<Bar>", "|" }) do
+    it(("spells %s as |"):format(spelling), function()
+      vim.fn.keytrans = function()
+        return spelling
+      end
+      assert.are.equal("|", keys.name("|"))
+    end)
+  end
+  for _, spelling in ipairs({ "<Bslash>", "\\" }) do
+    it(("spells %s as a backslash"):format(spelling), function()
+      vim.fn.keytrans = function()
+        return spelling
+      end
+      assert.are.equal("\\", keys.name("\\"))
+    end)
+  end
+end)
+
 describe("keys.paste_count", function()
   local cases = {
     { { "hello" }, 5 },
