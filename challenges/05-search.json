@@ -106,7 +106,12 @@
       "id": "search-05",
       "title": "Change gang",
       "description": "Rename tmp to user everywhere except the print, which is about to be deleted anyway.",
-      "start_text": ["local tmp = fetch_user()", "tmp = normalize(tmp)", "print(tmp)", "return tmp"],
+      "start_text": [
+        "local tmp = fetch_user()",
+        "tmp = normalize(tmp)",
+        "print(tmp)",
+        "return tmp"
+      ],
       "cursor_start": [1, 0],
       "goal": {
         "type": "buffer_equals",

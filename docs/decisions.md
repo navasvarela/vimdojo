@@ -535,3 +535,23 @@ features that need no server, so the game stays offline and free to host.
   CODEOWNERS requests the maintainer's review on every PR. In the repo
   settings, "Require approval for all outside collaborators" should be on
   for fork workflows.
+
+## Lint and format for TypeScript and JSON
+
+- **Biome, not ESLint + Prettier.** The web project is on TypeScript 7, the
+  native compiler, which has no JavaScript compiler API
+  (`require("typescript").createProgram` is undefined). typescript-eslint's
+  type-aware rules need that API and support TypeScript only up to `<6.1`
+  (as of 8.72), so `no-floating-promises` and friends can't run.
+  Biome 2 infers types itself and works with TS 7 today, and one tool
+  covers lint and format for TS, CSS and JSON.
+- `biome.json` sits at the repo root so the format check also covers the
+  level packs (`challenges/*.json`) and the shared fixtures.
+- Beyond the recommended preset, the rules that enforce the house style are
+  errors: `noExplicitAny`, `noNonNullAssertion`, `useImportType`,
+  `useExportType`, and the type-aware `noFloatingPromises` and
+  `noMisusedPromises` (nursery rules in 2.5). `useLiteralKeys` is off: the
+  code reads index signatures with brackets (`process.env["VITE_BASE"]`) on
+  purpose. Line width 100 matched the existing code with the fewest changes.
+- The CodeMirror cursor and selection overrides keep `!important` (its
+  runtime theme wins otherwise), inside a `biome-ignore` range.

@@ -72,7 +72,9 @@ function levelState(level: Level, events: EditorEvents, options: EditorOptions):
   const doc = level.start_text.join("\n")
   return EditorState.create({
     doc,
-    selection: EditorSelection.cursor(cursorToOffset(EditorState.create({ doc }), level.cursor_start)),
+    selection: EditorSelection.cursor(
+      cursorToOffset(EditorState.create({ doc }), level.cursor_start),
+    ),
     extensions: [
       // vim() must come before other keymaps so it sees keys first.
       vim({ status: false }),

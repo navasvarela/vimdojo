@@ -1,14 +1,6 @@
 {
   "_comment": "Shared by tests/daily_spec.lua and web/src/fixtures.test.ts so both daily pickers stay in step.",
-  "pool": [
-    "a-01",
-    "a-02",
-    "b-01",
-    "b-02",
-    "c-01",
-    "c-02",
-    "c-03"
-  ],
+  "pool": ["a-01", "a-02", "b-01", "b-02", "c-01", "c-02", "c-03"],
   "picks": [
     {
       "level": "c-02",

@@ -58,12 +58,14 @@ const TRACK_INFO = {
   },
   usage: {
     title: "Usage",
-    blurb: "Working in Neovim: windows, buffers, the quickfix list and the defaults it ships with. Each level opens a small project of real files.",
+    blurb:
+      "Working in Neovim: windows, buffers, the quickfix list and the defaults it ships with. Each level opens a small project of real files.",
     neovimOnly: true,
   },
   setup: {
     title: "Setup",
-    blurb: "Write and fix an init.lua. Your config runs in a sandboxed Neovim that checks what it does, and shows you as you type what still fails.",
+    blurb:
+      "Write and fix an init.lua. Your config runs in a sandboxed Neovim that checks what it does, and shows you as you type what still fails.",
     neovimOnly: true,
   },
 } as const satisfies Record<Track, TrackInfo>

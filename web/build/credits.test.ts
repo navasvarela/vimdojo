@@ -22,7 +22,13 @@ function level(id: string, authors?: string[]) {
 
 describe("credits", () => {
   const packs = parsePacks([
-    { pack: "a", title: "A", order: 1, authors: ["ana"], levels: [level("a-1"), level("a-2", ["bo", "ana"])] },
+    {
+      pack: "a",
+      title: "A",
+      order: 1,
+      authors: ["ana"],
+      levels: [level("a-1"), level("a-2", ["bo", "ana"])],
+    },
     { pack: "b", title: "B", order: 2, levels: [level("b-1"), level("b-2", ["cy"])] },
   ])
 
@@ -39,10 +45,14 @@ describe("credits", () => {
   })
 
   it("renders nothing when no level is credited", () => {
-    expect(renderCredits(parsePacks([{ pack: "c", title: "C", order: 1, levels: [level("c-1")] }]))).toBe("")
+    expect(
+      renderCredits(parsePacks([{ pack: "c", title: "C", order: 1, levels: [level("c-1")] }])),
+    ).toBe("")
   })
 
   it("rejects handles that aren't GitHub's", () => {
-    expect(() => parsePacks([{ pack: "d", title: "D", order: 1, authors: ["@ana"], levels: [level("d-1")] }])).toThrow()
+    expect(() =>
+      parsePacks([{ pack: "d", title: "D", order: 1, authors: ["@ana"], levels: [level("d-1")] }]),
+    ).toThrow()
   })
 })
