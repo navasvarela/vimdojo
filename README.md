@@ -93,6 +93,12 @@ Each level runs in its own clean Neovim inside a terminal window, so your
 registers, windows and settings are never touched, and your plugins can't
 interfere with par. Set `config = "mine"` to practice with your own setup.
 
+## Community
+
+Share your daily result (`y` on the results card copies it without the
+solution) and talk levels, beaten pars and ideas in
+[Discussions](https://github.com/navasvarela/vimdojo/discussions).
+
 ## Contributing
 
 New levels are the best contribution: they're plain JSON, and the tests prove
