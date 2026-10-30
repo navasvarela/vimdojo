@@ -4,6 +4,7 @@
   "title": "Modern Neovim",
   "description": "APIs and defaults from Neovim 0.11: diagnostics, window borders and the new LSP config.",
   "order": 16,
+  "authors": ["navasvarela"],
   "track": "setup",
   "levels": [
     {

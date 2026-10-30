@@ -45,3 +45,60 @@ describe("keys.is_countable", function()
     end)
   end
 end)
+
+describe("keys.paste_count", function()
+  local cases = {
+    { { "hello" }, 5 },
+    { { "hello", "world" }, 11 },
+    { { "", "" }, 1 },
+    { { "é" }, 1 },
+    { {}, 0 },
+  }
+  for _, case in ipairs(cases) do
+    local lines, expected = case[1], case[2]
+    it(("counts %s as %d keys"):format(vim.inspect(lines), expected), function()
+      assert.are.equal(expected, keys.paste_count(lines))
+    end)
+  end
+end)
+
+describe("keys.capture", function()
+  local stop
+
+  after_each(function()
+    if stop then
+      stop()
+      stop = nil
+    end
+  end)
+
+  it("counts a paste as the keys it would take to type", function()
+    local counted = 0
+    stop = keys.capture(function()
+      return true
+    end, function(count)
+      counted = counted + count
+    end)
+    vim.api.nvim_paste("ab\ncd", false, -1)
+    assert.are.equal(5, counted)
+  end)
+
+  it("doesn't count a paste while inactive", function()
+    local counted = 0
+    stop = keys.capture(function()
+      return false
+    end, function(count)
+      counted = counted + count
+    end)
+    vim.api.nvim_paste("ab", false, -1)
+    assert.are.equal(0, counted)
+  end)
+
+  it("restores vim.paste when stopped", function()
+    local original = vim.paste
+    keys.capture(function()
+      return true
+    end, function() end)()
+    assert.are.equal(original, vim.paste)
+  end)
+end)

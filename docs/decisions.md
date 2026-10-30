@@ -485,3 +485,53 @@ third-party trackers in the MVP".
   forks never report. The token is public by design (it ends up in the page).
 - The plugin itself still makes no network calls.
 
+## Community, phase 0 (no backend)
+
+The first step of `docs/proposals/leaderboard-and-community.md` (PR #2):
+features that need no server, so the game stays offline and free to host.
+
+- **Pasted text costs what typing it would**: one key per character, one
+  `<CR>` per line break. In the plugin a paste never reaches `vim.on_key`
+  (measured on 0.12: `nvim_paste` into a terminal buffer fired no key
+  events), so `keys.capture` wraps `vim.paste` while a level is active and
+  restores it afterwards. The web demo counts `paste` and `drop` events on
+  the editor. Before this, pasting a solution cost zero keys.
+- **Key logs are not recorded yet**, although the proposal lists them in
+  phase 0. Nothing reads them until phase 1 submits runs, they would change
+  the progress format in both clients, and `progress.json` is exportable,
+  so storing them there would hand solutions to anyone a player shares
+  progress with. They come with phase 1, in their own file.
+- **Daily challenge:** one level per UTC day from the date alone, so it
+  works offline and the plugin and the site agree. The pool is the demo
+  levels (anyone can play the daily in the browser), sorted by id. Days run
+  in cycles as long as the pool: each cycle plays every level once in an
+  order shuffled from the cycle number with MINSTD (Park-Miller), whose
+  products stay exact in both Lua doubles and JS numbers. A cycle never
+  starts with the level the previous one ended on. `tests/fixtures/daily.json`
+  pins both ports. The daily ignores pack locks, and solving it is recorded
+  as that level's progress.
+- Accepted: adding or removing a demo level reshuffles the schedule, so for
+  a while an older plugin and the site can show different dailies. A
+  hand-written `daily.json` rotation would avoid it, at the cost of someone
+  keeping it filled in.
+- **Share text** (`y` in the plugin's results card, "Copy result" on the
+  site) names the level or the daily's date and the score, never the keys,
+  so it can be posted without spoiling the solution. Seconds are rounded
+  half up to tenths before formatting: Lua's `%.1f` rounds an exact tie such
+  as 4.25 to even and JavaScript's `toFixed` rounds it up, and the shared
+  fixture caught the two texts disagreeing.
+- **Authors:** packs and levels take an optional `authors` list of GitHub
+  handles (a level's replaces its pack's), validated with GitHub's handle
+  rule in the schema, Lua and TS. The site renders a "Levels by" line from
+  them at build time, like the curriculum. The 16 existing packs credit
+  @navasvarela.
+- **Untrusted pull requests in CI:** a level PR runs its own content (keys
+  typed into Neovim, Lua in Setup levels and probes), so CI treats forks as
+  untrusted. Workflows trigger on `pull_request` only, the token is
+  read-only, checkouts don't persist it, jobs have timeouts, and
+  third-party actions are pinned to commit SHAs (GitHub's own `actions/*`
+  stay on tags). The PR template asks authors to flag `preset.commands`,
+  `lua` probes and Setup starters, which run on players' machines, and
+  CODEOWNERS requests the maintainer's review on every PR. In the repo
+  settings, "Require approval for all outside collaborators" should be on
+  for fork workflows.

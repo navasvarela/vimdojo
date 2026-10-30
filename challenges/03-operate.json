@@ -4,6 +4,7 @@
   "title": "Operate",
   "description": "Operators plus motions: d, c, y, the dot command, and text objects.",
   "order": 3,
+  "authors": ["navasvarela"],
   "levels": [
     {
       "id": "operate-01",

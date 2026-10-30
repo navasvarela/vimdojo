@@ -291,6 +291,16 @@ h2::before {
   padding: 12px;
 }
 
+.daily {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.daily:empty {
+  display: none;
+}
+
 .level-list,
 .level-list ol {
   margin: 0;

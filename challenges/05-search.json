@@ -4,6 +4,7 @@
   "title": "Search",
   "description": "Jump anywhere by content: / and ?, * under the cursor, n for the next match, and cgn to change matches one by one.",
   "order": 5,
+  "authors": ["navasvarela"],
   "levels": [
     {
       "id": "search-01",

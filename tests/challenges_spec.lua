@@ -97,6 +97,11 @@ describe("challenges.validate_pack", function()
       { preset = { commands = {} } },
       "preset.commands must be",
     },
+    { "an empty authors list", { authors = {} }, "authors must be" },
+    { "an author with a leading hyphen", { authors = { "-x" } }, "is not a GitHub handle" },
+    { "an author with a double hyphen", { authors = { "a--b" } }, "is not a GitHub handle" },
+    { "an author with an @", { authors = { "@ana" } }, "is not a GitHub handle" },
+    { "an author listed twice", { authors = { "ana", "ana" } }, "listed twice" },
   }
   for _, case in ipairs(invalid) do
     local name, overrides, expected = case[1], case[2], case[3]
@@ -106,6 +111,19 @@ describe("challenges.validate_pack", function()
       assert.is_truthy(all:find(expected, 1, true), all)
     end)
   end
+
+  it("accepts level and pack authors", function()
+    local pack = pack_with({ authors = { "ana-b", "x1" } })
+    pack.authors = { "navasvarela" }
+    assert.are.same({}, challenges.validate_pack(pack))
+  end)
+
+  it("rejects invalid pack authors", function()
+    local pack = pack_with()
+    pack.authors = { "bad_handle" }
+    local all = table.concat(challenges.validate_pack(pack), "\n")
+    assert.is_truthy(all:find("is not a GitHub handle", 1, true), all)
+  end)
 
   it("accepts a workspace level and derives its start text from the open file", function()
     local pack = pack_with({

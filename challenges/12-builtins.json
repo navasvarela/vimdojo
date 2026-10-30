@@ -4,6 +4,7 @@
   "title": "Neovim Built-ins",
   "description": "Defaults that ship with modern Neovim: commenting, repeating :s, quickfix and diagnostic jumps.",
   "order": 12,
+  "authors": ["navasvarela"],
   "track": "usage",
   "levels": [
     {

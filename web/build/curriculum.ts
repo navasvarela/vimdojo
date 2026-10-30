@@ -2,14 +2,15 @@ import { readFileSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 import type { Plugin } from "vite"
 import { TRACKS, parsePacks, type Pack, type Track } from "../src/challenges"
+import { CREDITS_PLACEHOLDER, renderCredits } from "./credits"
 
-// Renders the curriculum section into index.html at build time, straight from
-// challenges/*.json, so the landing page lists the real packs without
+// Renders the curriculum section (and its credits line, see credits.ts) into
+// index.html at build time, straight from challenges/*.json, so the landing page lists the real packs without
 // shipping the pack data or a parser to the browser.
 
 const PLACEHOLDER = "<!-- curriculum -->"
 
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   return text
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
@@ -103,10 +104,15 @@ export function curriculumPlugin(challengesDir: string, indexHtml: string): Plug
       if (context.filename !== indexHtml) {
         return html
       }
-      if (!html.includes(PLACEHOLDER)) {
-        throw new Error(`index.html is missing the ${PLACEHOLDER} placeholder`)
+      for (const placeholder of [PLACEHOLDER, CREDITS_PLACEHOLDER]) {
+        if (!html.includes(placeholder)) {
+          throw new Error(`index.html is missing the ${placeholder} placeholder`)
+        }
       }
-      return html.replace(PLACEHOLDER, renderCurriculum(readPacks(challengesDir)))
+      const packs = readPacks(challengesDir)
+      return html
+        .replace(PLACEHOLDER, renderCurriculum(packs))
+        .replace(CREDITS_PLACEHOLDER, renderCredits(packs))
     },
   }
 }

@@ -4,6 +4,7 @@
   "title": "Basic Motions",
   "description": "Move without the arrow keys: h j k l, word motions, line edges, and file edges.",
   "order": 1,
+  "authors": ["navasvarela"],
   "levels": [
     {
       "id": "basic-motions-01",

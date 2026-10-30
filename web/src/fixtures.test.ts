@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest"
 import { z } from "zod"
+import dailyFixture from "../../tests/fixtures/daily.json"
 import goalsFixture from "../../tests/fixtures/goals.json"
 import scoringFixture from "../../tests/fixtures/scoring.json"
+import shareFixture from "../../tests/fixtures/share.json"
+import { dailyDate, pickDaily } from "./daily"
 import { isMet } from "./goals"
 import { score } from "./scoring"
+import { shareText } from "./share"
 import { LayoutNodeSchema, parsePacks } from "./challenges"
 
 // The same fixtures drive tests/goals_spec.lua and tests/scoring_spec.lua, so
@@ -79,5 +83,43 @@ describe("goals.isMet (shared fixtures)", () => {
   const cases = z.array(GoalCase).parse(goalsFixture.cases)
   it.each(cases.map((c) => [c.name, c] as const))("%s", (_name, c) => {
     expect(isMet(goalFromFixture(c.goal), c.state, c.start_lines)).toBe(c.expected)
+  })
+})
+
+const DailyFixture = z.object({
+  pool: z.array(z.string()),
+  picks: z.array(z.object({ day: z.number(), date: z.string(), level: z.string() })),
+})
+
+describe("daily.pickDaily (shared fixtures)", () => {
+  const fixture = DailyFixture.parse(dailyFixture)
+  it.each(fixture.picks.map((p) => [p.level, p.day, p] as const))("picks %s on day %i", (_l, _d, p) => {
+    expect(pickDaily(fixture.pool, p.day)).toBe(p.level)
+    expect(dailyDate(p.day)).toBe(p.date)
+  })
+})
+
+const ShareCase = z.object({
+  name: z.string(),
+  view: z.object({
+    level_title: z.string(),
+    par_keys: z.number(),
+    daily_date: z.string().optional(),
+    outcome: z.object({ keys: z.number(), seconds: z.number(), stars: z.number(), hinted: z.boolean() }),
+  }),
+  expected: z.string(),
+})
+
+describe("share.shareText (shared fixtures)", () => {
+  const cases = z.array(ShareCase).parse(shareFixture.cases)
+  it.each(cases.map((c) => [c.name, c] as const))("%s", (_name, { view, expected }) => {
+    expect(
+      shareText({
+        levelTitle: view.level_title,
+        parKeys: view.par_keys,
+        dailyDate: view.daily_date,
+        outcome: view.outcome,
+      }),
+    ).toBe(expected)
   })
 })

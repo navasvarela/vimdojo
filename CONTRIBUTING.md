@@ -3,6 +3,22 @@
 Thanks for helping! New levels are the most valuable contribution. Start with
 [docs/authoring-levels.md](docs/authoring-levels.md).
 
+## Licensing
+
+vimdojo is MIT-licensed, and contributions are accepted under the same
+license: by opening a pull request, you license your contribution under the
+project's [MIT license](LICENSE). Level text must be your own or
+MIT-compatible, so no song lyrics, book excerpts or code copied from GPL
+projects.
+
+## Talking about vimdojo
+
+[Discussions](https://github.com/navasvarela/vimdojo/discussions) is the
+place for level ideas, the daily challenge, beaten pars and questions. Bugs
+go in issues. Post solutions inside a spoiler block
+(`<details><summary>Solution</summary> … </details>`), and daily solutions
+only after the day has ended (UTC).
+
 ## Setup
 
 You need Neovim 0.10+, `make`, `git`, [stylua](https://github.com/JohnnyMorganz/StyLua),
@@ -42,6 +58,9 @@ npm test       # unit tests (jsdom) and emulation tests (Chromium)
 - Run `make fmt` before committing. CI runs `stylua --check`, `selene`, the
   plugin tests on Neovim stable and nightly, and the web tests.
 - Record non-obvious decisions in `docs/decisions.md`.
+- CI runs every pull request's own levels, so treat workflow changes with
+  care: keep `pull_request` (never `pull_request_target`), read-only
+  `permissions`, and third-party actions pinned to a commit SHA.
 
 ## Releasing
 

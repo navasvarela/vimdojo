@@ -4,6 +4,7 @@
   "title": "Options and Keymaps",
   "description": "Write your own init.lua: options, the leader key, and keymaps that do what they say.",
   "order": 13,
+  "authors": ["navasvarela"],
   "track": "setup",
   "levels": [
     {

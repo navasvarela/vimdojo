@@ -24,9 +24,20 @@
       "enum": ["motions", "usage", "setup"],
       "default": "motions"
     },
+    "authors": {
+      "$ref": "#/$defs/authors",
+      "description": "Who wrote the pack's levels, credited on the site. A level's own authors replace these."
+    },
     "levels": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/level" } }
   },
   "$defs": {
+    "authors": {
+      "description": "GitHub handles, without the @.",
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "maxLength": 39, "pattern": "^[A-Za-z0-9](-?[A-Za-z0-9])*$" }
+    },
     "lines": {
       "description": "Buffer contents as an array of lines, without trailing newlines. Avoids newline ambiguity between Lua and JS.",
       "type": "array",
@@ -77,6 +88,7 @@
           "type": "string",
           "minLength": 1
         },
+        "authors": { "$ref": "#/$defs/authors" },
         "teaches": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
         "web_demo": {
           "description": "Include this level in the browser demo. Only set it for levels verified to behave identically in the CodeMirror Vim emulation.",

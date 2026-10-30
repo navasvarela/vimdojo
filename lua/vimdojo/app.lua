@@ -3,6 +3,7 @@
 -- game state.
 local challenges = require("vimdojo.challenges")
 local compat = require("vimdojo.compat")
+local daily = require("vimdojo.daily")
 local game = require("vimdojo.game")
 local keys = require("vimdojo.keys")
 local menu = require("vimdojo.menu")
@@ -22,6 +23,7 @@ local STATUS_REFRESH_MS = 100
 
 ---@class vimdojo.Play
 ---@field level vimdojo.Level
+---@field daily_date string|nil Set when this is the daily challenge.
 ---@field session vimdojo.Session
 ---@field layout vimdojo.Layout
 ---@field room vimdojo.Room
@@ -178,6 +180,7 @@ local function complete(play)
   local next_level = next_playable(level_id)
   state.results = results.open({
     level = play.level,
+    daily_date = play.daily_date,
     outcome = outcome,
     record = state.progress.levels[level_id],
     has_next = next_level ~= nil,
@@ -319,28 +322,23 @@ local function capture_input(play)
   )
 end
 
----@param level_id string
-function M.start(level_id)
-  if not ensure_loaded() then
-    return
+---@param level vimdojo.Level
+---@return boolean
+local function check_supported(level)
+  if supports(level) then
+    return true
   end
-  local level = challenges.find(state.packs, level_id)
-  if not level then
-    notify(("unknown level %q"):format(level_id), vim.log.levels.ERROR)
-    return
-  end
-  if not supports(level) then
-    notify(("that level needs Neovim %s or newer"):format(level.requires.nvim), vim.log.levels.WARN)
-    return
-  end
-  if not unlocked_levels()[level_id] then
-    notify("that level is still locked", vim.log.levels.WARN)
-    return
-  end
-  M.quit()
+  notify(("that level needs Neovim %s or newer"):format(level.requires.nvim), vim.log.levels.WARN)
+  return false
+end
 
+---@param level vimdojo.Level
+---@param daily_date string|nil
+local function open_level(level, daily_date)
+  M.quit()
   local play = {
     level = level,
+    daily_date = daily_date,
     session = game.new(level, clock),
     layout = ui.open_level(level, { window = config().window, controls = config().keymaps }),
     ready = false,
@@ -353,6 +351,58 @@ function M.start(level_id)
   state.play = play
   watch(play)
   capture_input(play)
+end
+
+---@param level_id string
+function M.start(level_id)
+  if not ensure_loaded() then
+    return
+  end
+  local level = challenges.find(state.packs, level_id)
+  if not level then
+    notify(("unknown level %q"):format(level_id), vim.log.levels.ERROR)
+    return
+  end
+  if not check_supported(level) then
+    return
+  end
+  if not unlocked_levels()[level_id] then
+    notify("that level is still locked", vim.log.levels.WARN)
+    return
+  end
+  open_level(level)
+end
+
+---@class vimdojo.Daily
+---@field date string
+---@field level vimdojo.Level
+
+--- Today's (UTC) daily challenge, or nil when no loaded pack has demo levels
+--- (a custom `challenges_dir`).
+---@return vimdojo.Daily|nil
+local function todays_daily()
+  local day = daily.day_number(os.time())
+  local level_id = daily.pick(daily.pool(state.packs), day)
+  local level = level_id and challenges.find(state.packs, level_id)
+  if level then
+    return { date = daily.date(day), level = level }
+  end
+end
+
+--- Plays today's daily challenge. Everyone gets the same level, so it
+--- ignores pack locks.
+function M.start_daily()
+  if not ensure_loaded() then
+    return
+  end
+  local today = todays_daily()
+  if not today then
+    notify("no daily challenge: none of the loaded packs has demo levels", vim.log.levels.WARN)
+    return
+  end
+  if check_supported(today.level) then
+    open_level(today.level, today.date)
+  end
 end
 
 --- Restarts the current level in place. A hint already seen stays counted.
@@ -389,7 +439,8 @@ function M.open_menu()
     progress = state.progress,
     unlocked = unlocked_levels(),
     supports = supports,
-  }, M.start)
+    daily = todays_daily(),
+  }, { level = M.start, daily = M.start_daily })
 end
 
 --- Drops cached packs and progress so the next command reloads them from disk.
