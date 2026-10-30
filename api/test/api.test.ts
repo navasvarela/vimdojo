@@ -38,9 +38,9 @@ async function harness(): Promise<Harness> {
   const db = (await mf.getD1Database("DB")) as unknown as D1Database
   await applyMigrations(db)
   let now = Date.UTC(2026, 9, 30)
-  const gh = {
+  const gh: Harness["gh"] = {
     userId: 1001,
-    poll: { status: "pending", intervalSeconds: undefined } as DevicePoll,
+    poll: { status: "pending", intervalSeconds: undefined },
     refuseCode: false,
     lastVerifier: "",
   }

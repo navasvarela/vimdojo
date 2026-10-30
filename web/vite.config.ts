@@ -2,10 +2,14 @@ import { fileURLToPath } from "node:url"
 import { playwright } from "@vitest/browser-playwright"
 import { defineConfig } from "vitest/config"
 import { analyticsPlugin } from "./build/analytics"
+import { accountCspPlugin } from "./build/csp"
 import { curriculumPlugin } from "./build/curriculum"
 
 const CHALLENGES_DIR = fileURLToPath(new URL("../challenges", import.meta.url))
 const INDEX_HTML = fileURLToPath(new URL("index.html", import.meta.url))
+const ACCOUNT_HTML = fileURLToPath(new URL("account/index.html", import.meta.url))
+const PRIVACY_HTML = fileURLToPath(new URL("privacy/index.html", import.meta.url))
+const API_ORIGIN = process.env["VITE_API_URL"] ?? "https://api.vimdojo.org"
 
 // The site is served from the root of its custom domain (vimdojo.org).
 // Set VITE_BASE=/<repo-name>/ to serve it from a github.io project page instead.
@@ -16,11 +20,13 @@ export default defineConfig({
   plugins: [
     curriculumPlugin(CHALLENGES_DIR, INDEX_HTML),
     analyticsPlugin(INDEX_HTML, process.env["VITE_CF_BEACON_TOKEN"]),
+    accountCspPlugin(ACCOUNT_HTML, API_ORIGIN),
   ],
   build: {
     // The lazily loaded demo chunk (CodeMirror + Vim emulation) is ~500 kB
     // minified (~160 kB gzip). It is off the critical path, so allow it.
     chunkSizeWarningLimit: 600,
+    rollupOptions: { input: [INDEX_HTML, ACCOUNT_HTML, PRIVACY_HTML] },
   },
   server: {
     // challenges/ and tests/fixtures/ live outside web/ and are imported directly,

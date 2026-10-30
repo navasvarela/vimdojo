@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f0e0c" />
+    <link rel="icon" type="image/svg+xml" href="../../docs/brand/logo.svg" />
+    <title>Privacy · vimdojo</title>
+  </head>
+  <body>
+    <main>
+      <section class="section privacy">
+        <p class="prompt"><a href="/">~/dojo</a> $ <span class="cursor">:help privacy</span></p>
+        <h1>Privacy</h1>
+        <p>
+          vimdojo is a personal open-source project, run by
+          <a href="https://github.com/navasvarela">@navasvarela</a>. The game needs no account and
+          works offline. This page covers what is stored if you visit the site, or choose to create
+          an account.
+        </p>
+
+        <h2>Playing without an account</h2>
+        <p>
+          The plugin keeps your progress and your best key logs on your own machine, and doesn't
+          send them anywhere. The demo keeps its progress in your browser. Neither sets a cookie.
+        </p>
+        <p>
+          The site counts visits with Cloudflare Web Analytics, which is cookieless and doesn't
+          track you across sites.
+        </p>
+
+        <h2>If you create an account</h2>
+        <p>Accounts are optional, and you sign in with GitHub. vimdojo asks GitHub for no scopes.</p>
+        <table>
+          <thead>
+            <tr><th>What</th><th>Why</th><th>How long</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Your GitHub numeric id</td>
+              <td>To recognise you when you log in again</td>
+              <td>Until you delete your account</td>
+            </tr>
+            <tr>
+              <td>The handle you pick</td>
+              <td>Your public name on the leaderboards</td>
+              <td>Until you delete your account. A released handle stays reserved for 90 days, unlinked from you, so nobody can impersonate you.</td>
+            </tr>
+            <tr>
+              <td>Your logins: the kind, and when each was created and last used. Only a hash of each token.</td>
+              <td>To keep you signed in, and to let you revoke a login</td>
+              <td>30 days after last use, or until you sign out</td>
+            </tr>
+            <tr>
+              <td>A hash of your IP address, with a salt that changes daily</td>
+              <td>To limit abuse of the login routes</td>
+              <td>About a day. The address itself isn't stored.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>
+          vimdojo doesn't collect your email, name or avatar, and discards the rest of what GitHub
+          returns at login. There are no ads and no selling of data. Your handle is public.
+        </p>
+        <p>
+          One cookie is used, and only if you sign in on this site: a session cookie that is strictly
+          necessary to keep you signed in. A short-lived second cookie protects the login itself.
+        </p>
+
+        <h2>Your data, your call</h2>
+        <p>
+          On your <a href="/account/">account page</a> you can see your logins and revoke them,
+          download everything stored about you as JSON, and delete your account. Deleting removes your
+          data at once. Questions, or anything else you'd like to ask:
+          <a href="https://github.com/navasvarela/vimdojo/issues">open an issue</a>.
+        </p>
+
+        <h2>Who handles the data</h2>
+        <ul>
+          <li><strong>Cloudflare</strong> runs the API and its database, which is kept in the EU, and provides the visit counts.</li>
+          <li><strong>GitHub</strong> provides sign-in, and hosts this site.</li>
+        </ul>
+      </section>
+    </main>
+    <footer class="footer">
+      <p><a href="/">Home</a> · <a href="/account/">Account</a></p>
+    </footer>
+    <script type="module" src="/src/style-only.ts"></script>
+  </body>
+</html>
