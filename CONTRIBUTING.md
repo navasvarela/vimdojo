@@ -11,6 +11,10 @@ project's [MIT license](LICENSE). Level text must be your own or
 MIT-compatible, so no song lyrics, book excerpts or code copied from GPL
 projects.
 
+## Reporting a vulnerability
+
+Please report these privately, not in an issue: see [SECURITY.md](SECURITY.md).
+
 ## Talking about vimdojo
 
 [Discussions](https://github.com/navasvarela/vimdojo/discussions) is the

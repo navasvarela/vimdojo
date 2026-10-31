@@ -48,7 +48,7 @@ verifier-check: web-deps
 	npm --prefix verifier run typecheck
 	npm --prefix verifier test
 
-# The leaderboard API, on real D1 through Miniflare.
+# The leaderboard API, on a real local D1.
 api-check:
 	npm --prefix api ci
 	npm --prefix api run typecheck

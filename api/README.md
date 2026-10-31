@@ -4,7 +4,7 @@ A Cloudflare Worker at `api.vimdojo.org`, with its data in D1 (pinned to the EU)
 See [PLAN-v3.md](../PLAN-v3.md) and `docs/decisions.md`.
 
 ```sh
-npm test           # the whole app on real D1 (SQLite through Miniflare)
+npm test           # the whole app on a real local D1 (wrangler's own)
 npm run typecheck
 npm run dev        # wrangler dev; copy .dev.vars.example to .dev.vars first
 ```
