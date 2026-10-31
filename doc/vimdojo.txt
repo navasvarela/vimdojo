@@ -151,6 +151,9 @@ require("vimdojo").setup({opts})
       config = "clean",
       -- Progress file. nil means stdpath("data")/vimdojo/progress.json.
       progress_path = nil,
+      -- Key logs (see |vimdojo-keylogs|). nil means
+      -- stdpath("state")/vimdojo/keylogs.
+      keylog_dir = nil,
       -- Load packs from this directory instead of the built-in ones
       -- (for trying out your own levels).
       challenges_dir = nil,
@@ -182,6 +185,13 @@ Online features need `curl`. Your login is stored in `auth_path` (readable only
 by you), or read from the `VIMDOJO_TOKEN` environment variable if it is set, and
 is never in your progress file. No network call happens at startup, or unless
 you run one of these commands.
+
+                                                            *vimdojo-keylogs*
+When you solve a level, vimdojo keeps the keys of your best run for that level
+on your machine, in stdpath("state")/vimdojo/keylogs, one file per level. Runs
+with pasted text, runs with `config = "mine"` and Setup levels aren't kept.
+Nothing sends these files anywhere, and they aren't part of your progress file,
+because a key log is that level's solution. You can delete them at any time.
 
 Highlight groups, all defined with `default = true` so your colorscheme can
 override them:

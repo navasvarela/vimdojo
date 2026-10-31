@@ -633,6 +633,36 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   (the spike runs both as the sandbox's default user). It comes with the
   production verifier in M18.
 
+## M16: level identity and key logs
+
+- **Level hash:** SHA-256 of canonical JSON (sorted keys, no spaces) over the
+  text or files, cursor start, goal, options, presets and `requires`. Copy and
+  par edits keep a level's board. Fractional numbers are refused rather than
+  formatted, because no level needs them and Lua and JavaScript print them
+  differently. The fixture's hashes come from Python, so the two ports can't
+  agree on a shared mistake.
+- **The manifest is committed** (`verifier/manifest.json`), not generated at
+  build time as PLAN-v3 first said. A change that resets a board then shows up
+  in the pull request's diff, and both test suites fail until `make manifest`
+  is run. It's generated in Lua so level authors don't need Node. It can't live
+  in `challenges/`, because the plugin loads every JSON file there as a pack.
+- **Only rankable runs are kept:** a clean config, no paste, not Setup. Keeping
+  anything else would risk a run that can't rank replacing the one that can.
+- **Each level keeps its best run**, in its own file under `stdpath("state")`,
+  never in the shareable `progress.json`. A tie keeps the earlier run, because
+  boards rank the first to reach a count ahead. A run on a new level hash
+  replaces any older one, whatever its keys, since that board is gone.
+- **Why a paste can't be logged:** bracketed paste inserts text even in Normal
+  mode, which typing the same keys wouldn't do, so no replay would reproduce it.
+- **Keys are spelled the same on every Neovim.** `keytrans()` returns `|` and
+  `\` on 0.12 but `<Bar>` and `<Bslash>` on nightly (CI caught it). Both replay
+  fine, but the server caches verdicts by key log, so the plugin normalizes them.
+- **Gaps are computed from rounded absolute times**, so 1,000 quick keys can't
+  drift, and a removed control key's time goes with it.
+- **Proof:** `check-keylogs` plays all 66 ranked levels through the live room,
+  then replays the files the plugin wrote in the M15 harness. Every count
+  matches the game's claim and every hash matches the manifest.
+
 ## M17: the API and accounts
 
 - **Cross-origin, by necessity.** The site stays on GitHub Pages (PLAN-v3, L6), so

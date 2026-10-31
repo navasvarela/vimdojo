@@ -5,7 +5,10 @@ local challenges = require("vimdojo.challenges")
 local compat = require("vimdojo.compat")
 local daily = require("vimdojo.daily")
 local game = require("vimdojo.game")
+local goals = require("vimdojo.goals")
+local keylog = require("vimdojo.keylog")
 local keys = require("vimdojo.keys")
+local level_hash = require("vimdojo.level_hash")
 local menu = require("vimdojo.menu")
 local progress = require("vimdojo.progress")
 local results = require("vimdojo.results")
@@ -164,6 +167,36 @@ local function next_playable(level_id)
   end
 end
 
+--- Keeps the attempt's keys if it could rank on a board: played in a stock
+--- Neovim (your mappings change what keys mean), with nothing pasted, and not a
+--- Setup level (their probes can be forged, PLAN-v3 L5). A level that can't be
+--- hashed, which only a custom pack can have, can't rank either.
+---@param play vimdojo.Play
+---@param outcome vimdojo.Outcome
+local function record_key_log(play, outcome)
+  local log = play.session:key_log()
+  if not log or config().config ~= "clean" or #goals.probes(play.level.goal) > 0 then
+    return
+  end
+  local hashed, hash = pcall(level_hash.of, play.level)
+  if not hashed then
+    return
+  end
+  local v = vim.version()
+  local ok, err = keylog.record(config().keylog_dir or keylog.default_dir(), {
+    version = keylog.VERSION,
+    level_id = play.level.id,
+    level_hash = hash,
+    nvim = ("%d.%d.%d"):format(v.major, v.minor, v.patch),
+    keys = log.keys,
+    deltas_ms = log.deltas_ms,
+    claimed = { keys = outcome.keys, seconds = outcome.seconds, hinted = outcome.hinted },
+  })
+  if not ok then
+    notify("could not save the key log: " .. tostring(err), vim.log.levels.WARN)
+  end
+end
+
 ---@param play vimdojo.Play
 local function complete(play)
   local outcome = play.session:finish()
@@ -175,6 +208,7 @@ local function complete(play)
   if not ok then
     notify("could not save progress: " .. tostring(err), vim.log.levels.ERROR)
   end
+  record_key_log(play, outcome)
 
   local level_id = play.level.id
   local next_level = next_playable(level_id)
@@ -307,9 +341,14 @@ local function capture_input(play)
       and not play.session:is_finished()
       and vim.api.nvim_get_current_win() == play.layout.room_win
       and vim.api.nvim_get_mode().mode == "t"
-  end, function(count)
-    play.session:count_keys(count)
-  end)
+  end, {
+    on_keys = function(names)
+      play.session:press(names)
+    end,
+    on_paste = function(count)
+      play.session:paste(count)
+    end,
+  })
   play.ticker = uv.new_timer()
   play.ticker:start(
     0,

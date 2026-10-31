@@ -66,10 +66,28 @@ function M.paste_count(lines)
   return count
 end
 
+-- keytrans() returns these two as `|` and `\` on 0.12 but by name on nightly.
+-- The server caches verdicts by key log, so the same keys must log the same on
+-- every Neovim. Literal text can't collide: keytrans() writes a typed "<" as
+-- "<lt>".
+local KEY_SPELLINGS = { ["<Bar>"] = "|", ["<Bslash>"] = "\\" }
+
+--- A key's name in keytrans() notation, spelled the same on every Neovim.
+---@param typed string A key as vim.on_key() reports it.
+---@return string
+function M.name(typed)
+  local name = vim.fn.keytrans(typed)
+  return KEY_SPELLINGS[name] or name
+end
+
 local namespace = vim.api.nvim_create_namespace("vimdojo.keys")
 
---- Calls `on_keys(count)` for every physical key typed while `is_active()`
---- returns true. Only one capture can be active at a time.
+---@class vimdojo.KeyHandlers
+---@field on_keys fun(names: string[]) Keys typed, one entry per physical key.
+---@field on_paste fun(count: integer) Pasted text, as the keys it would cost.
+
+--- Reports every physical key typed and every paste while `is_active()` returns
+--- true. Only one capture can be active at a time.
 ---
 --- `typed` (the key before mapping expansion) is what gets counted, so a
 --- mapping counts as the keys the player pressed, not the keys it expands to.
@@ -78,23 +96,23 @@ local namespace = vim.api.nvim_create_namespace("vimdojo.keys")
 --- terminal, or a GUI's) reaches `vim.paste` without ever passing through
 --- `vim.on_key` (measured in terminal mode on 0.12), so it is counted there.
 ---@param is_active fun(): boolean
----@param on_keys fun(count: integer)
+---@param handlers vimdojo.KeyHandlers
 ---@return fun() stop Removes the callbacks.
-function M.capture(is_active, on_keys)
+function M.capture(is_active, handlers)
   vim.on_key(function(_, typed)
     if typed == nil or typed == "" or not is_active() then
       return
     end
-    local name = vim.fn.keytrans(typed)
+    local name = M.name(typed)
     if M.is_countable(name) then
-      on_keys(M.count(name))
+      handlers.on_keys(M.split(name))
     end
   end, namespace)
 
   local original_paste = vim.paste
   local function counting_paste(lines, phase)
     if is_active() then
-      on_keys(M.paste_count(lines))
+      handlers.on_paste(M.paste_count(lines))
     end
     return original_paste(lines, phase)
   end

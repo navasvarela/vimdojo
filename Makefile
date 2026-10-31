@@ -3,7 +3,7 @@ DEPS_DIR := .deps
 PLENARY_DIR := $(abspath $(DEPS_DIR)/plenary.nvim)
 AJV := npx --yes ajv-cli@5.0.0
 
-.PHONY: all check deps test lint fmt validate par doc gif web-deps web-check verifier-check api-check workflows
+.PHONY: all check deps test lint fmt validate par manifest doc gif web-deps web-check verifier-check api-check workflows
 
 all: lint validate doc test
 
@@ -63,6 +63,11 @@ validate:
 
 par:
 	$(NVIM) --headless --noplugin -u NONE -l scripts/par.lua
+
+# Regenerates verifier/manifest.json after adding or changing levels. A changed
+# hash starts that level's leaderboard over, and the tests fail until it's run.
+manifest:
+	$(NVIM) --headless --noplugin -u NONE -l scripts/manifest.lua
 
 # Fails if the help file has duplicate or malformed tags.
 doc:

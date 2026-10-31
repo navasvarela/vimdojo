@@ -5,7 +5,7 @@ import { describe, it } from "node:test"
 import { fileURLToPath } from "node:url"
 import type { Level } from "../../web/src/challenges"
 import { splitNotation } from "../../web/src/keys"
-import { readPacks } from "./packs"
+import { parseLevel, readPacks } from "./packs"
 import { replay, type ReplayOptions } from "./replay"
 import { NvimClient, NvimError } from "./rpc"
 
@@ -92,6 +92,26 @@ describe("replay", () => {
       await assert.rejects(nvim.request("nvim_get_mode"), NvimError)
       nvim.close()
     }
+  })
+
+  it("replays unusual keys as the plugin logs them", async () => {
+    // Exactly what the plugin logs for these: keytrans() names only space and
+    // "<". No reference solution types "|", "\\" or non-ASCII text.
+    const level = parseLevel({
+      id: "special-keys",
+      title: "t",
+      description: "d",
+      start_text: ["x"],
+      cursor_start: [1, 0],
+      goal: { type: "buffer_equals", value: [" <|\\éx"] },
+      par_keys: 7,
+      par_seconds: 1,
+      hint: "h",
+      solution: "i",
+      teaches: ["i"],
+    })
+    const keys = ["i", "<Space>", "<lt>", "|", "\\", "é", "<Esc>"]
+    assert.deepEqual(await replay({ level, keys }, OPTIONS), { status: "solved", keys: 7 })
   })
 
   it("checks workspace files and window layouts", async () => {
