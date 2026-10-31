@@ -658,3 +658,10 @@ PLAN-v3.md records the full table. The two departures from the proposal:
 - **The account page's CSP is a `<meta>`,** since GitHub Pages can't set headers, so
   it can't include `frame-ancestors`. Delete needs a typed phrase, and the API checks
   the same phrase, so a stray call can't delete anyone.
+- **First real login (2026-10-31):** the device flow worked against real GitHub on
+  the deployed API: one account, the token stored only as a hash, and a `0600`
+  login file. A brand-new hostname can stay unresolvable behind a home router for
+  up to 30 minutes if it was looked up before it existed (Cloudflare's negative TTL
+  is 1,800 s), and flushing macOS's cache doesn't help. That only affects whoever
+  looked it up early. The same login found a bug: polling shared its rate limit
+  with starting a login. Each now has its own counter.
