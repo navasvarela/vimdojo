@@ -1,0 +1,163 @@
+{
+  "_comment": "Shared by tests/level_hash_spec.lua and web/src/level-hash.test.ts. Each canonical string is hand-written, and its hash computed independently with Python's hashlib.",
+  "cases": [
+    {
+      "name": "plain text level",
+      "level": {
+        "id": "x",
+        "title": "t",
+        "description": "d",
+        "par_keys": 3,
+        "par_seconds": 5,
+        "hint": "h",
+        "solution": "abc",
+        "teaches": ["a"],
+        "start_text": ["hello"],
+        "cursor_start": [1, 0],
+        "goal": {
+          "type": "cursor_at",
+          "line": 1,
+          "col": 2
+        }
+      },
+      "canonical": "{\"cursor_start\":[1,0],\"goal\":{\"col\":2,\"line\":1,\"type\":\"cursor_at\"},\"start_text\":[\"hello\"]}",
+      "hash": "sha256:15d545d5e4acf927f11a04ee9ca4fc9549b2e866e5113e6b97be5b6fe260ec03"
+    },
+    {
+      "name": "title, hint and par don't change the hash",
+      "level": {
+        "id": "x",
+        "title": "other",
+        "description": "d",
+        "par_keys": 9,
+        "par_seconds": 99,
+        "hint": "other",
+        "solution": "abc",
+        "teaches": ["a"],
+        "web_demo": true,
+        "start_text": ["hello"],
+        "cursor_start": [1, 0],
+        "goal": {
+          "type": "cursor_at",
+          "line": 1,
+          "col": 2
+        }
+      },
+      "canonical": "{\"cursor_start\":[1,0],\"goal\":{\"col\":2,\"line\":1,\"type\":\"cursor_at\"},\"start_text\":[\"hello\"]}",
+      "hash": "sha256:15d545d5e4acf927f11a04ee9ca4fc9549b2e866e5113e6b97be5b6fe260ec03"
+    },
+    {
+      "name": "strings are escaped like JSON.stringify, and non-ASCII stays as it is",
+      "level": {
+        "id": "x",
+        "title": "t",
+        "description": "d",
+        "par_keys": 3,
+        "par_seconds": 5,
+        "hint": "h",
+        "solution": "abc",
+        "teaches": ["a"],
+        "start_text": ["tab\there \"quoted\" back\\slash café   \u001f "],
+        "cursor_start": [1, 0],
+        "goal": {
+          "type": "buffer_equals",
+          "value": ["x"]
+        }
+      },
+      "canonical": "{\"cursor_start\":[1,0],\"goal\":{\"type\":\"buffer_equals\",\"value\":[\"x\"]},\"start_text\":[\"tab\\there \\\"quoted\\\" back\\\\slash café   \\u001f \"]}",
+      "hash": "sha256:fb8236fe5d02b0a110218b6b02cdad79d7ca3389e4b45aedcaef4e365ade1375"
+    },
+    {
+      "name": "options, presets and requires, with keys sorted",
+      "level": {
+        "id": "x",
+        "title": "t",
+        "description": "d",
+        "par_keys": 3,
+        "par_seconds": 5,
+        "hint": "h",
+        "solution": "abc",
+        "teaches": ["a"],
+        "start_text": ["a"],
+        "cursor_start": [1, 0],
+        "goal": {
+          "type": "buffer_equals",
+          "value": ["b"]
+        },
+        "options": {
+          "wrapscan": false,
+          "shiftwidth": 2,
+          "filetype": "lua"
+        },
+        "preset": {
+          "registers": {
+            "b": ["l"],
+            "a": "c"
+          },
+          "marks": {
+            "m": [1, 0]
+          }
+        },
+        "requires": {
+          "nvim": "0.11"
+        }
+      },
+      "canonical": "{\"cursor_start\":[1,0],\"goal\":{\"type\":\"buffer_equals\",\"value\":[\"b\"]},\"options\":{\"filetype\":\"lua\",\"shiftwidth\":2,\"wrapscan\":false},\"preset\":{\"marks\":{\"m\":[1,0]},\"registers\":{\"a\":\"c\",\"b\":[\"l\"]}},\"requires\":{\"nvim\":\"0.11\"},\"start_text\":[\"a\"]}",
+      "hash": "sha256:2e11dd59509af627a83c84d7397b8e5f7da28e9290ac1c8c8b24c0ba82977f2c"
+    },
+    {
+      "name": "a workspace level hashes its files, not its derived start text",
+      "level": {
+        "id": "x",
+        "title": "t",
+        "description": "d",
+        "par_keys": 3,
+        "par_seconds": 5,
+        "hint": "h",
+        "solution": "abc",
+        "teaches": ["a"],
+        "files": {
+          "b.lua": ["two"],
+          "a.lua": ["one"],
+          "10.lua": ["ten"]
+        },
+        "open": "a.lua",
+        "cursor_start": [1, 0],
+        "goal": {
+          "type": "files_equal",
+          "files": {
+            "a.lua": ["done"]
+          }
+        }
+      },
+      "canonical": "{\"cursor_start\":[1,0],\"files\":{\"10.lua\":[\"ten\"],\"a.lua\":[\"one\"],\"b.lua\":[\"two\"]},\"goal\":{\"files\":{\"a.lua\":[\"done\"]},\"type\":\"files_equal\"},\"open\":\"a.lua\"}",
+      "hash": "sha256:98e57158f327776d35a7b7e2c3ba003269d4d53dc9d17104d0d91496645ec2dd"
+    },
+    {
+      "name": "empty objects stay objects",
+      "level": {
+        "id": "x",
+        "title": "t",
+        "description": "d",
+        "par_keys": 3,
+        "par_seconds": 5,
+        "hint": "h",
+        "solution": "abc",
+        "teaches": ["a"],
+        "start_text": ["a"],
+        "cursor_start": [1, 0],
+        "goal": {
+          "type": "register_contains",
+          "register": "a",
+          "value": [""]
+        },
+        "options": {},
+        "preset": {
+          "marks": {}
+        }
+      },
+      "canonical": "{\"cursor_start\":[1,0],\"goal\":{\"register\":\"a\",\"type\":\"register_contains\",\"value\":[\"\"]},\"options\":{},\"preset\":{\"marks\":{}},\"start_text\":[\"a\"]}",
+      "hash": "sha256:49a7534897046d698f198887d756e13d6eafe109bf8e0551fcf1868490a7a9ff"
+    }
+  ]
+}

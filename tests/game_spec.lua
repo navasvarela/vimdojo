@@ -74,4 +74,63 @@ describe("game session", function()
     advance(1)
     assert.are.equal(2, session:finish().stars)
   end)
+
+  describe("key log", function()
+    it("keeps each key with the gap since the one before", function()
+      local session, advance = new_session()
+      session:press({ "d" })
+      advance(0.25)
+      session:press({ "2", "w" })
+      advance(1.5)
+      session:press({ "<Esc>" })
+      assert.are.same(
+        { keys = { "d", "2", "w", "<Esc>" }, deltas_ms = { 0, 250, 0, 1500 } },
+        session:key_log()
+      )
+      assert.are.equal(4, session.keys)
+    end)
+
+    it("doesn't let rounding errors add up", function()
+      local session, advance = new_session()
+      local total = 0
+      session:press({ "a" })
+      for _ = 1, 1000 do
+        advance(0.0004)
+        session:press({ "a" })
+      end
+      for _, delta in ipairs(session:key_log().deltas_ms) do
+        total = total + delta
+      end
+      assert.are.equal(400, total)
+    end)
+
+    it("drops the keys of a game control", function()
+      local session, advance = new_session()
+      session:press({ "j" })
+      advance(1)
+      session:press({ "\\", "h" })
+      session:uncount_keys(2)
+      advance(1)
+      session:press({ "k" })
+      assert.are.same({ keys = { "j", "k" }, deltas_ms = { 0, 2000 } }, session:key_log())
+      assert.are.equal(2, session.keys)
+    end)
+
+    it("has no log once text was pasted, but still counts it", function()
+      local session = new_session()
+      session:press({ "i" })
+      session:paste(5)
+      assert.is_nil(session:key_log())
+      assert.are.equal(6, session.keys)
+    end)
+
+    it("ignores keys after finishing", function()
+      local session = new_session()
+      session:press({ "j" })
+      session:finish()
+      session:press({ "k" })
+      session:paste(3)
+      assert.are.same({ "j" }, session:key_log().keys)
+    end)
+  end)
 end)

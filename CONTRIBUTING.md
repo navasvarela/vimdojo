@@ -52,6 +52,7 @@ npm run fix    # apply Biome's formatting and safe fixes
 | `tests/` | plenary specs. `solutions_spec.lua` proves every level is solvable within par. `fixtures/` is shared with the web tests. |
 | `web/` | Landing page and browser demo (Vite + TypeScript + CodeMirror). |
 | `scripts/par.lua` | Par finder for authors (`make par`). |
+| `verifier/`, `api/` | The leaderboard's replay verifier and API (PLAN-v3). `verifier/manifest.json` lists every level's hash (`make manifest`). |
 | `docs/decisions.md` | Why things are the way they are. Read it before changing a rule. |
 
 ## Guidelines

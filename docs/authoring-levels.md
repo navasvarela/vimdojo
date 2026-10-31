@@ -206,7 +206,16 @@ level. Any level marked `web_demo` must pass. Some features aren't emulated
 Create `challenges/NN-name.json` with `pack`, `title`, `description`, a
 unique `order` and its `levels`. Packs unlock in `order`. Add `authors`
 (your GitHub handle) to be credited on the site. No code changes are needed:
-the plugin, the demo and the landing page pick it up automatically.
+the plugin, the demo and the landing page pick it up automatically. Run
+`make manifest` afterwards, and commit `verifier/manifest.json`.
+
+## Changing a level
+
+A level's hash covers what defines play: its text or files, cursor start, goal,
+options, presets and `requires`. Changing any of these starts its leaderboard
+over, so `make manifest` shows up in your diff as a changed hash, and the tests
+fail until you've run it. Titles, descriptions, hints, pars and `teaches` aren't
+part of the hash, so editing them keeps the board.
 
 ## Adding a goal type
 

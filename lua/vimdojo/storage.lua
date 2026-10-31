@@ -89,20 +89,20 @@ local function encode(data)
   return vim.json.encode({ version = data.version, levels = levels })
 end
 
---- Writes atomically: the data goes to a temporary file that is then renamed
---- over the real one, so a crash mid-write never leaves a truncated file.
+--- The text goes to a temporary file that is then renamed over the real one,
+--- so a crash mid-write never leaves a truncated file.
 ---@param path string
----@param data vimdojo.Progress
+---@param text string
 ---@return boolean|nil ok
 ---@return string|nil err
-function M.save(path, data)
+function M.write_atomic(path, text)
   vim.fn.mkdir(vim.fn.fnamemodify(path, ":h"), "p")
   local tmp = path .. ".tmp"
   local file, open_err = io.open(tmp, "wb")
   if not file then
     return nil, open_err
   end
-  local _, write_err = file:write(encode(data))
+  local _, write_err = file:write(text)
   file:close()
   if write_err then
     os.remove(tmp)
@@ -114,6 +114,14 @@ function M.save(path, data)
     return nil, rename_err
   end
   return true
+end
+
+---@param path string
+---@param data vimdojo.Progress
+---@return boolean|nil ok
+---@return string|nil err
+function M.save(path, data)
+  return M.write_atomic(path, encode(data))
 end
 
 return M
