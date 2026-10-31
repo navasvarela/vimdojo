@@ -495,6 +495,19 @@ describe("the API", () => {
       expect(JSON.stringify(results)).not.toContain("203.0.113")
     })
 
+    it("doesn't let a login's polling use up the limit on starting one", async () => {
+      const start = await call("POST", "/api/v1/auth/device", { ip: "203.0.113.9" })
+      const { device_id: id } = (await start.json()) as { device_id: string }
+      for (let poll = 0; poll < 12; poll++) {
+        const response = await call("POST", "/api/v1/auth/device/poll", {
+          ip: "203.0.113.9",
+          body: { device_id: id },
+        })
+        expect(response.status).toBe(200)
+      }
+      expect((await call("POST", "/api/v1/auth/device", { ip: "203.0.113.9" })).status).toBe(200)
+    })
+
     it("lets the limit recover in the next window", async () => {
       for (let i = 0; i < 11; i++) {
         await call("POST", "/api/v1/auth/device", { ip: "203.0.113.9" })

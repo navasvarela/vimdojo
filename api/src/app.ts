@@ -87,14 +87,19 @@ async function enforceRate(app: App, subject: string, perMinute: number): Promis
 }
 
 /** The address is only ever stored as a hash with a salt that changes daily. */
-async function ipSubject(request: Request, app: App): Promise<string> {
+async function ipHash(request: Request, app: App): Promise<string> {
   const ip = request.headers.get("cf-connecting-ip") ?? "unknown"
   const day = Math.floor(app.now() / DAY_MS)
-  return `ip:${await sha256Hex(`${app.config.rateLimitSalt}:${day}:${ip}`)}`
+  return sha256Hex(`${app.config.rateLimitSalt}:${day}:${ip}`)
 }
 
-async function limitByIp(request: Request, app: App, perMinute: number): Promise<void> {
-  await enforceRate(app, await ipSubject(request, app), perMinute)
+/** Polling counts apart from starting a login: one login polls 12 times a minute. */
+type IpLimit = { readonly scope: "login" | "poll"; readonly perMinute: number }
+const LOGIN_LIMIT: IpLimit = { scope: "login", perMinute: LOGIN_RATE_PER_MINUTE }
+const POLL_LIMIT: IpLimit = { scope: "poll", perMinute: DEVICE_POLL_RATE_PER_MINUTE }
+
+async function limitByIp(request: Request, app: App, limit: IpLimit): Promise<void> {
+  await enforceRate(app, `${limit.scope}:${await ipHash(request, app)}`, limit.perMinute)
 }
 
 async function issueToken(app: App, userId: string, kind: TokenKind): Promise<string> {
@@ -153,7 +158,7 @@ const callbackUrl = (app: App): string => `${app.config.apiOrigin}/api/v1/auth/g
 const accountUrl = (app: App, query = ""): string => `${app.config.siteOrigin}/account/${query}`
 
 const githubStart: Handler = async (request, app) => {
-  await limitByIp(request, app, LOGIN_RATE_PER_MINUTE)
+  await limitByIp(request, app, LOGIN_LIMIT)
   const state = randomUrlSafe()
   const verifier = randomUrlSafe()
   const url = new URL("https://github.com/login/oauth/authorize")
@@ -171,7 +176,7 @@ const githubStart: Handler = async (request, app) => {
 }
 
 const githubCallback: Handler = async (request, app) => {
-  await limitByIp(request, app, LOGIN_RATE_PER_MINUTE)
+  await limitByIp(request, app, LOGIN_LIMIT)
   const url = new URL(request.url)
   const code = url.searchParams.get("code")
   const [state, verifier] = (cookieValue(request, OAUTH_COOKIE) ?? "").split(".")
@@ -206,7 +211,7 @@ const githubCallback: Handler = async (request, app) => {
 }
 
 const deviceStart: Handler = async (request, app) => {
-  await limitByIp(request, app, LOGIN_RATE_PER_MINUTE)
+  await limitByIp(request, app, LOGIN_LIMIT)
   const device = await app.github.startDevice()
   const id = await app.store.insertDeviceLogin(
     device.deviceCode,
@@ -225,7 +230,7 @@ const deviceStart: Handler = async (request, app) => {
 const DevicePollBody = z.object({ device_id: z.string().min(1).max(64) })
 
 const devicePoll: Handler = async (request, app) => {
-  await limitByIp(request, app, DEVICE_POLL_RATE_PER_MINUTE)
+  await limitByIp(request, app, POLL_LIMIT)
   const { device_id: id } = await parseBody(request, DevicePollBody)
   const deviceCode = await app.store.deviceCode(id, app.now())
   if (deviceCode === undefined) {
