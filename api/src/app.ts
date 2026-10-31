@@ -4,6 +4,7 @@ import { z } from "zod"
 import {
   DAY_MS,
   HANDLE_CHANGE_INTERVAL_MS,
+  HANDLE_FREE_WINDOW_MS,
   HANDLE_HOLD_MS,
   MINUTE_MS,
   OAUTH_COOKIE_SECONDS,
@@ -65,10 +66,20 @@ function isoDate(ms: number | null): string | null {
   return ms === null ? null : new Date(ms).toISOString()
 }
 
-/** When the handle can next change; null once it can, or before there is one. */
+/** Until when a new handle can change freely; null once that window has passed. */
+function handleFreeUntil(user: UserRow, now: number): number | null {
+  if (user.handle_first_set_at === null) {
+    return null
+  }
+  const until = user.handle_first_set_at + HANDLE_FREE_WINDOW_MS
+  return now < until ? until : null
+}
+
+/** When the handle can next change; null when it can now, or before there is one. */
 function handleChangesAt(user: UserRow, now: number): string | null {
   const next = (user.handle_changed_at ?? 0) + HANDLE_CHANGE_INTERVAL_MS
-  return user.handle !== null && now < next ? isoDate(next) : null
+  const waiting = user.handle !== null && now < next && handleFreeUntil(user, now) === null
+  return waiting ? isoDate(next) : null
 }
 
 function publicUser(user: UserRow, now: number): Record<string, unknown> {
@@ -76,6 +87,7 @@ function publicUser(user: UserRow, now: number): Record<string, unknown> {
     handle: user.handle,
     created_at: isoDate(user.created_at),
     handle_changes_at: handleChangesAt(user, now),
+    handle_free_until: isoDate(handleFreeUntil(user, now)),
   }
 }
 
@@ -312,10 +324,23 @@ const patchMe: Handler = async (request, app) => {
   }
   await checkHandleFree(app, token.user, handle)
   const now = app.now()
-  if (!(await app.store.setHandle(token.user, handle, now, now + HANDLE_HOLD_MS))) {
+  // A handle under a day old has no reputation to impersonate, and holding it
+  // would stop a player going back after a mistaken rename.
+  const heldUntil = handleFreeUntil(token.user, now) === null ? now + HANDLE_HOLD_MS : undefined
+  if (!(await app.store.setHandle(token.user, handle, now, heldUntil))) {
     throw new ApiError(Status.Conflict, "handle_taken", "That handle is taken.")
   }
-  return json(publicUser({ ...token.user, handle, handle_changed_at: now }, now))
+  return json(
+    publicUser(
+      {
+        ...token.user,
+        handle,
+        handle_changed_at: now,
+        handle_first_set_at: token.user.handle_first_set_at ?? now,
+      },
+      now,
+    ),
+  )
 }
 
 const getTokens: Handler = async (request, app) => {
@@ -341,6 +366,7 @@ const exportMe: Handler = async (request, app) => {
       github_id: token.user.github_id,
       handle: token.user.handle,
       handle_changed_at: isoDate(token.user.handle_changed_at),
+      handle_first_set_at: isoDate(token.user.handle_first_set_at),
       created_at: isoDate(token.user.created_at),
     },
     logins: tokens.map((row) => ({

@@ -6,6 +6,7 @@ export type UserRow = {
   readonly github_id: number
   readonly handle: string | null
   readonly handle_changed_at: number | null
+  readonly handle_first_set_at: number | null
   readonly created_at: number
 }
 
@@ -72,7 +73,8 @@ export class Store {
     const row = await this.db
       .prepare(
         `SELECT t.id, t.user_id, t.kind, t.created_at, t.last_used_at, t.expires_at,
-                u.github_id, u.handle, u.handle_changed_at, u.created_at AS user_created_at
+                u.github_id, u.handle, u.handle_changed_at, u.handle_first_set_at,
+                u.created_at AS user_created_at
          FROM tokens t JOIN users u ON u.id = t.user_id
          WHERE t.token_hash = ? AND t.expires_at > ?`,
       )
@@ -93,6 +95,7 @@ export class Store {
         github_id: row.github_id,
         handle: row.handle,
         handle_changed_at: row.handle_changed_at,
+        handle_first_set_at: row.handle_first_set_at,
         created_at: row.user_created_at,
       },
     }
@@ -140,14 +143,27 @@ export class Store {
       .bind(handle, heldUntil)
   }
 
-  /** @returns false when another account has the handle. Atomic with the hold. */
-  async setHandle(user: UserRow, handle: string, now: number, heldUntil: number): Promise<boolean> {
+  /**
+   * @param heldUntil Keeps the old handle reserved until then; undefined releases it.
+   * @returns false when another account has the handle. Atomic with the hold.
+   */
+  async setHandle(
+    user: UserRow,
+    handle: string,
+    now: number,
+    heldUntil: number | undefined,
+  ): Promise<boolean> {
     const update = this.db
-      .prepare("UPDATE users SET handle = ?, handle_changed_at = ? WHERE id = ?")
-      .bind(handle, now, user.id)
+      .prepare(
+        `UPDATE users SET handle = ?, handle_changed_at = ?,
+           handle_first_set_at = COALESCE(handle_first_set_at, ?) WHERE id = ?`,
+      )
+      .bind(handle, now, now, user.id)
     try {
       await this.db.batch(
-        user.handle === null ? [update] : [this.holdStatement(user.handle, heldUntil), update],
+        user.handle === null || heldUntil === undefined
+          ? [update]
+          : [this.holdStatement(user.handle, heldUntil), update],
       )
       return true
     } catch (error) {

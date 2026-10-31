@@ -702,3 +702,8 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   control is disabled while its request runs, and the API's `handle_changes_at` lets
   the page replace the form with the date during the cooldown. That cooldown answers
   409, not 429: retrying soon can't help, so it isn't a rate limit.
+- **A new handle can change freely for its first day.** Otherwise a typo at sign-up
+  lasts a month. The day runs from the first pick and doesn't restart, so it can't be
+  extended by renaming. A handle dropped in that day isn't held, as it has no
+  reputation to impersonate and holding it would block going back after a mistaken
+  rename. The cooldown then runs from the last change.

@@ -409,31 +409,79 @@ describe("the API", () => {
       expect(taken.status).toBe(409)
     })
 
-    it("allows one change every 30 days", async () => {
+    it("allows one change every 30 days, once the first day has passed", async () => {
       const token = await pluginLogin()
       expect((await call("PATCH", "/api/v1/me", { token, body: { handle: "ana" } })).status).toBe(
         200,
       )
+      h.advance(DAY_MS)
       const soon = await call("PATCH", "/api/v1/me", { token, body: { handle: "bea" } })
       expect(soon.status).toBe(409)
       expect(((await soon.json()) as { error: string }).error).toBe("handle_cooldown")
-      await passDays(30, token)
+      await passDays(29, token)
       expect((await call("PATCH", "/api/v1/me", { token, body: { handle: "bea" } })).status).toBe(
         200,
       )
     })
 
-    it("says when a handle can next change", async () => {
+    it("says when a handle can next change, and until when it's free", async () => {
       const token = await pluginLogin()
-      const nextChange = async (): Promise<unknown> => {
+      const timing = async (): Promise<unknown[]> => {
         const me = await call("GET", "/api/v1/me", { token })
-        return ((await me.json()) as { handle_changes_at: unknown }).handle_changes_at
+        const body = (await me.json()) as { handle_changes_at: unknown; handle_free_until: unknown }
+        return [body.handle_changes_at, body.handle_free_until]
       }
-      expect(await nextChange()).toBeNull()
+      const inDays = (days: number): string => new Date(h.app.now() + days * DAY_MS).toISOString()
+      expect(await timing()).toEqual([null, null])
       await call("PATCH", "/api/v1/me", { token, body: { handle: "ana" } })
-      expect(await nextChange()).toBe(new Date(h.app.now() + 30 * DAY_MS).toISOString())
-      await passDays(30, token)
-      expect(await nextChange()).toBeNull()
+      expect(await timing()).toEqual([null, inDays(1)])
+      h.advance(DAY_MS)
+      expect(await timing()).toEqual([inDays(29), null])
+      await passDays(29, token)
+      expect(await timing()).toEqual([null, null])
+    })
+
+    it("lets a new handle change freely for its first day, and go back", async () => {
+      const token = await pluginLogin()
+      for (const handle of ["anna", "ana", "anna"]) {
+        const response = await call("PATCH", "/api/v1/me", { token, body: { handle } })
+        expect(response.status).toBe(200)
+      }
+    })
+
+    it("doesn't restart the free day when the handle changes", async () => {
+      const token = await pluginLogin()
+      await call("PATCH", "/api/v1/me", { token, body: { handle: "ana" } })
+      h.advance(DAY_MS - 1000)
+      await call("PATCH", "/api/v1/me", { token, body: { handle: "bea" } })
+      h.advance(2000)
+      const late = await call("PATCH", "/api/v1/me", { token, body: { handle: "cyd" } })
+      expect(late.status).toBe(409)
+    })
+
+    it("releases a handle abandoned in its first day to others", async () => {
+      const first = await pluginLogin(1)
+      const second = await pluginLogin(2)
+      await call("PATCH", "/api/v1/me", { token: first, body: { handle: "ana" } })
+      await call("PATCH", "/api/v1/me", { token: first, body: { handle: "bea" } })
+      const free = await call("PATCH", "/api/v1/me", { token: second, body: { handle: "ana" } })
+      expect(free.status).toBe(200)
+    })
+
+    it("backfills the window for handles picked before it existed", async () => {
+      await h.db
+        .prepare(
+          "INSERT INTO users (id, github_id, handle, handle_changed_at, created_at) VALUES ('u', 9, 'old', 123, 1)",
+        )
+        .run()
+      await h.db.prepare("INSERT INTO users (id, github_id, created_at) VALUES ('v', 10, 1)").run()
+      const migration = readFileSync(join(MIGRATIONS, "0002_handle_window.sql"), "utf8")
+      const backfill = migration.split(";").find((part) => part.includes("UPDATE users"))
+      await h.db.prepare(backfill ?? "").run()
+      const { results } = await h.db
+        .prepare("SELECT handle_first_set_at AS at FROM users ORDER BY id")
+        .all<{ at: number | null }>()
+      expect(results.map((row) => row.at)).toEqual([123, null])
     })
 
     it("holds a released handle for 90 days", async () => {

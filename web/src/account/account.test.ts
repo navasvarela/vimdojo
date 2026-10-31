@@ -121,6 +121,18 @@ describe("account page", () => {
     expect(root.querySelector("#handle")).toBeNull()
   })
 
+  it("says until when a new handle can change freely", async () => {
+    await show({
+      "GET /me": {
+        status: 200,
+        body: { handle: "ana", handle_rules: RULES, handle_free_until: "2026-11-01T12:15:30.000Z" },
+      },
+      "GET /me/tokens": { status: 200, body: { tokens: [] } },
+    })
+    expect(root.textContent).toContain("freely until 2026-11-01 12:15 UTC")
+    expect(root.querySelector("#handle")).not.toBeNull()
+  })
+
   it("shows a failure next to the form that caused it, and lets the player retry", async () => {
     await show({
       "GET /me": {
