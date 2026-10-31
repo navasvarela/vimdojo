@@ -736,6 +736,11 @@ PLAN-v3.md records the full table. The two departures from the proposal:
 - **Not in M18:** time plausibility checks, which matter when boards show time (M19),
   and retrying on the Neovim version the player reported. Replays use the snapshot's
   Neovim, so a log that only works elsewhere comes back `rejected` or `mismatch`.
+- **Live on the deployed Worker (2026-10-31):** real runs went from the plugin to a
+  verified best. Cron runs used 2-3 ms of CPU when idle and 55 ms for a batch, against
+  the free plan's documented 10 ms, and finished `ok`. That's one batch, so M15's advice
+  stands: watch for `exceededCpu`. After a change to its schedule, the cron took about
+  six minutes to start firing, during which runs just wait. Cloudflare allows up to 15.
 
 ## M19: boards
 
