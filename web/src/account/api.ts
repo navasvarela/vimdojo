@@ -12,7 +12,12 @@ function apiOrigin(): string {
 export const SIGN_IN_URL = `${apiOrigin()}/api/v1/auth/github/start`
 export const DELETE_PHRASE = "delete my account"
 
-const Me = z.object({ handle: z.string().nullable(), handle_rules: z.string() })
+const Me = z.object({
+  handle: z.string().nullable(),
+  handle_rules: z.string(),
+  /** When the handle can next change; null when it can now. */
+  handle_changes_at: z.string().nullable().default(null),
+})
 export type Me = z.infer<typeof Me>
 
 const Login = z.object({

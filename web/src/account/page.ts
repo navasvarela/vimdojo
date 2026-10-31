@@ -17,8 +17,17 @@ function date(iso: string): string {
   return iso.slice(0, 10)
 }
 
+function statusLine(): HTMLElement {
+  return h("p", { className: "account-status", attrs: { role: "status" } })
+}
+
+function problemText(error: unknown): string {
+  return error instanceof AccountError ? error.message : "Something went wrong."
+}
+
 export class AccountPage {
-  private readonly message = h("p", { className: "demo-message", attrs: { role: "status" } })
+  /** Says what just happened, across the redraw that follows a change. */
+  private notice = ""
 
   constructor(
     private readonly root: HTMLElement,
@@ -37,32 +46,47 @@ export class AccountPage {
         this.renderAccount(me, me.handle, await this.api.logins())
       }
     } catch (error) {
-      this.root.replaceChildren(this.problem(error))
+      this.root.replaceChildren(
+        h("p", { className: "demo-message", attrs: { role: "alert" } }, [problemText(error)]),
+      )
     }
   }
 
-  private problem(error: unknown): HTMLElement {
-    const text = error instanceof AccountError ? error.message : "Something went wrong."
-    return h("p", { className: "demo-message", attrs: { role: "alert" } }, [text])
+  /**
+   * Runs an action from a control, then redraws. A failure shows in `status`,
+   * which sits next to that control, so it can't happen out of view. The control
+   * is disabled meanwhile, so a slow request still visibly did something.
+   */
+  private act(
+    control: HTMLButtonElement,
+    status: HTMLElement,
+    action: () => Promise<void>,
+    notice = "",
+  ): void {
+    control.disabled = true
+    status.textContent = ""
+    action()
+      .then(() => {
+        this.notice = notice
+        return this.show()
+      })
+      .catch((error: unknown) => {
+        control.disabled = false
+        status.textContent = problemText(error)
+      })
   }
 
-  private say(text: string): void {
-    this.message.textContent = text
-  }
-
-  /** Runs an action, showing a failure instead of losing it, then redraws. */
-  private act(action: () => Promise<void>): () => void {
-    return () => {
-      action()
-        .then(() => this.show())
-        .catch((error: unknown) => {
-          this.say(error instanceof AccountError ? error.message : "Something went wrong.")
-        })
-    }
+  private takeNotice(): HTMLElement | "" {
+    const notice = this.notice
+    this.notice = ""
+    return notice === ""
+      ? ""
+      : h("p", { className: "account-status", attrs: { role: "status" } }, [notice])
   }
 
   private renderSignedOut(): void {
     this.root.replaceChildren(
+      this.takeNotice(),
       this.loginFailed
         ? h("p", { className: "demo-message", attrs: { role: "alert" } }, [
             "Signing in didn't work. Please try again.",
@@ -89,34 +113,39 @@ export class AccountPage {
       className: "account-input",
       attrs: { id: "handle", type: "text", required: "", autocomplete: "off", spellcheck: "false" },
     })
+    const button = h("button", { className: "button primary", attrs: { type: "submit" } }, [submit])
+    const status = statusLine()
     const form = h("form", { className: "account-form" }, [
       h("label", { className: "account-label", attrs: { for: "handle" } }, [label]),
       input,
-      h("button", { className: "button primary", attrs: { type: "submit" } }, [submit]),
+      button,
       h("p", { className: "aside account-note" }, [me.handle_rules]),
+      status,
     ])
     form.addEventListener("submit", (event) => {
       event.preventDefault()
-      this.act(() => this.api.setHandle(input.value))()
+      const handle = input.value
+      this.act(button, status, () => this.api.setHandle(handle), `Your handle is now ${handle}.`)
     })
     return form
   }
 
   private renderPickHandle(me: Me): void {
+    const status = statusLine()
     this.root.replaceChildren(
+      this.takeNotice(),
       h("p", {}, ["Pick a public handle. This is your name on the leaderboards."]),
       this.handleForm(me, "Handle", "Save"),
-      this.message,
-      this.signOutButton(),
+      this.signOutButton(status),
+      status,
     )
   }
 
-  private signOutButton(): HTMLButtonElement {
+  private signOutButton(status: HTMLElement): HTMLButtonElement {
     const button = h("button", { className: "button", attrs: { type: "button" } }, ["Sign out"])
-    button.addEventListener(
-      "click",
-      this.act(() => this.api.signOut()),
-    )
+    button.addEventListener("click", () => {
+      this.act(button, status, () => this.api.signOut(), "You're signed out.")
+    })
     return button
   }
 
@@ -126,28 +155,29 @@ export class AccountPage {
       return h("li", {}, [`${label} (this one)`])
     }
     const revoke = h("button", { className: "link-button", attrs: { type: "button" } }, ["Revoke"])
-    revoke.addEventListener(
-      "click",
-      this.act(() => this.api.revoke(login.id)),
-    )
-    return h("li", {}, [`${label} `, revoke])
+    const status = statusLine()
+    revoke.addEventListener("click", () => {
+      this.act(revoke, status, () => this.api.revoke(login.id), "That login is revoked.")
+    })
+    return h("li", {}, [`${label} `, revoke, status])
   }
 
-  private exportButton(): HTMLButtonElement {
+  private exportButton(status: HTMLElement): HTMLButtonElement {
     const button = h("button", { className: "button", attrs: { type: "button" } }, [
       "Download my data",
     ])
     button.addEventListener("click", () => {
+      status.textContent = ""
       this.api
         .exportData()
         .then((text) => {
           const url = URL.createObjectURL(new Blob([text], { type: "application/json" }))
           h("a", { attrs: { href: url, download: EXPORT_FILE_NAME } }).click()
           URL.revokeObjectURL(url)
-          this.say(`Downloaded ${EXPORT_FILE_NAME}.`)
+          status.textContent = `Downloaded ${EXPORT_FILE_NAME}.`
         })
         .catch((error: unknown) => {
-          this.say(error instanceof AccountError ? error.message : "Something went wrong.")
+          status.textContent = problemText(error)
         })
     })
     return button
@@ -166,29 +196,46 @@ export class AccountPage {
     input.addEventListener("input", () => {
       button.disabled = input.value !== DELETE_PHRASE
     })
+    const status = statusLine()
     const form = h("form", { className: "account-form" }, [
       h("label", { className: "account-label", attrs: { for: "confirm-delete" } }, [
         `Type "${DELETE_PHRASE}" to confirm:`,
       ]),
       input,
       button,
+      status,
     ])
     form.addEventListener("submit", (event) => {
       event.preventDefault()
       if (input.value === DELETE_PHRASE) {
-        this.act(() => this.api.deleteAccount())()
+        this.act(button, status, () => this.api.deleteAccount(), "Your account is deleted.")
       }
     })
     return form
   }
 
-  private renderAccount(me: Me, handle: string, logins: readonly Login[]): void {
-    this.root.replaceChildren(
-      h("p", {}, ["Signed in as ", h("strong", {}, [handle]), "."]),
-      this.message,
-      h("h2", {}, ["Change your handle"]),
+  /** During the cooldown there's nothing to submit, so say when instead of offering a form. */
+  private changeHandle(me: Me): Array<HTMLElement> {
+    if (me.handle_changes_at !== null) {
+      return [
+        h("p", {}, [
+          `A handle can change once every 30 days. You can change yours again on ${date(me.handle_changes_at)}.`,
+        ]),
+      ]
+    }
+    return [
       this.handleForm(me, "New handle", "Change"),
       h("p", { className: "aside" }, ["A handle can change once every 30 days."]),
+    ]
+  }
+
+  private renderAccount(me: Me, handle: string, logins: readonly Login[]): void {
+    const dataStatus = statusLine()
+    this.root.replaceChildren(
+      this.takeNotice(),
+      h("p", {}, ["Signed in as ", h("strong", {}, [handle]), "."]),
+      h("h2", {}, ["Change your handle"]),
+      ...this.changeHandle(me),
       h("h2", {}, ["Your logins"]),
       h(
         "ul",
@@ -196,7 +243,8 @@ export class AccountPage {
         logins.map((login) => this.loginRow(login)),
       ),
       h("h2", {}, ["Your data"]),
-      h("p", { className: "cta" }, [this.exportButton(), this.signOutButton()]),
+      h("p", { className: "cta" }, [this.exportButton(dataStatus), this.signOutButton(dataStatus)]),
+      dataStatus,
       h("h2", {}, ["Delete your account"]),
       h("p", {}, ["This removes your data at once, and can't be undone."]),
       this.deleteForm(),

@@ -99,6 +99,75 @@ describe("account page", () => {
     expect(server.calls.at(-1)?.init?.body).toBe('{"handle":"ana"}')
   })
 
+  it("confirms a handle change, and says when the next one can happen", async () => {
+    const server = await show({
+      "GET /me": {
+        status: 200,
+        body: { handle: "ana", handle_rules: RULES, handle_changes_at: null },
+      },
+      "GET /me/tokens": { status: 200, body: { tokens: [] } },
+      "PATCH /me": { status: 200, body: {} },
+    })
+    const input = root.querySelector<HTMLInputElement>("#handle")
+    if (input === null) throw new Error("no input")
+    input.value = "bea"
+    server.routes["GET /me"] = {
+      status: 200,
+      body: { handle: "bea", handle_rules: RULES, handle_changes_at: "2026-11-30T12:00:00.000Z" },
+    }
+    root.querySelector("form")?.dispatchEvent(new Event("submit", { cancelable: true }))
+    await vi.waitFor(() => expect(root.textContent).toContain("Your handle is now bea."))
+    expect(root.textContent).toContain("change yours again on 2026-11-30")
+    expect(root.querySelector("#handle")).toBeNull()
+  })
+
+  it("shows a failure next to the form that caused it, and lets the player retry", async () => {
+    await show({
+      "GET /me": {
+        status: 200,
+        body: { handle: "ana", handle_rules: RULES, handle_changes_at: null },
+      },
+      "GET /me/tokens": { status: 200, body: { tokens: [] } },
+      "PATCH /me": { status: 409, body: { message: "That handle is taken." } },
+    })
+    const input = root.querySelector<HTMLInputElement>("#handle")
+    const form = root.querySelector("form")
+    if (input === null || form === null) throw new Error("no form")
+    input.value = "bea"
+    form.dispatchEvent(new Event("submit", { cancelable: true }))
+    await vi.waitFor(() => expect(form.textContent).toContain("That handle is taken."))
+    expect(form.querySelector("button")?.disabled).toBe(false)
+    expect(input.value).toBe("bea")
+  })
+
+  it("disables a button while its request is running", async () => {
+    let finish: (response: Response) => void = () => undefined
+    const fetcher: typeof fetch = (input, init) => {
+      const path = new URL(String(input)).pathname
+      if (init?.method === "PATCH") {
+        return new Promise((resolve) => {
+          finish = resolve
+        })
+      }
+      return Promise.resolve(
+        new Response(
+          JSON.stringify(
+            path.endsWith("/tokens")
+              ? { tokens: [] }
+              : { handle: null, handle_rules: RULES, handle_changes_at: null },
+          ),
+        ),
+      )
+    }
+    await new AccountPage(root, new AccountApi(fetcher), false).show()
+    const form = root.querySelector("form")
+    if (form === null) throw new Error("no form")
+    form.dispatchEvent(new Event("submit", { cancelable: true }))
+    expect(form.querySelector("button")?.disabled).toBe(true)
+    finish(new Response(JSON.stringify({ message: "no" }), { status: 409 }))
+    await vi.waitFor(() => expect(form.querySelector("button")?.disabled).toBe(false))
+  })
+
   it("renders a handle as text, not HTML", async () => {
     await show({
       "GET /me": { status: 200, body: { handle: "<img src=x>", handle_rules: RULES } },

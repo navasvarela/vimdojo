@@ -781,6 +781,18 @@ pre[data-copy] {
   margin: 0;
 }
 
+/* What just happened: bright, because it is what the player is looking for. */
+.account-status {
+  flex-basis: 100%;
+  margin: 4px 0;
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.account-status:empty {
+  display: none;
+}
+
 .account-logins {
   padding-left: 20px;
 }
