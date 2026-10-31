@@ -66,6 +66,8 @@ npm run fix    # apply Biome's formatting and safe fixes
   0.10.4, stable, nightly and Windows, the web tests and build, and actionlint
   for the workflows.
 - Record non-obvious decisions in `docs/decisions.md`.
+- Docs-only changes (Markdown, `docs/launch/`, `docs/proposals/`) skip the full CI
+  and only get a Markdown lint that can't fail, so they can be merged straight away.
 - CI runs every pull request's own levels, so treat workflow changes with
   care: keep `pull_request` (never `pull_request_target`), read-only
   `permissions`, and third-party actions pinned to a commit SHA.
