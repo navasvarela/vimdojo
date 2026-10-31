@@ -17,6 +17,8 @@ const Me = z.object({
   handle_rules: z.string(),
   /** When the handle can next change; null when it can now. */
   handle_changes_at: z.string().nullable().default(null),
+  /** Until when a new handle can change freely; null once that has passed. */
+  handle_free_until: z.string().nullable().default(null),
 })
 export type Me = z.infer<typeof Me>
 

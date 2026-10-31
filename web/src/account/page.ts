@@ -17,6 +17,10 @@ function date(iso: string): string {
   return iso.slice(0, 10)
 }
 
+function dateTime(iso: string): string {
+  return `${iso.slice(0, 10)} ${iso.slice(11, 16)} UTC`
+}
+
 function statusLine(): HTMLElement {
   return h("p", { className: "account-status", attrs: { role: "status" } })
 }
@@ -223,10 +227,11 @@ export class AccountPage {
         ]),
       ]
     }
-    return [
-      this.handleForm(me, "New handle", "Change"),
-      h("p", { className: "aside" }, ["A handle can change once every 30 days."]),
-    ]
+    const rule =
+      me.handle_free_until === null
+        ? "A handle can change once every 30 days."
+        : `It's new, so you can change it freely until ${dateTime(me.handle_free_until)}. After that, once every 30 days.`
+    return [this.handleForm(me, "New handle", "Change"), h("p", { className: "aside" }, [rule])]
   }
 
   private renderAccount(me: Me, handle: string, logins: readonly Login[]): void {

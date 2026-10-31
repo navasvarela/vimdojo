@@ -19,6 +19,8 @@ export const TOKEN_LIFETIME_MS = 30 * DAY_MS
 /** Only refresh a token's dates this often, to keep D1 writes (100k a day) low. */
 export const TOKEN_TOUCH_INTERVAL_MS = DAY_MS
 export const HANDLE_CHANGE_INTERVAL_MS = 30 * DAY_MS
+/** A new handle can change freely for this long, so a typo at sign-up can be fixed. */
+export const HANDLE_FREE_WINDOW_MS = DAY_MS
 export const HANDLE_HOLD_MS = 90 * DAY_MS
 /** Bodies are small JSON objects; anything bigger is refused unread. */
 export const MAX_BODY_BYTES = 16 * 1024
