@@ -6,7 +6,9 @@ local challenges = require("vimdojo.challenges")
 local compat = require("vimdojo.compat")
 local goals = require("vimdojo.goals")
 local helpers = require("helpers")
+local keylog = require("vimdojo.keylog")
 local keys = require("vimdojo.keys")
+local level_hash = require("vimdojo.level_hash")
 local player_mod = require("player")
 
 -- The shipped curriculum, plus fixture packs that exercise every schema
@@ -82,6 +84,15 @@ for _, source in ipairs(sources) do
                   )
                 )
                 assert.are.equal(keys.count(level.solution), record.best_keys)
+                -- Setup levels can't rank, so they leave no key log.
+                local run = keylog.load(player.keylog_dir, level.id)
+                if #goals.probes(level.goal) > 0 then
+                  assert.is_nil(run)
+                else
+                  assert.are.equal(record.best_keys, #run.keys)
+                  assert.are.equal(#run.keys, #run.deltas_ms)
+                  assert.are.equal(level_hash.of(level), run.level_hash)
+                end
               end)
               player:stop()
               assert(ok, err)

@@ -555,3 +555,110 @@ features that need no server, so the game stays offline and free to host.
   purpose. Line width 100 matched the existing code with the fewest changes.
 - The CodeMirror cursor and selection overrides keep `!important` (its
   runtime theme wins otherwise), inside a `biome-ignore` range.
+
+## Leaderboards: decisions for phase 1 (2026-10-30)
+
+PLAN-v3.md records the full table. The two departures from the proposal:
+
+- **Stack: Cloudflare Workers + D1, with Vercel Sandbox for replays**,
+  instead of all-Vercel with DynamoDB. The domain's DNS and the site's
+  analytics are already on Cloudflare, D1 needs no card and gives SQL for
+  boards, and Vercel Sandbox is still the free way to run Neovim in a
+  microVM. The SDK accepts an access token outside Vercel. Accepted: two
+  vendors, and the Workers runtime (10 ms CPU on the free plan) for the API.
+- **The site stays on GitHub Pages.** `api.vimdojo.org` is same-site with
+  vimdojo.org, so a `SameSite=Lax` cookie works without moving the site.
+- **EU residency:** D1 is created with `jurisdiction: "eu"`. Vercel Sandbox
+  may run elsewhere, so verifier jobs carry only the level and the key log,
+  never a user id or handle.
+## M15: the replay verifier, local half
+
+- **All 66 Motions and Usage reference solutions verify** in
+  `nvim --embed --clean --headless` with exactly their own key count, at a
+  median of about 40 ms per replay (Neovim 0.12.6, macOS). The divergences
+  the proposal feared (Alt chords from a fast `<Esc>`, `<C-i>` vs `<Tab>`)
+  don't show up in the shipped solutions: without a terminal in between,
+  no escape-sequence timeout applies, so no pause after `<Esc>` is needed.
+- **The level is built by the room's own Lua** (`room/child.lua`'s
+  `set_ui_options` and `load`, now exported with `buffer`), before any key
+  is replayed, so replays see what the live room shows. The room's goal
+  checks are removed straight after: the harness checks the goal itself.
+- **State is read through the C API and builtin Vimscript functions only**
+  (`nvim_buf_get_lines`, `getreg`, `winlayout`...). A replayed log can
+  redefine any Lua function in the child, including the room's snapshot,
+  but not those. A test redefines `snapshot` and checks it can't fake a
+  solve.
+- **The harness is a msgpack-RPC client, not a Neovim**, and answers every
+  request from the child with an error. A test makes the replayed Neovim
+  call back with `vim.rpcrequest(1, "nvim_exec_lua", ...)` and checks the
+  replay carries on.
+- **Ordering:** after `nvim_input`, the fast `nvim_get_mode` already sees
+  the key (measured over repeated `i`/`<Esc>` rounds), so the loop is: send
+  one key, read the mode, and snapshot only in Normal mode when not
+  blocking.
+- `make verifier-check` and a CI job run the solution replays and the
+  adversarial tests (short and long logs, `:lua` routes, a hostile
+  callback, an infinite loop, `:qa!`), so a change to the room or the goal
+  rules can't silently break verification.
+
+## M15: Vercel Sandbox and the Worker
+
+- **Replays can run in the EU too.** The Sandbox SDK takes a `region`, and
+  `fra1` (Frankfurt) is one, so the verifier runs next to the EU D1
+  database rather than in the default `iad1`.
+- **The Sandbox SDK works on workerd**, streaming calls included. Under
+  `wrangler dev` with `nodejs_compat`, a Worker resumed the snapshot, wrote
+  the jobs, ran the harness and read its output: 9 of 9 jobs verified in
+  about 2.3 s. The bundle is 539 KiB gzipped, under the free plan's limit.
+- **All 66 reference solutions verify in the Sandbox** (`fra1`, 1 vCPU):
+  about 1 s to resume the snapshot and under 2 s for the replays, so about
+  3.5 s for the batch. `curl` from inside the VM fails to resolve a host,
+  and `run-batch` now fails outright if the VM can reach the network.
+- **CPU on the free plan (measured 2026-10-30).** A throwaway Worker ran 30
+  batches of 9 jobs, and `wrangler tail` reported its CPU time. The first 5,
+  spaced apart, used 34-81 ms; the next 25, back to back, had a median of
+  12 ms (8-64 ms). 23 of the 30 went over the documented 10 ms, yet all 30
+  finished with outcome `ok`, so the limit wasn't enforced per request at
+  this volume. That is an observation, not a guarantee. The likely reading
+  is that the expensive runs are cold starts (loading the 539 KiB bundle),
+  which is what a once-a-minute cron would mostly see. So M18 must treat a
+  killed run as normal (pending runs stay pending and are retried), and watch
+  for `exceededCpu`. If it shows up, the options remain the REST API with
+  `fetch` and a smaller bundle, or the $5 Workers plan.
+- **The snapshot** pins Neovim 0.12.6 by the SHA-256 of each Linux build,
+  holds vimdojo's Lua and the bundled `cli.js`, and has its network denied
+  before it's saved. It never expires; it's rebuilt when the room's Lua, the
+  goal rules or the harness change.
+- **Not yet:** the uid split between the harness and the replayed Neovim
+  (the spike runs both as the sandbox's default user). It comes with the
+  production verifier in M18.
+
+## M16: level identity and key logs
+
+- **Level hash:** SHA-256 of canonical JSON (sorted keys, no spaces) over the
+  text or files, cursor start, goal, options, presets and `requires`. Copy and
+  par edits keep a level's board. Fractional numbers are refused rather than
+  formatted, because no level needs them and Lua and JavaScript print them
+  differently. The fixture's hashes come from Python, so the two ports can't
+  agree on a shared mistake.
+- **The manifest is committed** (`verifier/manifest.json`), not generated at
+  build time as PLAN-v3 first said. A change that resets a board then shows up
+  in the pull request's diff, and both test suites fail until `make manifest`
+  is run. It's generated in Lua so level authors don't need Node. It can't live
+  in `challenges/`, because the plugin loads every JSON file there as a pack.
+- **Only rankable runs are kept:** a clean config, no paste, not Setup. Keeping
+  anything else would risk a run that can't rank replacing the one that can.
+- **Each level keeps its best run**, in its own file under `stdpath("state")`,
+  never in the shareable `progress.json`. A tie keeps the earlier run, because
+  boards rank the first to reach a count ahead. A run on a new level hash
+  replaces any older one, whatever its keys, since that board is gone.
+- **Why a paste can't be logged:** bracketed paste inserts text even in Normal
+  mode, which typing the same keys wouldn't do, so no replay would reproduce it.
+- **Keys are spelled the same on every Neovim.** `keytrans()` returns `|` and
+  `\\` on 0.12 but `<Bar>` and `<Bslash>` on nightly (CI caught it). Both replay
+  fine, but the server caches verdicts by key log, so the plugin normalizes them.
+- **Gaps are computed from rounded absolute times**, so 1,000 quick keys can't
+  drift, and a removed control key's time goes with it.
+- **Proof:** `check-keylogs` plays all 66 ranked levels through the live room,
+  then replays the files the plugin wrote in the M15 harness. Every count
+  matches the game's claim and every hash matches the manifest.

@@ -12,6 +12,7 @@ M.State = { Ready = "ready", Playing = "playing", Finished = "finished" }
 -- Results are stored with centisecond precision so progress.json stays tidy
 -- and the Lua and web scores agree on the same rounded input.
 local SECONDS_PRECISION = 100
+local MS_PER_SECOND = 1000
 
 ---@class vimdojo.Outcome
 ---@field keys integer
@@ -27,6 +28,9 @@ local SECONDS_PRECISION = 100
 ---@field hinted boolean
 ---@field started_at number|nil Clock reading at the first counted key.
 ---@field outcome vimdojo.Outcome|nil Set once finished.
+---@field key_names string[] The counted keys, in order.
+---@field key_times number[] Clock reading of each entry in key_names.
+---@field pasted boolean Text was pasted, so key_names doesn't hold every key.
 ---@field private clock fun(): number Monotonic seconds.
 local Session = {}
 Session.__index = Session
@@ -42,6 +46,9 @@ function M.new(level, clock)
     hinted = false,
     started_at = nil,
     outcome = nil,
+    key_names = {},
+    key_times = {},
+    pasted = false,
     clock = clock,
   }, Session)
 end
@@ -69,14 +76,42 @@ function Session:count_keys(count)
   self.keys = self.keys + count
 end
 
+--- Counts typed keys and keeps them for the key log.
+---@param names string[] One entry per physical key.
+function Session:press(names)
+  if self:is_finished() then
+    return
+  end
+  self:count_keys(#names)
+  local now = self.clock()
+  for _, name in ipairs(names) do
+    table.insert(self.key_names, name)
+    table.insert(self.key_times, now)
+  end
+end
+
+--- Counts pasted text. Its keys can't be logged: a paste isn't the same as
+--- typing the text, so a replay of it wouldn't reproduce the attempt.
+---@param count integer
+function Session:paste(count)
+  self.pasted = self.pasted or not self:is_finished()
+  self:count_keys(count)
+end
+
 --- Takes back keys that turned out to be game controls (hint, reset). If that
 --- leaves no keys, the attempt has not really started, so the timer resets.
+--- The controls are the latest keys: the room reports one the moment it fires,
+--- far quicker than the next key can be typed.
 ---@param count integer
 function Session:uncount_keys(count)
   if self:is_finished() then
     return
   end
   self.keys = math.max(0, self.keys - count)
+  for _ = 1, math.min(count, #self.key_names) do
+    table.remove(self.key_names)
+    table.remove(self.key_times)
+  end
   if self.keys == 0 then
     self.state = M.State.Ready
     self.started_at = nil
@@ -96,6 +131,24 @@ function Session:elapsed()
     return 0
   end
   return self.clock() - self.started_at
+end
+
+--- The attempt's keys and the gaps between them. Each gap comes from rounded
+--- absolute times, so rounding errors can't add up: the gaps sum to the time from
+--- the first key to the last, to the millisecond.
+---@return vimdojo.KeyLog|nil log Nil when text was pasted.
+function Session:key_log()
+  if self.pasted then
+    return nil
+  end
+  local deltas = {}
+  local previous = nil
+  for _, time in ipairs(self.key_times) do
+    local ms = math.floor(time * MS_PER_SECOND + 0.5)
+    table.insert(deltas, previous and ms - previous or 0)
+    previous = ms
+  end
+  return { keys = vim.list_extend({}, self.key_names), deltas_ms = deltas }
 end
 
 ---@return vimdojo.Outcome

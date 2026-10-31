@@ -14,6 +14,7 @@ local ESC_SETTLE_MS = 120
 ---@class Player
 ---@field chan integer
 ---@field progress_path string
+---@field keylog_dir string
 local Player = {}
 Player.__index = Player
 
@@ -30,12 +31,18 @@ function M.spawn(setup)
     "-u",
     helpers.root .. "/tests/minimal_init.lua",
   }, { rpc = true })
-  local player =
-    setmetatable({ chan = chan, progress_path = helpers.temp_dir() .. "/progress.json" }, Player)
+  local player = setmetatable({
+    chan = chan,
+    progress_path = helpers.temp_dir() .. "/progress.json",
+    keylog_dir = (setup and setup.keylog_dir) or helpers.temp_dir(),
+  }, Player)
   player:lua(
-    "require('vimdojo').setup(vim.tbl_extend('force', ..., { progress_path = select(2, ...) }))",
+    "local setup, progress_path, keylog_dir = ...;"
+      .. " require('vimdojo').setup(vim.tbl_extend('force', setup,"
+      .. " { progress_path = progress_path, keylog_dir = keylog_dir }))",
     setup or {},
-    player.progress_path
+    player.progress_path,
+    player.keylog_dir
   )
   return player
 end

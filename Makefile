@@ -3,7 +3,7 @@ DEPS_DIR := .deps
 PLENARY_DIR := $(abspath $(DEPS_DIR)/plenary.nvim)
 AJV := npx --yes ajv-cli@5.0.0
 
-.PHONY: all check deps test lint fmt validate par doc gif web-deps web-check workflows
+.PHONY: all check deps test lint fmt validate par manifest doc gif web-deps web-check verifier-check workflows
 
 all: lint validate doc test
 
@@ -30,7 +30,7 @@ fmt:
 # Everything CI runs, in one command: Lua lint and format, level validation,
 # the help file, plugin tests, Biome (web code, level packs, fixtures),
 # typecheck, web tests and build, and the workflow linter.
-check: all web-check workflows
+check: all web-check verifier-check workflows
 
 web-deps:
 	npm --prefix web ci
@@ -41,6 +41,15 @@ web-check: web-deps
 	npm --prefix web test
 	npm --prefix web run build
 
+# Replays every Motions and Usage reference solution in the leaderboard
+# verifier, plus its adversarial tests. Needs nvim on PATH.
+verifier-check: web-deps
+	npm --prefix verifier ci
+	npm --prefix verifier run typecheck
+	npm --prefix verifier test
+	npm --prefix api ci
+	npm --prefix api run typecheck
+
 workflows:
 	scripts/actionlint.sh
 
@@ -49,6 +58,11 @@ validate:
 
 par:
 	$(NVIM) --headless --noplugin -u NONE -l scripts/par.lua
+
+# Regenerates verifier/manifest.json after adding or changing levels. A changed
+# hash starts that level's leaderboard over, and the tests fail until it's run.
+manifest:
+	$(NVIM) --headless --noplugin -u NONE -l scripts/manifest.lua
 
 # Fails if the help file has duplicate or malformed tags.
 doc:
