@@ -415,11 +415,25 @@ describe("the API", () => {
         200,
       )
       const soon = await call("PATCH", "/api/v1/me", { token, body: { handle: "bea" } })
-      expect(soon.status).toBe(429)
+      expect(soon.status).toBe(409)
+      expect(((await soon.json()) as { error: string }).error).toBe("handle_cooldown")
       await passDays(30, token)
       expect((await call("PATCH", "/api/v1/me", { token, body: { handle: "bea" } })).status).toBe(
         200,
       )
+    })
+
+    it("says when a handle can next change", async () => {
+      const token = await pluginLogin()
+      const nextChange = async (): Promise<unknown> => {
+        const me = await call("GET", "/api/v1/me", { token })
+        return ((await me.json()) as { handle_changes_at: unknown }).handle_changes_at
+      }
+      expect(await nextChange()).toBeNull()
+      await call("PATCH", "/api/v1/me", { token, body: { handle: "ana" } })
+      expect(await nextChange()).toBe(new Date(h.app.now() + 30 * DAY_MS).toISOString())
+      await passDays(30, token)
+      expect(await nextChange()).toBeNull()
     })
 
     it("holds a released handle for 90 days", async () => {

@@ -65,8 +65,18 @@ function isoDate(ms: number | null): string | null {
   return ms === null ? null : new Date(ms).toISOString()
 }
 
-function publicUser(user: UserRow): Record<string, unknown> {
-  return { handle: user.handle, created_at: isoDate(user.created_at) }
+/** When the handle can next change; null once it can, or before there is one. */
+function handleChangesAt(user: UserRow, now: number): string | null {
+  const next = (user.handle_changed_at ?? 0) + HANDLE_CHANGE_INTERVAL_MS
+  return user.handle !== null && now < next ? isoDate(next) : null
+}
+
+function publicUser(user: UserRow, now: number): Record<string, unknown> {
+  return {
+    handle: user.handle,
+    created_at: isoDate(user.created_at),
+    handle_changes_at: handleChangesAt(user, now),
+  }
 }
 
 function publicToken(token: TokenRow, currentId: string): Record<string, unknown> {
@@ -263,7 +273,7 @@ const logout: Handler = async (request, app) => {
 /** The site calls this on every visit, which keeps the session cookie sliding too. */
 const getMe: Handler = async (request, app) => {
   const { token, sessionCookie } = await authenticate(request, app)
-  const response = json({ ...publicUser(token.user), handle_rules: HANDLE_RULES })
+  const response = json({ ...publicUser(token.user, app.now()), handle_rules: HANDLE_RULES })
   if (sessionCookie !== undefined) {
     response.headers.append(
       "set-cookie",
@@ -281,10 +291,10 @@ async function checkHandleFree(app: App, user: UserRow, handle: string): Promise
     throw new ApiError(Status.UnprocessableEntity, `handle_${problem}`, `Use ${HANDLE_RULES}.`)
   }
   const now = app.now()
-  const changedAt = user.handle_changed_at
-  if (user.handle !== null && changedAt !== null && now - changedAt < HANDLE_CHANGE_INTERVAL_MS) {
+  if (handleChangesAt(user, now) !== null) {
+    // A conflict with the account's state, not a rate limit: retrying soon can't help.
     throw new ApiError(
-      Status.TooManyRequests,
+      Status.Conflict,
       "handle_cooldown",
       "A handle can only change once every 30 days.",
     )
@@ -298,14 +308,14 @@ const patchMe: Handler = async (request, app) => {
   const { token } = await authenticate(request, app)
   const { handle } = await parseBody(request, PatchMeBody)
   if (handle === token.user.handle) {
-    return json(publicUser(token.user))
+    return json(publicUser(token.user, app.now()))
   }
   await checkHandleFree(app, token.user, handle)
   const now = app.now()
   if (!(await app.store.setHandle(token.user, handle, now, now + HANDLE_HOLD_MS))) {
     throw new ApiError(Status.Conflict, "handle_taken", "That handle is taken.")
   }
-  return json(publicUser({ ...token.user, handle }))
+  return json(publicUser({ ...token.user, handle, handle_changed_at: now }, now))
 }
 
 const getTokens: Handler = async (request, app) => {

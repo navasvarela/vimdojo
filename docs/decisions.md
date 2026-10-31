@@ -696,3 +696,9 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   is 1,800 s), and flushing macOS's cache doesn't help. That only affects whoever
   looked it up early. The same login found a bug: polling shared its rate limit
   with starting a login. Each now has its own counter.
+- **The account page says what happened, next to where it happened.** The first
+  version showed results at the top of the page, so a refused handle change looked
+  like nothing at all. Now a failure appears beside the control that caused it, the
+  control is disabled while its request runs, and the API's `handle_changes_at` lets
+  the page replace the form with the date during the cooldown. That cooldown answers
+  409, not 429: retrying soon can't help, so it isn't a rate limit.
