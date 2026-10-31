@@ -4,7 +4,7 @@
 // Neovim answers API requests on every channel it has, so if the harness
 // were a Neovim, a replayed key log could call `nvim_exec_lua` on it and run
 // code as the harness. Requests coming from the child are refused.
-import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process"
+import { type ChildProcessWithoutNullStreams, type SpawnOptions, spawn } from "node:child_process"
 import { decode, decodeMultiStream, Encoder, ExtensionCodec } from "@msgpack/msgpack"
 
 const MessageType = { Request: 0, Response: 1, Notification: 2 } as const
@@ -52,8 +52,8 @@ export class NvimClient {
   }
 
   /** Starts `nvim --embed --headless` with `args` and attaches to it. */
-  static spawn(nvim: string, args: readonly string[]): NvimClient {
-    const child = spawn(nvim, ["--embed", "--headless", ...args], { stdio: "pipe" })
+  static spawn(nvim: string, args: readonly string[], options: SpawnOptions = {}): NvimClient {
+    const child = spawn(nvim, ["--embed", "--headless", ...args], { ...options, stdio: "pipe" })
     return new NvimClient(child)
   }
 

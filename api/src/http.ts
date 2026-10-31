@@ -15,6 +15,7 @@ export class ApiError extends Error {
 
 export const Status = {
   Ok: 200,
+  Accepted: 202,
   NoContent: 204,
   Found: 302,
   BadRequest: 400,

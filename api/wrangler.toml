@@ -1,6 +1,8 @@
 name = "vimdojo-api"
 main = "src/index.ts"
 compatibility_date = "2026-10-01"
+# The Vercel Sandbox SDK is written for Node. M15 proved it runs with this flag.
+compatibility_flags = ["nodejs_compat"]
 routes = [{ pattern = "api.vimdojo.org", custom_domain = true }]
 
 [vars]
@@ -9,7 +11,8 @@ API_ORIGIN = "https://api.vimdojo.org"
 # Public: it identifies the OAuth app and shows in every login URL.
 GITHUB_CLIENT_ID = "Ov23liRNYNOZLmKqjblx"
 
-# Secrets: GITHUB_CLIENT_SECRET and RATE_LIMIT_SALT (see README.md).
+# Secrets: GITHUB_CLIENT_SECRET, RATE_LIMIT_SALT, VERCEL_TOKEN, VERCEL_TEAM_ID,
+# VERCEL_PROJECT_ID and VERIFIER_SNAPSHOT_ID (see README.md).
 
 [[d1_databases]]
 binding = "DB"
@@ -18,5 +21,6 @@ database_id = "3ae0e0d9-f95e-40f7-91d7-e65396ee3c85"
 migrations_dir = "migrations"
 
 [triggers]
-# Daily cleanup of expired logins and counters, at a quiet time.
-crons = ["17 3 * * *"]
+# The verifier, every minute, and the daily cleanup of expired data. src/index.ts
+# tells them apart by the cleanup's schedule, so keep the two in step.
+crons = ["* * * * *", "17 3 * * *"]

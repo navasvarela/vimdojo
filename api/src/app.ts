@@ -27,6 +27,8 @@ import {
   Status,
   withStandardHeaders,
 } from "./http"
+import type { RunStore } from "./run-store"
+import { publicRun, RunBody, submitRun } from "./runs"
 import type { Store, TokenKind, TokenRow, TokenWithUser, UserRow } from "./store"
 
 const SESSION_COOKIE = "__Host-vdj_session"
@@ -38,6 +40,8 @@ const LOGIN_RATE_PER_MINUTE = 10
 // needs more room than other login routes.
 const DEVICE_POLL_RATE_PER_MINUTE = 30
 const ACCOUNT_RATE_PER_MINUTE = 60
+const RUNS_PER_MINUTE = 30
+const RUNS_PER_DAY = 1000
 
 export type AppConfig = {
   readonly siteOrigin: string
@@ -48,6 +52,7 @@ export type AppConfig = {
 
 export type App = {
   readonly store: Store
+  readonly runs: RunStore
   readonly github: GitHub
   readonly config: AppConfig
   readonly now: () => number
@@ -357,11 +362,34 @@ const deleteToken: Handler = async (request, app, [tokenId]) => {
   return noContent()
 }
 
+function parseStoredJson(text: string): unknown {
+  return JSON.parse(text)
+}
+
 /** Everything stored about the account. Token hashes aren't personal data, and stay private. */
 const exportMe: Handler = async (request, app) => {
   const { token } = await authenticate(request, app)
   const tokens = await app.store.tokensOf(token.user_id, app.now())
+  const [runs, bests] = await Promise.all([
+    app.runs.runsOf(token.user_id),
+    app.runs.bestsOf(token.user_id),
+  ])
   return json({
+    runs: runs.map((run) => ({
+      ...publicRun(run),
+      level_hash: run.level_hash,
+      keys: parseStoredJson(run.keys),
+      deltas_ms: parseStoredJson(run.deltas_ms),
+      nvim: run.nvim,
+      claimed_seconds: run.claimed_seconds,
+      hinted: run.hinted === 1,
+      expires_at: isoDate(run.expires_at),
+    })),
+    bests: bests.map((best) => ({
+      ...best,
+      hinted: best.hinted === 1,
+      first_at: isoDate(best.first_at),
+    })),
     user: {
       github_id: token.user.github_id,
       handle: token.user.handle,
@@ -390,6 +418,27 @@ const deleteMe: Handler = async (request, app) => {
   return response
 }
 
+const postRun: Handler = async (request, app) => {
+  const { token } = await authenticate(request, app)
+  await enforceRate(app, `runs:${token.user_id}`, RUNS_PER_MINUTE)
+  const today = Math.floor(app.now() / DAY_MS) * DAY_MS
+  if ((await app.store.countRequest(`runs-day:${token.user_id}`, today)) > RUNS_PER_DAY) {
+    throw new ApiError(Status.TooManyRequests, "rate_limited", "That's enough runs for today.")
+  }
+  const body = await parseBody(request, RunBody)
+  const result = await submitRun(app.runs, token.user_id, body, app.now())
+  return json({ id: result.id, status: result.status }, result.isNew ? Status.Accepted : Status.Ok)
+}
+
+const getRun: Handler = async (request, app, [runId]) => {
+  const { token } = await authenticate(request, app)
+  const run = runId === undefined ? undefined : await app.runs.runOf(token.user_id, runId)
+  if (run === undefined) {
+    throw new ApiError(Status.NotFound, "not_found", "No such run.")
+  }
+  return json(publicRun(run))
+}
+
 const ROUTES: ReadonlyArray<readonly [string, RegExp, Handler]> = [
   ["GET", /^\/api\/v1\/auth\/github\/start$/, githubStart],
   ["GET", /^\/api\/v1\/auth\/github\/callback$/, githubCallback],
@@ -402,6 +451,8 @@ const ROUTES: ReadonlyArray<readonly [string, RegExp, Handler]> = [
   ["GET", /^\/api\/v1\/me\/export$/, exportMe],
   ["GET", /^\/api\/v1\/me\/tokens$/, getTokens],
   ["DELETE", /^\/api\/v1\/me\/tokens\/([\w-]+)$/, deleteToken],
+  ["POST", /^\/api\/v1\/runs$/, postRun],
+  ["GET", /^\/api\/v1\/runs\/([\w-]+)$/, getRun],
 ]
 
 async function route(request: Request, app: App): Promise<Response> {
@@ -438,5 +489,7 @@ export async function handleRequest(request: Request, app: App): Promise<Respons
 
 /** Daily cleanup: expired logins, handle holds and rate-limit counters. */
 export async function sweep(app: App): Promise<void> {
-  await app.store.sweep(app.now(), app.now() - DAY_MS)
+  // Yesterday's window can still be counting daily limits, so keep two days.
+  await app.store.sweep(app.now(), app.now() - 2 * DAY_MS)
+  await app.runs.sweep(app.now())
 }

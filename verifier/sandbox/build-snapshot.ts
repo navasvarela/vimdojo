@@ -71,11 +71,33 @@ async function uploadVerifier(sandbox: Sandbox): Promise<void> {
       content: await readFile(path),
     })),
   )
+  const levelFiles = (await readdir(join(ROOT, "challenges"))).filter((n) => /^\d.*\.json$/.test(n))
+  for (const name of levelFiles) {
+    files.push({
+      path: `${SANDBOX_PATHS.plugin}/challenges/${name}`,
+      content: await readFile(join(ROOT, "challenges", name)),
+    })
+  }
   files.push({
     path: SANDBOX_PATHS.cli,
     content: await readFile(join(ROOT, "verifier/dist/cli.js")),
   })
   await sandbox.writeFiles(files)
+  // The replay user has to read the plugin, and can't write to any of it.
+  const pluginDir = (await run(sandbox, "realpath", [SANDBOX_PATHS.plugin])).trim()
+  await run(sandbox, "chown", ["-R", "root:root", pluginDir], true)
+  await run(sandbox, "chmod", ["-R", "a+rX,go-w", pluginDir], true)
+  await run(sandbox, "sh", ["-c", `namei -m ${pluginDir} | cat`])
+}
+
+/** The unprivileged user each replay runs as. No home: each job makes its own. */
+async function createReplayUser(sandbox: Sandbox): Promise<void> {
+  await run(
+    sandbox,
+    "useradd",
+    ["--no-create-home", "--shell", "/sbin/nologin", SANDBOX_PATHS.replayUser],
+    true,
+  )
 }
 
 async function main(): Promise<void> {
@@ -91,6 +113,7 @@ async function main(): Promise<void> {
   try {
     await installNeovim(sandbox)
     await uploadVerifier(sandbox)
+    await createReplayUser(sandbox)
     // Replayed keys can run shell commands, so the snapshot has no network.
     await sandbox.updateNetworkPolicy("deny-all")
     // No expiration: the API resumes this snapshot until it's rebuilt.

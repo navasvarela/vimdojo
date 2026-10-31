@@ -8,6 +8,8 @@ export const SANDBOX_PATHS = {
   plugin: "vimdojo",
   cli: "vimdojo/cli.js",
   nvim: "/opt/nvim/bin/nvim",
+  /** Runs each replay; the harness itself runs as root. */
+  replayUser: "vimdojo-replay",
 } as const
 
 export function env(name: string): string {
