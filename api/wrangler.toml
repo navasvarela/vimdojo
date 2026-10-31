@@ -1,13 +1,15 @@
 name = "vimdojo-api"
 main = "src/index.ts"
 compatibility_date = "2026-10-01"
+routes = [{ pattern = "api.vimdojo.org", custom_domain = true }]
 
 [vars]
 SITE_ORIGIN = "https://vimdojo.org"
 API_ORIGIN = "https://api.vimdojo.org"
+# Public: it identifies the OAuth app and shows in every login URL.
+GITHUB_CLIENT_ID = "Ov23liRNYNOZLmKqjblx"
 
 # Secrets: GITHUB_CLIENT_SECRET and RATE_LIMIT_SALT (see README.md).
-# GITHUB_CLIENT_ID is a var, not a secret, and is added once the OAuth app exists.
 
 [[d1_databases]]
 binding = "DB"

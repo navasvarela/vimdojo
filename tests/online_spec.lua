@@ -160,7 +160,8 @@ describe("online", function()
       assert.is_true(online.save_token(TOKEN))
       local mode = (vim.uv or vim.loop).fs_stat(vimdojo.config.online.auth_path).mode
       if vim.fn.has("win32") == 0 then
-        assert.are.equal(tonumber("600", 8), bit.band(mode, tonumber("777", 8)))
+        -- The permission bits are the mode's low 9 bits (octal 1000 = 512).
+        assert.are.equal(tonumber("600", 8), mode % 512)
       end
     end)
 
