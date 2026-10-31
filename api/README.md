@@ -36,5 +36,18 @@ npx wrangler deploy --secrets-file .secrets
 ```
 
 Later deploys need only `npx wrangler deploy` (the secrets stay), plus the
-migrations command when `migrations/` changed. `.secrets` can be deleted after
-the first deploy.
+migrations command, **first**, when `migrations/` changed. `.secrets` can be deleted
+after the first deploy.
+
+## The verifier
+
+A cron trigger replays pending runs every minute in a Vercel Sandbox
+(`verifier/sandbox/README.md`). It needs four more secrets: `VERCEL_TOKEN`,
+`VERCEL_TEAM_ID`, `VERCEL_PROJECT_ID` and `VERIFIER_SNAPSHOT_ID`.
+
+- **Rebuild the snapshot when levels, the room's Lua or the harness change,** then
+  update `VERIFIER_SNAPSHOT_ID`. Until then, runs on a changed level end as `failed`,
+  because the snapshot doesn't have that version of the level.
+- **When the Vercel token expires,** verification stops and runs stay pending, at no
+  cost to them. Replace it with `wrangler secret put VERCEL_TOKEN`.
+- Batches stop at 4,000 a month (`verify.ts`), and runs resume the next month.

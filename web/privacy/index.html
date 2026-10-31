@@ -21,8 +21,8 @@
 
         <h2>Playing without an account</h2>
         <p>
-          The plugin keeps your progress and your best key logs on your own machine, and doesn't
-          send them anywhere. The demo keeps its progress in your browser. Neither sets a cookie.
+          The plugin keeps your progress and your best key logs on your own machine, and only
+          sends a run if you sign in and submit it. The demo keeps its progress in your browser. Neither sets a cookie.
         </p>
         <p>
           The site counts visits with Cloudflare Web Analytics, which is cookieless and doesn't
@@ -52,6 +52,11 @@
               <td>30 days after last use, or until you sign out</td>
             </tr>
             <tr>
+              <td>Runs you choose to submit: each level's keys and their timing, your Neovim version, the score your game counted, and whether you used a hint</td>
+              <td>To replay each run, verify its score and rank it. Your keys are that level's solution, so they stay private: boards only show the key count.</td>
+              <td>90 days, or for as long as the run is your best on that level. They go when you delete your account.</td>
+            </tr>
+            <tr>
               <td>A hash of your IP address, with a salt that changes daily</td>
               <td>To limit abuse of the login routes</td>
               <td>About a day. The address itself isn't stored.</td>
@@ -79,6 +84,7 @@
         <ul>
           <li><strong>Cloudflare</strong> runs the API and its database, which is kept in the EU, and provides the visit counts.</li>
           <li><strong>GitHub</strong> provides sign-in, and hosts this site.</li>
+          <li><strong>Vercel</strong> runs the sandbox that replays submitted runs, in Frankfurt. It receives only the level and the keys, with nothing that says who played.</li>
         </ul>
       </section>
     </main>

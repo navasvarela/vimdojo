@@ -31,7 +31,8 @@ the room's Lua, the goal rules or the harness change.
 
 ## Run a batch
 
-Every Motions and Usage reference solution:
+Every Motions and Usage reference solution, then hostile logs trying to get out of
+their replay. Each check needs evidence that the attempt ran:
 
 ```sh
 node dist/run-batch.js

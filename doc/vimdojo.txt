@@ -95,6 +95,8 @@ and your best so far:
 
   n or <CR>   Next level (when it is unlocked)
   r           Retry the level
+  s           Submit the run to the leaderboards (when signed in, see
+              |vimdojo-online|)
   y           Copy a spoiler-free result to share, such as
               `vimdojo daily 2026-10-30 ★★★ 7 keys (par 7) 4.3s`, to the
               clipboard (and the unnamed register)
@@ -129,6 +131,7 @@ type `:q` inside a level, the level closes.
     login   Sign in with GitHub for the leaderboards (see |vimdojo-online|).
     logout  Sign out, and revoke this machine's login.
     account Show who you're signed in as, and links to manage your account.
+    submit  Send the best run of every level you've played, to be verified.
 
     Keys typed on the command line count as keystrokes, so prefer the
     mappings in |vimdojo-controls| during a level.
@@ -162,6 +165,9 @@ require("vimdojo").setup({opts})
         -- Nothing touches the network until this is true.
         enabled = false,
         url = "https://api.vimdojo.org",
+        -- "ask": `s` on the results card submits the run.
+        -- "auto": every solve is submitted. "never": neither.
+        submit = "ask",
         -- Login file. nil means stdpath("data")/vimdojo/auth.json.
         auth_path = nil,
       },
@@ -184,7 +190,13 @@ https://vimdojo.org/account/ to export or delete it.
 Online features need `curl`. Your login is stored in `auth_path` (readable only
 by you), or read from the `VIMDOJO_TOKEN` environment variable if it is set, and
 is never in your progress file. No network call happens at startup, or unless
-you run one of these commands.
+you run one of these commands, press `s`, or set `submit = "auto"`.
+
+Submitting sends your best run on that level: its keys and timing, which are that
+level's solution, so they stay private. A server replays them in a clean Neovim
+and recounts the keys. Boards rank by that count, whatever your game counted. Runs
+with pasted text, `config = "mine"` and Setup levels aren't kept, so can't be sent.
+Without a connection, a run waits and is sent the next time you use these commands.
 
                                                             *vimdojo-keylogs*
 When you solve a level, vimdojo keeps the keys of your best run for that level
