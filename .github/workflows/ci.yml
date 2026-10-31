@@ -1,9 +1,20 @@
 name: CI
 
+# Docs-only changes skip this: nothing here reads Markdown (docs.yml lints it).
+# docs/brand/ feeds the site and doc/ is the plugin's help, so those still run.
+# A change that also touches code runs everything.
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/launch/**"
+      - "docs/proposals/**"
   pull_request:
+    paths-ignore:
+      - "**.md"
+      - "docs/launch/**"
+      - "docs/proposals/**"
 
 # Pull requests run their own levels in CI (solution tests type keys into a
 # real Neovim, and Setup levels run Lua), so a fork's PR is untrusted code.

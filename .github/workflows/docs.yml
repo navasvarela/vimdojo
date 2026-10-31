@@ -1,0 +1,26 @@
+name: Docs
+
+# A soft lint for Markdown: it annotates problems but never fails a pull request.
+on:
+  pull_request:
+    paths:
+      - "**.md"
+      - ".markdownlint-cli2.jsonc"
+
+permissions:
+  contents: read
+
+jobs:
+  markdown:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      # On the step, not the job: on a job, the check still shows as failed.
+      - run: npx --yes markdownlint-cli2@0.23.3
+        continue-on-error: true

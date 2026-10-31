@@ -3,6 +3,11 @@ name: Pages
 on:
   push:
     branches: [main]
+    # The site's build reads none of these, so they don't need a deploy.
+    paths-ignore:
+      - "**.md"
+      - "docs/launch/**"
+      - "docs/proposals/**"
   workflow_dispatch:
 
 permissions:
