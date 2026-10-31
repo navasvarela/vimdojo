@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f0e0c" />
+    <link rel="icon" type="image/svg+xml" href="../../docs/brand/logo.svg" />
+    <title>Player · vimdojo</title>
+  </head>
+  <body>
+    <main>
+      <section class="section">
+        <p class="prompt"><a href="/">~/dojo</a> $ <span class="cursor">:VimDojo scores</span></p>
+        <h1 id="player-name">Player</h1>
+        <select id="level" hidden aria-hidden="true"><!-- board-levels --></select>
+        <div id="player">Loading…</div>
+      </section>
+    </main>
+    <footer class="footer">
+      <p><a href="/">Home</a> · <a href="/boards/">Leaderboards</a> · <a href="/privacy/">Privacy</a></p>
+    </footer>
+    <script type="module" src="/src/boards/player-main.ts"></script>
+  </body>
+</html>

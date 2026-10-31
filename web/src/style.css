@@ -815,3 +815,28 @@ pre[data-copy] {
   text-align: left;
   vertical-align: top;
 }
+
+/* Leaderboards */
+.board {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.board th {
+  color: var(--muted);
+  font-weight: normal;
+  text-align: left;
+}
+
+.board th,
+.board td {
+  padding: 4px 16px 4px 0;
+}
+
+.board-mine td {
+  color: var(--accent);
+  font-weight: bold;
+}

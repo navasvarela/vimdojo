@@ -1,5 +1,32 @@
 # Changelog
 
+## v0.6.0 (2026-10-31)
+
+### Added
+
+- **Leaderboards, right in Neovim.** Optional and off by default: set
+  `online = { enabled = true }`, then `:VimDojo login`. `s` on the results card
+  submits a run, a server replays it in a clean Neovim and recounts the keys, and the
+  verdict and your place show up in a few seconds. `b` on the results card or
+  `:VimDojo board [level]` shows a level's board, and `:VimDojo scores` shows your
+  bests, places and anything you haven't sent. `:VimDojo submit` sends everything
+  you've played.
+- Boards rank by verified keys, then by who got there first, and show handles and
+  counts only. Your keys are the level's solution, so they stay private. Setup levels
+  aren't ranked.
+- **On the site:** [leaderboards](https://vimdojo.org/boards/), public profiles, an
+  [account page](https://vimdojo.org/account/) to manage logins, export or delete your
+  data, and a [privacy page](https://vimdojo.org/privacy/).
+- The plugin keeps your best run per level in `stdpath("state")/vimdojo/keylogs`, which
+  stays on your machine unless you submit it.
+- A [security policy](https://github.com/navasvarela/vimdojo/blob/main/SECURITY.md).
+
+### Changed
+
+- Without a connection, a submitted run waits, and is sent the next time you use an
+  online command.
+- The site's footer now says it sets no cookies unless you sign in.
+
 ## v0.5.0 (2026-10-30)
 
 ### Added

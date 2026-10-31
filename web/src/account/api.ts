@@ -4,7 +4,7 @@ import { z } from "zod"
 
 const DEFAULT_API_ORIGIN = "https://api.vimdojo.org"
 
-function apiOrigin(): string {
+export function apiOrigin(): string {
   const configured: unknown = import.meta.env["VITE_API_URL"]
   return typeof configured === "string" && configured !== "" ? configured : DEFAULT_API_ORIGIN
 }
