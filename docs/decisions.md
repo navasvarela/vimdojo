@@ -707,3 +707,32 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   extended by renaming. A handle dropped in that day isn't held, as it has no
   reputation to impersonate and holding it would block going back after a mistaken
   rename. The cooldown then runs from the last change.
+
+## M18: submitting and verifying
+
+- **Levels come from the verifier's own copy.** A job holds a level id, its hash and
+  the keys, and the harness reads the level from its snapshot and checks the hash. A
+  client can't change what a level is, and the Worker doesn't carry level data.
+- **The uid split.** The harness runs as root and each replay as `vimdojo-replay`,
+  with a fresh private directory and an environment built from nothing. Afterwards
+  its processes are killed and its files removed. The harness refuses to replay as
+  root without an identity, so a mistake can't run a key log with full power.
+- **Tested with hostile logs in the real VM** (`run-batch`): reading the jobs file,
+  changing or killing the harness, reaching the network, leaving processes behind,
+  and garbage on the reply pipe. Each check needs evidence that the attempt ran. The
+  first version passed checks on empty output, while the replays were all failing.
+- **What a forged reply can do.** A replay can write to stdout, the pipe the harness
+  reads replies from, so it could in principle forge a reply and fake a solve. That
+  gains nothing: it needs a long `:lua`, whose keys count, and `:lua` can already
+  reach the goal directly at the same cost. Garbage only costs that job.
+- **An outage isn't a failure.** If Vercel is down, runs stay pending at no cost. Only
+  a batch that ran and returned something untrustworthy counts a try against its
+  runs, and three tries end them as `failed`, so a hostile log can't retry forever.
+- **Replaying is rationed.** Only a run claiming to beat the player's verified best
+  is replayed, and identical logs verify once (the verdict cache holds no user id).
+  Batches stop at 4,000 a month, about 80% of Vercel Sandbox's free 5,000 creations.
+- **A run's identity is its keys.** The same keys on the same level are one run, so
+  retries are safe and need no client-generated id, which keeps the outbox simple.
+- **Not in M18:** time plausibility checks, which matter when boards show time (M19),
+  and retrying on the Neovim version the player reported. Replays use the snapshot's
+  Neovim, so a log that only works elsewhere comes back `rejected` or `mismatch`.

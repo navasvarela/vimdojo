@@ -26,7 +26,9 @@ local defaults = {
   online = {
     enabled = false,
     url = "https://api.vimdojo.org",
+    submit = "ask",
     auth_path = nil,
+    outbox_path = nil,
   },
 }
 
@@ -63,6 +65,9 @@ local subcommands = {
   end,
   account = function()
     require("vimdojo.online").account()
+  end,
+  submit = function()
+    require("vimdojo.online").submit_all()
   end,
 }
 

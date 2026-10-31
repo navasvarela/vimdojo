@@ -209,6 +209,11 @@ local function complete(play)
     notify("could not save progress: " .. tostring(err), vim.log.levels.ERROR)
   end
   record_key_log(play, outcome)
+  -- Required here, not at the top: with online features off, this file never loads.
+  local online = config().online.enabled and require("vimdojo.online") or nil
+  if online then
+    online.on_solved(play.level.id)
+  end
 
   local level_id = play.level.id
   local next_level = next_playable(level_id)
@@ -218,7 +223,15 @@ local function complete(play)
     outcome = outcome,
     record = state.progress.levels[level_id],
     has_next = next_level ~= nil,
+    can_submit = online ~= nil and config().online.submit == "ask" and online.can_submit(
+      play.level.id
+    ),
   }, {
+    submit = function()
+      if online then
+        online.submit(play.level.id)
+      end
+    end,
     next = function()
       if next_level then
         M.start(next_level.id)

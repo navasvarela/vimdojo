@@ -18,9 +18,18 @@ export type Verdict =
   | { readonly status: "unsolved" }
   | { readonly status: "error"; readonly reason: string }
 
+/** Who a replay runs as, and the only directory it can write to. */
+export type ReplayIdentity = {
+  readonly uid: number
+  readonly gid: number
+  readonly home: string
+}
+
 export type ReplayOptions = {
   /** The Neovim executable. */
   readonly nvim: string
+  /** Required when running as root: a key log can run shell commands. */
+  readonly identity?: ReplayIdentity
   /** The vimdojo checkout, whose Lua builds the level exactly as the room does. */
   readonly pluginDir: string
   readonly timeoutMs: number
@@ -96,8 +105,36 @@ function timeout(ms: number): Promise<Verdict> {
   })
 }
 
+const ROOT_UID = 0
+
+/** The environment is built from nothing, so no secret can leak in through it. */
+function spawnOptions({ uid, gid, home }: ReplayIdentity) {
+  return {
+    uid,
+    gid,
+    cwd: home,
+    env: {
+      HOME: home,
+      TMPDIR: home,
+      XDG_CONFIG_HOME: `${home}/config`,
+      XDG_DATA_HOME: `${home}/data`,
+      XDG_STATE_HOME: `${home}/state`,
+      XDG_CACHE_HOME: `${home}/cache`,
+      PATH: "/usr/bin:/bin",
+      LANG: "C.UTF-8",
+    },
+  }
+}
+
 export async function replay(job: ReplayJob, options: ReplayOptions): Promise<Verdict> {
-  const nvim = NvimClient.spawn(options.nvim, ["--clean"])
+  if (process.getuid?.() === ROOT_UID && options.identity === undefined) {
+    throw new Error("refusing to replay a key log as root")
+  }
+  const nvim = NvimClient.spawn(
+    options.nvim,
+    ["--clean"],
+    options.identity === undefined ? {} : spawnOptions(options.identity),
+  )
   const run = async (): Promise<Verdict> => feed(nvim, job, await bootstrap(nvim, job, options))
   try {
     return await Promise.race([run(), timeout(options.timeoutMs)])

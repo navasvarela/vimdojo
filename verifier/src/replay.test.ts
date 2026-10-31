@@ -5,7 +5,8 @@ import { describe, it } from "node:test"
 import { fileURLToPath } from "node:url"
 import type { Level } from "../../web/src/challenges"
 import { splitNotation } from "../../web/src/keys"
-import { parseLevel, readPacks } from "./packs"
+import { parsePacks } from "../../web/src/challenges"
+import { readPacks } from "./packs"
 import { replay, type ReplayOptions } from "./replay"
 import { NvimClient, NvimError } from "./rpc"
 
@@ -60,6 +61,13 @@ describe("replay", () => {
     assert.deepEqual(verdict, { status: "solved", keys: splitNotation(hostile).length + 5 })
   })
 
+  it("survives garbage on the reply pipe, without crediting a solve", async () => {
+    const hostile = ':lua io.stdout:write("garbage on the pipe"); io.stdout:flush()<CR>'
+    const verdict = await replayKeys("basic-motions-01", hostile)
+    assert.notEqual(verdict.status, "solved")
+    assert.deepEqual(await replayKeys("basic-motions-01", "jjjll"), { status: "solved", keys: 5 })
+  })
+
   it("can't fake the goal by redefining the room's Lua", async () => {
     const forge =
       ':lua package.loaded["vimdojo.room.child"].snapshot = function() return {} end<CR>'
@@ -97,19 +105,32 @@ describe("replay", () => {
   it("replays unusual keys as the plugin logs them", async () => {
     // Exactly what the plugin logs for these: keytrans() names only space and
     // "<". No reference solution types "|", "\\" or non-ASCII text.
-    const level = parseLevel({
-      id: "special-keys",
-      title: "t",
-      description: "d",
-      start_text: ["x"],
-      cursor_start: [1, 0],
-      goal: { type: "buffer_equals", value: [" <|\\éx"] },
-      par_keys: 7,
-      par_seconds: 1,
-      hint: "h",
-      solution: "i",
-      teaches: ["i"],
-    })
+    const [pack] = parsePacks([
+      {
+        pack: "p",
+        title: "P",
+        order: 1,
+        levels: [
+          {
+            id: "special-keys",
+            title: "t",
+            description: "d",
+            start_text: ["x"],
+            cursor_start: [1, 0],
+            goal: { type: "buffer_equals", value: [" <|\\éx"] },
+            par_keys: 7,
+            par_seconds: 1,
+            hint: "h",
+            solution: "i",
+            teaches: ["i"],
+          },
+        ],
+      },
+    ])
+    const level = pack?.levels[0]
+    if (level === undefined) {
+      throw new Error("the level didn't parse")
+    }
     const keys = ["i", "<Space>", "<lt>", "|", "\\", "é", "<Esc>"]
     assert.deepEqual(await replay({ level, keys }, OPTIONS), { status: "solved", keys: 7 })
   })

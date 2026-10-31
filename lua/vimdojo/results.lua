@@ -10,12 +10,14 @@ local M = {}
 ---@field outcome vimdojo.Outcome
 ---@field record vimdojo.LevelRecord Best-so-far, including this attempt.
 ---@field has_next boolean
+---@field can_submit boolean Offer to submit this run to the leaderboards.
 
 ---@class vimdojo.ResultsActions
 ---@field next fun()
 ---@field retry fun()
 ---@field menu fun()
 ---@field close fun()
+---@field submit fun()
 
 ---@param view vimdojo.ResultsView
 ---@return string[] lines
@@ -39,8 +41,10 @@ function M.content(view)
     table.insert(lines, "  Hint used: capped at 2 stars")
   end
   table.insert(lines, "")
-  local actions = view.has_next and "  [n] next   [r] retry   [y] copy result   [m] menu   [q] quit"
-    or "  [r] retry   [y] copy result   [m] menu   [q] quit"
+  local submit = view.can_submit and "[s] submit   " or ""
+  local actions = view.has_next
+      and ("  [n] next   [r] retry   [y] copy result   %s[m] menu   [q] quit"):format(submit)
+    or ("  [r] retry   [y] copy result   %s[m] menu   [q] quit"):format(submit)
   table.insert(lines, actions)
 
   local highlights = {
@@ -95,6 +99,10 @@ function M.open(view, actions)
     q = run(actions.close),
     ["<Esc>"] = run(actions.close),
   }
+  if view.can_submit then
+    -- Stays open: submitting is on the side of whatever the player does next.
+    mappings.s = actions.submit
+  end
   if view.has_next then
     mappings.n = run(actions.next)
     mappings["<CR>"] = run(actions.next)

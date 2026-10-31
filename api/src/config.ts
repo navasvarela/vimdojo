@@ -9,6 +9,11 @@ export type Env = {
   readonly GITHUB_CLIENT_SECRET: string
   /** Mixed into IP hashes so they can't be reversed by trying every address. */
   readonly RATE_LIMIT_SALT: string
+  readonly VERCEL_TOKEN: string
+  readonly VERCEL_TEAM_ID: string
+  readonly VERCEL_PROJECT_ID: string
+  /** The verifier's snapshot: rebuild it when levels, the room or the harness change. */
+  readonly VERIFIER_SNAPSHOT_ID: string
 }
 
 export const MINUTE_MS = 60_000

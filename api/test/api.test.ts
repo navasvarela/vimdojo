@@ -10,6 +10,7 @@ import { sha256Hex } from "../src/crypto"
 import type { DevicePoll, GitHub } from "../src/github"
 import type { Env } from "../src/config"
 import { ApiError, Status } from "../src/http"
+import { RunStore } from "../src/run-store"
 import { Store } from "../src/store"
 
 const SITE = "https://site.test"
@@ -66,6 +67,7 @@ async function harness(): Promise<Harness> {
   }
   const app: App = {
     store: new Store(db),
+    runs: new RunStore(db),
     github,
     config: { siteOrigin: SITE, apiOrigin: API, clientId: "client", rateLimitSalt: "salt" },
     now: () => now,
