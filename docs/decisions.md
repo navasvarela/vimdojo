@@ -741,3 +741,26 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   the free plan's documented 10 ms, and finished `ok`. That's one batch, so M15's advice
   stands: watch for `exceededCpu`. After a change to its schedule, the cron took about
   six minutes to start firing, during which runs just wait. Cloudflare allows up to 15.
+
+## M19: boards
+
+- **Nobody has to leave Neovim.** `:VimDojo board`, `:VimDojo scores` and `b` on the
+  results card show everything in the editor. The site has the same boards, for people
+  without the plugin. This came from playing the first real run.
+- **Verifying starts on submit.** Waiting for the next cron tick and polling every 10 s
+  felt broken. A run now starts verifying when it's submitted, and the plugin polls
+  every 3 s. Each player gets one immediate batch a minute, so submitting can't burn
+  through the allowance; anything beyond that waits for the cron, which stays as the
+  safety net. If the background work is cut short, runs stay pending, and an overlap
+  only replays twice, with the same result.
+- **Boards don't show time.** It's self-reported and nothing checks that it's
+  plausible, so showing it would break the rule that boards only show what the server
+  can reproduce. It's still stored, in case those checks are added.
+- **Public means counts and handles.** Keys are a level's solution, so no public route
+  returns them, and tests check that. Profiles show the month a player joined, not the
+  day.
+- **Public reads are cached for 60 s** at the edge (`caches.default`), so a busy board
+  costs about one database read a minute, and it can lag by that much. They're
+  deliberately not rate limited: limiting would write to D1 on every read, which costs
+  more than the cached read it would protect. Your own place isn't cached.
+- **A handle's profile shows only levels' current versions**, as the old boards are gone.

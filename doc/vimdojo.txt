@@ -97,6 +97,7 @@ and your best so far:
   r           Retry the level
   s           Submit the run to the leaderboards (when signed in, see
               |vimdojo-online|)
+  b           Show this level's leaderboard
   y           Copy a spoiler-free result to share, such as
               `vimdojo daily 2026-10-30 ★★★ 7 keys (par 7) 4.3s`, to the
               clipboard (and the unnamed register)
@@ -132,6 +133,9 @@ type `:q` inside a level, the level closes.
     logout  Sign out, and revoke this machine's login.
     account Show who you're signed in as, and links to manage your account.
     submit  Send the best run of every level you've played, to be verified.
+    board [level]
+            Show a level's leaderboard. Without a level, asks which one.
+    scores  Show your verified bests and places, and what you haven't sent.
 
     Keys typed on the command line count as keystrokes, so prefer the
     mappings in |vimdojo-controls| during a level.
@@ -197,6 +201,11 @@ level's solution, so they stay private. A server replays them in a clean Neovim
 and recounts the keys. Boards rank by that count, whatever your game counted. Runs
 with pasted text, `config = "mine"` and Setup levels aren't kept, so can't be sent.
 Without a connection, a run waits and is sent the next time you use these commands.
+
+Everything is available from inside Neovim. `:VimDojo scores` lists your bests, your
+place on each board and any runs you haven't sent. `<CR>` there, or `b` on the results
+card, opens a level's board. Boards show handles and key counts only. The same boards
+are at https://vimdojo.org/boards/.
 
                                                             *vimdojo-keylogs*
 When you solve a level, vimdojo keeps the keys of your best run for that level

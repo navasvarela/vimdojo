@@ -40,7 +40,7 @@ function M.setup(opts)
   M.config = vim.tbl_deep_extend("force", vim.deepcopy(defaults), opts or {})
 end
 
----@type table<string, fun()>
+---@type table<string, fun(arg: string|nil)>
 local subcommands = {
   menu = function()
     require("vimdojo.app").open_menu()
@@ -69,6 +69,12 @@ local subcommands = {
   submit = function()
     require("vimdojo.online").submit_all()
   end,
+  board = function(level_id)
+    require("vimdojo.online").board(level_id)
+  end,
+  scores = function()
+    require("vimdojo.online").scores()
+  end,
 }
 
 ---@return string[]
@@ -76,6 +82,22 @@ function M.subcommands()
   local names = vim.tbl_keys(subcommands)
   table.sort(names)
   return names
+end
+
+--- Subcommands, and level ids after `board`. Levels only load if `board` was typed.
+---@param arg_lead string
+---@param cmd_line string
+---@return string[]
+function M.complete(arg_lead, cmd_line)
+  local candidates = M.subcommands()
+  if cmd_line:match("^%S+%s+board%s") then
+    candidates = vim.tbl_map(function(level)
+      return level.id
+    end, require("vimdojo.online").ranked_levels())
+  end
+  return vim.tbl_filter(function(candidate)
+    return vim.startswith(candidate, arg_lead)
+  end, candidates)
 end
 
 --- `:VimDojo [subcommand]`. With no argument it opens the menu.
@@ -87,7 +109,7 @@ function M.command(args)
     vim.notify(("vimdojo: unknown subcommand %q"):format(name), vim.log.levels.ERROR)
     return
   end
-  run()
+  run(args[2])
 end
 
 return M

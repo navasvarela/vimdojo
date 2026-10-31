@@ -71,6 +71,7 @@ async function harness(): Promise<Harness> {
     github,
     config: { siteOrigin: SITE, apiOrigin: API, clientId: "client", rateLimitSalt: "salt" },
     now: () => now,
+    verifySoon: () => undefined,
   }
   return {
     dispose,

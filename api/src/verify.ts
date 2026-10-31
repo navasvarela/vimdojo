@@ -127,6 +127,34 @@ async function verifyPlayer(
   }
 }
 
+/**
+ * Verifies a player's runs straight after they submit one, so the result arrives in
+ * seconds. At most one batch a minute per player: anything beyond that waits for the
+ * scheduled run, so submitting can't burn through the monthly allowance. If this gets
+ * cut short, or a scheduled run overlaps it, runs just stay pending or replay twice,
+ * and the results are the same.
+ */
+export async function verifyOnSubmit(
+  store: RunStore,
+  runner: VerifierRunner,
+  userId: string,
+  now: number,
+  allowed: (subject: string, windowStart: number) => Promise<number>,
+): Promise<void> {
+  const minute = Math.floor(now / 60_000) * 60_000
+  if ((await allowed(`verify:${userId}`, minute)) > 1) {
+    return
+  }
+  if ((await store.batchesThisMonth(monthOf(now))) >= MONTHLY_BATCH_LIMIT) {
+    return
+  }
+  try {
+    await verifyPlayer(store, runner, userId, now)
+  } catch (error) {
+    console.error("verify on submit failed:", error instanceof Error ? error.message : error)
+  }
+}
+
 /** One scheduled run. A player's failure doesn't stop the next player's batch. */
 export async function verifyPending(
   store: RunStore,

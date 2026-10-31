@@ -17,6 +17,7 @@ import {
   type VerifierJob,
   type VerifierRunner,
   type VerifierVerdict,
+  verifyOnSubmit,
   verifyPending,
 } from "../src/verify"
 
@@ -63,6 +64,7 @@ describe("runs", () => {
   /** The sandbox's stand-in: what it was asked, and how it answers. */
   let jobsSeen: VerifierJob[][]
   let answer: (job: VerifierJob) => VerifierVerdict
+  let verifySoonCalls: string[]
 
   const runner: VerifierRunner = async (jobs) => {
     jobsSeen.push([...jobs])
@@ -91,7 +93,11 @@ describe("runs", () => {
       github,
       config: { siteOrigin: SITE, apiOrigin: API, clientId: "c", rateLimitSalt: "s" },
       now: () => now,
+      verifySoon: (userId) => {
+        verifySoonCalls.push(userId)
+      },
     }
+    verifySoonCalls = []
     jobsSeen = []
     answer = solveAll
   })
@@ -409,6 +415,254 @@ describe("runs", () => {
       now = Date.UTC(2026, 10, 1)
       await verify()
       expect((await statusOf(token, id)).status).toBe("verified")
+    })
+  })
+
+  describe("verifying on submit", () => {
+    it("starts straight away for a run worth replaying", async () => {
+      await submit(await player(1), runBody(["a"]))
+      expect(verifySoonCalls).toHaveLength(1)
+    })
+
+    it("doesn't start for a repeat, an unranked level, or one that can't beat the best", async () => {
+      const token = await player(1)
+      await submit(token, runBody(["a"]))
+      await verify()
+      verifySoonCalls = []
+      await submit(token, runBody(["a"]))
+      await submit(token, runBody(["b", "c"]))
+      await submit(token, runBody(["i"], 1, SETUP_LEVEL))
+      expect(verifySoonCalls).toEqual([])
+    })
+
+    const onSubmit = async (githubId: number): Promise<void> => {
+      const user = await app.store.userForGitHub(githubId, now)
+      await verifyOnSubmit(runs, runner, user.id, now, (subject, window) =>
+        app.store.countRequest(subject, window),
+      )
+    }
+
+    it("verifies the player's run", async () => {
+      const token = await player(1)
+      const { id } = await submit(token, runBody(["a"]))
+      await onSubmit(1)
+      expect((await statusOf(token, id)).status).toBe("verified")
+    })
+
+    it("runs one batch a minute per player, and leaves the rest to the cron", async () => {
+      const token = await player(1)
+      await submit(token, runBody(["a", "b"]))
+      await onSubmit(1)
+      const later = await submit(token, runBody(["c"]))
+      await onSubmit(1)
+      expect(jobsSeen).toHaveLength(1)
+      expect((await statusOf(token, later.id)).status).toBe("pending")
+      await verify()
+      expect((await statusOf(token, later.id)).status).toBe("verified")
+    })
+
+    it("respects the monthly limit", async () => {
+      await submit(await player(1), runBody(["a"]))
+      await db
+        .prepare("INSERT INTO verifier_usage (month, batches) VALUES ('2026-10', ?)")
+        .bind(MONTHLY_BATCH_LIMIT)
+        .run()
+      await onSubmit(1)
+      expect(jobsSeen).toEqual([])
+    })
+
+    it("swallows an outage: the run stays pending for the cron", async () => {
+      const token = await player(1)
+      const { id } = await submit(token, runBody(["a"]))
+      const user = await app.store.userForGitHub(1, now)
+      await verifyOnSubmit(
+        runs,
+        () => Promise.reject(new Error("down")),
+        user.id,
+        now,
+        (subject, window) => app.store.countRequest(subject, window),
+      )
+      expect((await statusOf(token, id)).status).toBe("pending")
+    })
+  })
+
+  describe("boards", () => {
+    /** Submits and verifies a run of this many keys for a player with a handle. */
+    async function ranked(id: number, handle: string, keys: number): Promise<string> {
+      const token = await player(id)
+      await call("PATCH", "/api/v1/me", token, { handle })
+      await submit(token, runBody(Array.from({ length: keys }, (_, i) => `k${id}x${i}`)))
+      await verify()
+      now += 1000
+      return token
+    }
+
+    const publicGet = (path: string, origin?: string): Promise<Response> =>
+      handleRequest(
+        new Request(`${API}${path}`, { headers: origin === undefined ? {} : { origin } }),
+        app,
+      )
+
+    type Board = { entries: Array<{ rank: number; handle: string; keys: number }> }
+    const board = async (): Promise<Board> =>
+      (await publicGet(`/api/v1/levels/${LEVEL}/board`)).json()
+
+    it("ranks by fewest keys, then the first to reach that count", async () => {
+      await ranked(1, "slow", 9)
+      await ranked(2, "first", 5)
+      await ranked(3, "second", 5)
+      await ranked(4, "best", 4)
+      expect((await board()).entries.map((e) => [e.rank, e.handle, e.keys])).toEqual([
+        [1, "best", 4],
+        [2, "first", 5],
+        [3, "second", 5],
+        [4, "slow", 9],
+      ])
+    })
+
+    it("shows counts and handles, never keys or time", async () => {
+      await ranked(1, "ana", 3)
+      const text = await (await publicGet(`/api/v1/levels/${LEVEL}/board`)).text()
+      expect(text).toContain('"handle":"ana"')
+      expect(text).not.toContain("k1x0")
+      expect(text).not.toContain("seconds")
+      expect(text).not.toContain("user_id")
+      expect(text).not.toContain("github")
+    })
+
+    it("leaves out players without a handle, and unverified runs", async () => {
+      const noHandle = await player(1)
+      await submit(noHandle, runBody(["a"]))
+      await verify()
+      const waiting = await player(2)
+      await call("PATCH", "/api/v1/me", waiting, { handle: "waiting" })
+      await submit(waiting, runBody(["b"]))
+      expect((await board()).entries).toEqual([])
+    })
+
+    it("ranks a forged claim at its true count", async () => {
+      const token = await player(1)
+      await call("PATCH", "/api/v1/me", token, { handle: "liar" })
+      await submit(token, runBody(["a", "b", "c", "d"], 1))
+      await verify()
+      expect((await board()).entries[0]).toMatchObject({ handle: "liar", keys: 4 })
+    })
+
+    it("shows at most 50 entries", async () => {
+      for (let i = 0; i < 52; i++) {
+        const token = await player(100 + i)
+        await call("PATCH", "/api/v1/me", token, { handle: `p${i}x` })
+        const user = await app.store.userForGitHub(100 + i, now)
+        await db
+          .prepare(
+            "INSERT INTO bests (user_id, level_hash, level_id, run_id, keys, seconds, hinted, first_at) VALUES (?, ?, ?, 'r', ?, 1, 0, 1)",
+          )
+          .bind(user.id, hashOf(LEVEL), LEVEL, i + 1)
+          .run()
+      }
+      expect((await board()).entries).toHaveLength(50)
+    })
+
+    it("can be cached and read from anywhere, with no login", async () => {
+      const response = await publicGet(`/api/v1/levels/${LEVEL}/board`, "https://other.test")
+      expect(response.status).toBe(200)
+      expect(response.headers.get("cache-control")).toContain("public")
+      expect(response.headers.get("access-control-allow-origin")).toBe("*")
+      expect(response.headers.get("access-control-allow-credentials")).toBeNull()
+    })
+
+    it.each([
+      ["an unknown level", "no-such-level"],
+      ["an unranked level", SETUP_LEVEL],
+    ])("has no board for %s", async (_name, level) => {
+      expect((await publicGet(`/api/v1/levels/${level}/board`)).status).toBe(404)
+    })
+
+    it("drops a deleted player from the board", async () => {
+      const token = await ranked(1, "ana", 3)
+      await call("DELETE", "/api/v1/me", token, { confirm: "delete my account" })
+      expect((await board()).entries).toEqual([])
+    })
+
+    describe("your own rank", () => {
+      it("matches your place on the board", async () => {
+        await ranked(1, "first", 3)
+        await ranked(2, "tied", 5)
+        const token = await ranked(3, "mine", 5)
+        const response = await call("GET", `/api/v1/levels/${LEVEL}/board/me`, token)
+        expect(await response.json()).toEqual({ level_id: LEVEL, rank: 3, keys: 5 })
+        expect(response.headers.get("cache-control")).toBe("no-store")
+      })
+
+      it("is empty before you have a verified best", async () => {
+        const response = await call("GET", `/api/v1/levels/${LEVEL}/board/me`, await player(1))
+        expect(await response.json()).toEqual({ level_id: LEVEL, rank: null, keys: null })
+      })
+
+      it("needs a login", async () => {
+        expect((await publicGet(`/api/v1/levels/${LEVEL}/board/me`)).status).toBe(401)
+      })
+    })
+
+    describe("your scores", () => {
+      it("lists your bests with your place on each board", async () => {
+        await ranked(1, "first", 3)
+        const token = await ranked(2, "mine", 5)
+        const response = await call("GET", "/api/v1/me/scores", token)
+        const { scores } = (await response.json()) as {
+          scores: Array<{ level_id: string; keys: number; rank: number }>
+        }
+        expect(scores).toMatchObject([{ level_id: LEVEL, keys: 5, rank: 2 }])
+        expect(JSON.stringify(scores)).not.toContain("k2x0")
+      })
+
+      it("is empty before anything is verified", async () => {
+        const response = await call("GET", "/api/v1/me/scores", await player(1))
+        expect(await response.json()).toEqual({ scores: [] })
+      })
+
+      it("needs a login", async () => {
+        expect((await publicGet("/api/v1/me/scores")).status).toBe(401)
+      })
+    })
+
+    describe("public profiles", () => {
+      it("shows the handle, the join month and verified bests", async () => {
+        await ranked(1, "ana", 3)
+        const response = await publicGet("/api/v1/players/ana")
+        const profile = (await response.json()) as {
+          handle: string
+          joined: string
+          bests: Array<{ level_id: string; keys: number }>
+        }
+        expect(profile.handle).toBe("ana")
+        expect(profile.joined).toBe("2026-10")
+        expect(profile.bests).toMatchObject([{ level_id: LEVEL, keys: 3 }])
+        expect(response.headers.get("cache-control")).toContain("public")
+      })
+
+      it("reveals nothing private", async () => {
+        await ranked(4242, "ana", 3)
+        const text = await (await publicGet("/api/v1/players/ana")).text()
+        expect(text).not.toContain("4242")
+        expect(text).not.toContain("k4242x0")
+        expect(text).not.toContain("run_id")
+        expect(text).not.toContain("level_hash")
+      })
+
+      it("is a 404 for an unknown handle", async () => {
+        expect((await publicGet("/api/v1/players/nobody")).status).toBe(404)
+      })
+
+      it("leaves out bests on an older version of a level", async () => {
+        const token = await ranked(1, "ana", 3)
+        await db.prepare("UPDATE bests SET level_hash = 'sha256:old'").run()
+        const profile = (await (await publicGet("/api/v1/players/ana")).json()) as {
+          bests: unknown[]
+        }
+        expect(profile.bests).toEqual([])
+        expect(token).toBeTruthy()
+      })
     })
   })
 

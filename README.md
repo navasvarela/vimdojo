@@ -93,6 +93,28 @@ Each level runs in its own clean Neovim inside a terminal window, so your
 registers, windows and settings are never touched, and your plugins can't
 interfere with par. Set `config = "mine"` to practice with your own setup.
 
+## Leaderboards
+
+Optional, and off until you turn them on. The game works with no account and no
+network either way.
+
+```lua
+{ "navasvarela/vimdojo", cmd = "VimDojo", opts = { online = { enabled = true } } }
+```
+
+| Command | What it does |
+|---|---|
+| `:VimDojo login` | Sign in with GitHub and pick a public handle |
+| `s` on the results card | Submit the run: a server replays it in a clean Neovim and recounts the keys |
+| `b` on the results card, or `:VimDojo board [level]` | The level's leaderboard, right in Neovim |
+| `:VimDojo scores` | Your verified bests and places, and what you haven't sent |
+| `:VimDojo submit` | Send the best run of every level you've played |
+
+Boards rank by verified keys, then by who got there first, and show handles and
+counts only, because your keys are that level's solution. Setup levels aren't ranked.
+They're also at [vimdojo.org/boards](https://vimdojo.org/boards/), and
+[here's what's stored](https://vimdojo.org/privacy/).
+
 ## Community
 
 Share your daily result (`y` on the results card copies it without the

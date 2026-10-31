@@ -12,6 +12,7 @@ import {
   TOKEN_TOUCH_INTERVAL_MS,
 } from "./config"
 import { newToken, pkceChallenge, randomUrlSafe, sha256Hex } from "./crypto"
+import { ownRank, ownScores, publicBoard, publicProfile } from "./boards"
 import type { GitHub } from "./github"
 import { HANDLE_RULES, handleProblem } from "./handles"
 import {
@@ -25,6 +26,7 @@ import {
   preflight,
   redirect,
   Status,
+  withPublicHeaders,
   withStandardHeaders,
 } from "./http"
 import type { RunStore } from "./run-store"
@@ -56,6 +58,8 @@ export type App = {
   readonly github: GitHub
   readonly config: AppConfig
   readonly now: () => number
+  /** Starts verifying a player's runs in the background, after the response. */
+  readonly verifySoon: (userId: string) => void
 }
 
 /** A signed-in request: who, with which token, and whether it came by cookie. */
@@ -427,6 +431,9 @@ const postRun: Handler = async (request, app) => {
   }
   const body = await parseBody(request, RunBody)
   const result = await submitRun(app.runs, token.user_id, body, app.now())
+  if (result.isNew && result.status === "pending") {
+    app.verifySoon(token.user_id)
+  }
   return json({ id: result.id, status: result.status }, result.isNew ? Status.Accepted : Status.Ok)
 }
 
@@ -439,7 +446,37 @@ const getRun: Handler = async (request, app, [runId]) => {
   return json(publicRun(run))
 }
 
+const getBoard: Handler = async (_request, app, [levelId]) =>
+  json(await publicBoard(app.runs, levelId ?? ""))
+
+const getOwnRank: Handler = async (request, app, [levelId]) => {
+  const { token } = await authenticate(request, app)
+  return json(await ownRank(app.runs, token.user_id, levelId ?? ""))
+}
+
+const getOwnScores: Handler = async (request, app) => {
+  const { token } = await authenticate(request, app)
+  return json(await ownScores(app.runs, token.user_id))
+}
+
+const getPlayer: Handler = async (_request, app, [handle]) =>
+  json(await publicProfile(app.runs, handle ?? ""))
+
+// Boards and profiles are the same for everyone, so they carry no cookies, can be
+// cached, and can be read from anywhere.
+const PUBLIC_ROUTES: ReadonlyArray<readonly [RegExp, Handler]> = [
+  [/^\/api\/v1\/levels\/([\w-]+)\/board$/, getBoard],
+  [/^\/api\/v1\/players\/([\w-]+)$/, getPlayer],
+]
+
+/** Whether a GET to this path is public, and so safe to cache for everyone. */
+export function isPublicPath(pathname: string): boolean {
+  return PUBLIC_ROUTES.some(([pattern]) => pattern.test(pathname))
+}
+
 const ROUTES: ReadonlyArray<readonly [string, RegExp, Handler]> = [
+  ["GET", /^\/api\/v1\/levels\/([\w-]+)\/board\/me$/, getOwnRank],
+  ["GET", /^\/api\/v1\/me\/scores$/, getOwnScores],
   ["GET", /^\/api\/v1\/auth\/github\/start$/, githubStart],
   ["GET", /^\/api\/v1\/auth\/github\/callback$/, githubCallback],
   ["POST", /^\/api\/v1\/auth\/device$/, deviceStart],
@@ -466,13 +503,30 @@ async function route(request: Request, app: App): Promise<Response> {
   throw new ApiError(Status.NotFound, "not_found", "No such route.")
 }
 
+async function routePublic(request: Request, app: App): Promise<Response | undefined> {
+  if (request.method !== "GET") {
+    return undefined
+  }
+  const { pathname } = new URL(request.url)
+  for (const [pattern, handler] of PUBLIC_ROUTES) {
+    const match = pattern.exec(pathname)
+    if (match) {
+      return withPublicHeaders(await handler(request, app, match.slice(1)))
+    }
+  }
+  return undefined
+}
+
 export async function handleRequest(request: Request, app: App): Promise<Response> {
   const { siteOrigin } = app.config
   if (request.method === "OPTIONS") {
     return withStandardHeaders(preflight(request, siteOrigin), request, siteOrigin)
   }
   try {
-    return withStandardHeaders(await route(request, app), request, siteOrigin)
+    return (
+      (await routePublic(request, app)) ??
+      withStandardHeaders(await route(request, app), request, siteOrigin)
+    )
   } catch (error) {
     if (error instanceof ApiError) {
       return withStandardHeaders(errorResponse(error), request, siteOrigin)

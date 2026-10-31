@@ -1,8 +1,11 @@
 -- Leaderboard accounts: `:VimDojo login`, `logout` and `account`. Off by default,
 -- and nothing here runs at startup: the network is only touched when the player
 -- calls one of these commands.
+local challenges = require("vimdojo.challenges")
 local keylog = require("vimdojo.keylog")
+local scoreboard = require("vimdojo.scoreboard")
 local storage = require("vimdojo.storage")
+local ui = require("vimdojo.ui")
 
 local uv = vim.uv or vim.loop
 
@@ -30,9 +33,12 @@ local HTTP_OK = 200
 local HTTP_NO_CONTENT = 204
 local HTTP_ACCEPTED = 202
 local HTTP_UNAUTHORIZED = 401
--- Verification runs every minute, so this covers a batch or two.
-local VERIFY_POLL_SECONDS = 10
-local VERIFY_POLL_TRIES = 18
+-- A run usually verifies within seconds of being sent, and otherwise within a
+-- minute or two (the API's cron). This covers both, for three minutes in all.
+local VERIFY_POLL_SECONDS = 3
+local VERIFY_POLL_TRIES = 60
+-- Setup levels are unranked until their probes can't be forged (PLAN-v3, L5).
+local UNRANKED_TRACK = "setup"
 -- `:VimDojo submit` stays under the API's 30 runs a minute.
 local SUBMIT_ALL_GAP_SECONDS = 3
 
@@ -241,9 +247,11 @@ end
 ---@field request fun(method: string, path: string, options: table, callback: fun(response: vimdojo.ApiResponse))
 ---@field defer fun(callback: fun(), ms: integer)
 ---@field input fun(opts: table, callback: fun(value: string|nil))
+---@field select fun(items: table, opts: table, callback: fun(item: any))
 
 ---@type vimdojo.OnlineDeps
-local deps = { request = curl_request, defer = vim.defer_fn, input = vim.ui.input }
+local deps =
+  { request = curl_request, defer = vim.defer_fn, input = vim.ui.input, select = vim.ui.select }
 
 --- Lets tests stand in for the network, timers and prompts.
 ---@param overrides table
@@ -252,7 +260,8 @@ function M._set_deps(overrides)
 end
 
 function M._reset_deps()
-  deps = { request = curl_request, defer = vim.defer_fn, input = vim.ui.input }
+  deps =
+    { request = curl_request, defer = vim.defer_fn, input = vim.ui.input, select = vim.ui.select }
 end
 
 ---@return boolean
@@ -372,6 +381,173 @@ local RUN_OUTCOMES = {
   end,
 }
 
+--- Levels that can rank, from the packs that ship with the plugin.
+---@return vimdojo.ScoreLevel[]
+function M.ranked_levels()
+  local packs = challenges.load_dir()
+  local levels = {}
+  for _, pack in ipairs(packs or {}) do
+    if pack.track ~= UNRANKED_TRACK then
+      for _, level in ipairs(pack.levels) do
+        table.insert(levels, { id = level.id, title = level.title, par_keys = level.par_keys })
+      end
+    end
+  end
+  return levels
+end
+
+---@param level_id string
+---@return vimdojo.ScoreLevel|nil
+local function ranked_level(level_id)
+  for _, level in ipairs(M.ranked_levels()) do
+    if level.id == level_id then
+      return level
+    end
+  end
+end
+
+---@param level vimdojo.ScoreLevel
+---@param entries vimdojo.BoardEntry[]
+---@param mine vimdojo.OwnRank|nil
+local function open_board_panel(level, entries, mine)
+  ui.define_highlights()
+  local rows = scoreboard.board_rows(entries, mine)
+  local panel = ui.open_panel({
+    title = (" %s: par %d "):format(level.title, level.par_keys),
+    lines = rows.lines,
+    highlights = rows.highlights,
+    footer = " q close ",
+  })
+  ui.map(panel.buf, { q = panel.close, ["<Esc>"] = panel.close })
+end
+
+---@param level vimdojo.ScoreLevel
+local function show_board(level)
+  local path = ("/api/v1/levels/%s/board"):format(level.id)
+  deps.request("GET", path, {}, function(res)
+    if res.status ~= HTTP_OK or not res.body then
+      notify(failure_message(res), vim.log.levels.WARN)
+      return
+    end
+    local entries = res.body.entries or {}
+    local token = M.token()
+    if not token then
+      open_board_panel(level, entries, nil)
+      return
+    end
+    deps.request("GET", path .. "/me", { token = token }, function(own)
+      open_board_panel(level, entries, own.status == HTTP_OK and own.body or nil)
+    end)
+  end)
+end
+
+--- `:VimDojo board [level]`: a level's board, without leaving Neovim. Boards are
+--- public, so this works signed out too; signed in, it also shows your place.
+---@param level_id string|nil Asks which level when left out.
+function M.board(level_id)
+  if not require_enabled() then
+    return
+  end
+  if level_id then
+    local level = ranked_level(level_id)
+    if level then
+      show_board(level)
+    else
+      notify(("%s has no board: it isn't a ranked level."):format(level_id), vim.log.levels.WARN)
+    end
+    return
+  end
+  deps.select(M.ranked_levels(), {
+    prompt = "Which level's board?",
+    format_item = function(level)
+      return level.title
+    end,
+  }, function(level)
+    if level then
+      show_board(level)
+    end
+  end)
+end
+
+--- The keys of each level's local best run.
+---@return table<string, integer>
+local function local_bests()
+  local bests = {}
+  for _, path in ipairs(vim.fn.glob(keylog_dir() .. "/*.json", false, true)) do
+    local level_id = vim.fn.fnamemodify(path, ":t:r")
+    local run = keylog.load(keylog_dir(), level_id)
+    if run then
+      bests[level_id] = run.claimed.keys
+    end
+  end
+  return bests
+end
+
+--- `:VimDojo scores`: your verified bests and places, and what you haven't sent.
+function M.scores()
+  local token = M.token()
+  if not require_enabled() then
+    return
+  end
+  if not token then
+    notify("you aren't signed in. Run :VimDojo login.")
+    return
+  end
+  deps.request("GET", "/api/v1/me/scores", { token = token }, function(res)
+    if res.status == HTTP_UNAUTHORIZED then
+      notify("your login has expired. Run :VimDojo login.")
+      return
+    end
+    if res.status ~= HTTP_OK or not res.body then
+      notify(failure_message(res), vim.log.levels.WARN)
+      return
+    end
+    ui.define_highlights()
+    local rows = scoreboard.score_rows(M.ranked_levels(), res.body.scores or {}, local_bests())
+    local panel = ui.open_panel({
+      title = " Your scores ",
+      lines = rows.lines,
+      highlights = rows.highlights,
+      footer = rows.unsent > 0 and " <CR> board · s send all · q close "
+        or " <CR> board · q close ",
+    })
+    ui.map(panel.buf, {
+      ["<CR>"] = function()
+        local level_id = rows.level_at[vim.api.nvim_win_get_cursor(panel.win)[1]]
+        if level_id then
+          M.board(level_id)
+        end
+      end,
+      s = function()
+        panel.close()
+        M.submit_all()
+      end,
+      q = panel.close,
+      ["<Esc>"] = panel.close,
+    })
+  end)
+end
+
+--- Adds the player's place to a verdict, so the good news doesn't need a second step.
+---@param token string
+---@param level_id string
+---@param message string
+local function notify_with_rank(token, level_id, message)
+  deps.request(
+    "GET",
+    ("/api/v1/levels/%s/board/me"):format(level_id),
+    { token = token },
+    function(res)
+      local rank = res.status == HTTP_OK and res.body and res.body.rank
+      if rank then
+        notify(("%s You're #%d: :VimDojo board %s"):format(message, rank, level_id))
+      else
+        notify(message)
+      end
+    end
+  )
+end
+
 --- Waits for the verdict, without holding anything up: a player can keep playing.
 ---@param token string
 ---@param run_id string
@@ -380,7 +556,7 @@ local RUN_OUTCOMES = {
 local function await_verdict(token, run_id, level_id, tries_left)
   if tries_left == 0 then
     notify(
-      ("%s is taking longer than usual to verify. It's safe: run :VimDojo submit later to check."):format(
+      ("%s is taking longer than usual to verify. It's safe: run :VimDojo scores later."):format(
         level_id
       )
     )
@@ -389,7 +565,9 @@ local function await_verdict(token, run_id, level_id, tries_left)
   deps.defer(function()
     deps.request("GET", "/api/v1/runs/" .. run_id, { token = token }, function(res)
       local outcome = res.body and RUN_OUTCOMES[res.body.status]
-      if outcome then
+      if outcome and res.body.verified_keys then
+        notify_with_rank(token, level_id, outcome(res.body))
+      elseif outcome then
         notify(outcome(res.body))
       else
         await_verdict(token, run_id, level_id, tries_left - 1)
@@ -428,11 +606,7 @@ local function send_run(level_id, token, quiet)
       return
     end
     if res.body.status == "pending" then
-      notify(
-        ("%s submitted. Verifying usually takes about a minute: the result will show here."):format(
-          level_id
-        )
-      )
+      notify(("%s submitted. Verifying: the result will show here in a moment."):format(level_id))
       await_verdict(token, res.body.id, level_id, VERIFY_POLL_TRIES)
     else
       local outcome = RUN_OUTCOMES[res.body.status]

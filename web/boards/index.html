@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="vimdojo leaderboards: fewest verified keystrokes on each level, replayed in real Neovim." />
+    <meta name="theme-color" content="#0f0e0c" />
+    <link rel="icon" type="image/svg+xml" href="../../docs/brand/logo.svg" />
+    <title>Leaderboards · vimdojo</title>
+  </head>
+  <body>
+    <main>
+      <section class="section">
+        <p class="prompt"><a href="/">~/dojo</a> $ <span class="cursor">:VimDojo board</span></p>
+        <h1>Leaderboards</h1>
+        <p>
+          Every score here was replayed in a clean Neovim, and its keys recounted. Fewest keys
+          ranks first, then whoever got there first.
+        </p>
+        <p class="account-form">
+          <label class="account-label" for="level">Level</label>
+          <select id="level" class="account-input"><!-- board-levels --></select>
+        </p>
+        <div id="board">Loading…</div>
+        <p class="aside">
+          Scores come from the Neovim plugin:
+          <a href="/#install">install it</a>, then see <code>:help vimdojo-online</code>.
+        </p>
+      </section>
+    </main>
+    <footer class="footer">
+      <p><a href="/">Home</a> · <a href="/account/">Account</a> · <a href="/privacy/">Privacy</a></p>
+    </footer>
+    <script type="module" src="/src/boards/main.ts"></script>
+  </body>
+</html>

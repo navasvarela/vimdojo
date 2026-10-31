@@ -34,11 +34,10 @@ longer, move all the dates together.
     waiting to be asked.
   - The CI-proven levels and the written-down decisions are your evidence
     that it's carefully made.
-- **Don't promise what isn't built.** There are no accounts, servers or
-  leaderboards yet. A design for opt-in, verified leaderboards is in
-  `docs/proposals/leaderboard-and-community.md`, but nothing is scheduled.
-  If asked, say it's being considered, that offline stays the default, and
-  ask what they'd want from it. Don't give dates.
+- **Don't lead with leaderboards.** They're new and only lightly used, and an empty
+  board isn't much of a hook. Keep the post about the game and the daily, and mention
+  boards once as optional. If asked, say that a server replays each run to verify the
+  key count, and that offline stays the default.
 
 ## Phase 0: prepare (before the first post)
 
@@ -175,10 +174,11 @@ earlier Vim-trainer threads:
     - a curriculum where par only uses what's been taught
     - every level in a clean Neovim
     - the Usage and Setup tracks
-- **"Leaderboards?"** Not yet. Progress stays on your machine, and there
-  are no servers or accounts. Opt-in leaderboards that replay each run to
-  verify the key count are designed but not scheduled. Ask what they'd
-  want; the daily's share line is the low-tech version for now.
+- **"Leaderboards?"** Yes, optional and off by default: `online = { enabled = true }`,
+  then `:VimDojo login`. A server replays each run in a clean Neovim and recounts the
+  keys, so boards only show what it can reproduce. They work inside Neovim
+  (`:VimDojo board`) and at vimdojo.org/boards. No email or password, and your keys
+  stay private. Setup levels aren't ranked, because their checks can still be forged.
 
 How to handle what comes in:
 

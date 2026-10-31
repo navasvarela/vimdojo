@@ -11,6 +11,7 @@ local M = {}
 ---@field record vimdojo.LevelRecord Best-so-far, including this attempt.
 ---@field has_next boolean
 ---@field can_submit boolean Offer to submit this run to the leaderboards.
+---@field has_board boolean Offer to show this level's board.
 
 ---@class vimdojo.ResultsActions
 ---@field next fun()
@@ -18,6 +19,7 @@ local M = {}
 ---@field menu fun()
 ---@field close fun()
 ---@field submit fun()
+---@field board fun()
 
 ---@param view vimdojo.ResultsView
 ---@return string[] lines
@@ -41,7 +43,8 @@ function M.content(view)
     table.insert(lines, "  Hint used: capped at 2 stars")
   end
   table.insert(lines, "")
-  local submit = view.can_submit and "[s] submit   " or ""
+  local submit = (view.can_submit and "[s] submit   " or "")
+    .. (view.has_board and "[b] board   " or "")
   local actions = view.has_next
       and ("  [n] next   [r] retry   [y] copy result   %s[m] menu   [q] quit"):format(submit)
     or ("  [r] retry   [y] copy result   %s[m] menu   [q] quit"):format(submit)
@@ -102,6 +105,9 @@ function M.open(view, actions)
   if view.can_submit then
     -- Stays open: submitting is on the side of whatever the player does next.
     mappings.s = actions.submit
+  end
+  if view.has_board then
+    mappings.b = actions.board
   end
   if view.has_next then
     mappings.n = run(actions.next)

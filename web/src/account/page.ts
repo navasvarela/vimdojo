@@ -238,7 +238,16 @@ export class AccountPage {
     const dataStatus = statusLine()
     this.root.replaceChildren(
       this.takeNotice(),
-      h("p", {}, ["Signed in as ", h("strong", {}, [handle]), "."]),
+      h("p", {}, [
+        "Signed in as ",
+        h("strong", {}, [handle]),
+        ". ",
+        h("a", { attrs: { href: `/player/?handle=${encodeURIComponent(handle)}` } }, [
+          "Your public profile",
+        ]),
+        " · ",
+        h("a", { attrs: { href: "/boards/" } }, ["Leaderboards"]),
+      ]),
       h("h2", {}, ["Change your handle"]),
       ...this.changeHandle(me),
       h("h2", {}, ["Your logins"]),
