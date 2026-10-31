@@ -1,7 +1,6 @@
-# Copy to .dev.vars (gitignored) and fill in. See verifier/sandbox/README.md.
-VERCEL_TOKEN=
-VERCEL_TEAM_ID=
-VERCEL_PROJECT_ID=
-VERIFIER_SNAPSHOT_ID=
-# Any random string; requests to /spike must send it as a Bearer token.
-SPIKE_SECRET=
+# Copy to .dev.vars (gitignored) for `wrangler dev`.
+SITE_ORIGIN=http://localhost:5173
+API_ORIGIN=http://localhost:8787
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+RATE_LIMIT_SALT=any-random-string

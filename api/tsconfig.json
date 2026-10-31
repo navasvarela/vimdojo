@@ -2,7 +2,7 @@
   "extends": "../web/tsconfig.json",
   "compilerOptions": {
     "lib": ["ES2022"],
-    "types": ["@cloudflare/workers-types", "../web/node_modules/vite/client"]
+    "types": ["@cloudflare/workers-types", "node"]
   },
-  "include": ["src"]
+  "include": ["src", "test"]
 }

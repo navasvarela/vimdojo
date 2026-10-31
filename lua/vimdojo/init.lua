@@ -8,6 +8,7 @@ local M = {}
 ---@field keylog_dir string|nil Override for where key logs are kept (used by tests).
 ---@field challenges_dir string|nil Load packs from this directory instead of the built-in ones (for authors and tests).
 ---@field keymaps vimdojo.Controls Normal-mode game controls in the level buffer. Never counted as keystrokes.
+---@field online vimdojo.OnlineConfig Leaderboard accounts. Off until you turn them on.
 
 ---@type vimdojo.Config
 local defaults = {
@@ -21,6 +22,11 @@ local defaults = {
     hint = "<leader>h",
     reset = "<leader>r",
     quit = "<Esc><Esc>",
+  },
+  online = {
+    enabled = false,
+    url = "https://api.vimdojo.org",
+    auth_path = nil,
   },
 }
 
@@ -48,6 +54,15 @@ local subcommands = {
   end,
   quit = function()
     require("vimdojo.app").quit()
+  end,
+  login = function()
+    require("vimdojo.online").login()
+  end,
+  logout = function()
+    require("vimdojo.online").logout()
+  end,
+  account = function()
+    require("vimdojo.online").account()
   end,
 }
 

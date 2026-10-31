@@ -3,17 +3,21 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "dependencies": {
-    "@vercel/sandbox": "3.6.1"
-  },
   "devDependencies": {
     "@cloudflare/workers-types": "5.20261015.1",
+    "@types/node": "26.6.5",
+    "miniflare": "4.20260730.0",
     "typescript": "7.0.2",
+    "vitest": "5.0.5",
     "wrangler": "4.151.0"
   },
   "scripts": {
     "dev": "wrangler dev",
+    "test": "vitest run",
     "typecheck": "tsc --noEmit -p .",
     "build": "wrangler deploy --dry-run --outdir dist"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
   }
 }
