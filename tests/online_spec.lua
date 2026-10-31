@@ -306,7 +306,7 @@ describe("online", function()
       end
       online.submit(LEVEL)
       run_timers()
-      assert.is_truthy(last_message():find("still being verified", 1, true))
+      assert.is_truthy(last_message():find("taking longer than usual", 1, true))
     end)
 
     it("keeps a run in the outbox when offline, and sends it next time", function()

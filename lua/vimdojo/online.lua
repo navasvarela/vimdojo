@@ -379,7 +379,11 @@ local RUN_OUTCOMES = {
 ---@param tries_left integer
 local function await_verdict(token, run_id, level_id, tries_left)
   if tries_left == 0 then
-    notify(("%s is still being verified. Run :VimDojo submit later to check."):format(level_id))
+    notify(
+      ("%s is taking longer than usual to verify. It's safe: run :VimDojo submit later to check."):format(
+        level_id
+      )
+    )
     return
   end
   deps.defer(function()
@@ -424,7 +428,11 @@ local function send_run(level_id, token, quiet)
       return
     end
     if res.body.status == "pending" then
-      notify(("%s submitted. Verifying it…"):format(level_id))
+      notify(
+        ("%s submitted. Verifying usually takes about a minute: the result will show here."):format(
+          level_id
+        )
+      )
       await_verdict(token, res.body.id, level_id, VERIFY_POLL_TRIES)
     else
       local outcome = RUN_OUTCOMES[res.body.status]
