@@ -263,9 +263,11 @@ describe("online", function()
       assert.are.equal(TOKEN, requests[1].options.token)
       assert.are.same({ "j" }, requests[1].options.body.keys)
       assert.is_truthy(last_message():find("Verifying", 1, true))
+      table.insert(responses, { status = 200, body = { rank = 4 } })
       run_timers()
       assert.are.equal("/api/v1/runs/r1", requests[3].path)
       assert.is_truthy(last_message():find("verified: 1 keys", 1, true))
+      assert.is_truthy(last_message():find("You're #4", 1, true))
     end)
 
     local outcomes = {
@@ -301,12 +303,12 @@ describe("online", function()
     it("stops waiting eventually, and says how to check", function()
       save_run()
       responses = { { status = 202, body = { id = "r1", status = "pending" } } }
-      for _ = 1, 30 do
+      for _ = 1, 70 do
         table.insert(responses, { status = 200, body = { status = "pending" } })
       end
       online.submit(LEVEL)
       run_timers()
-      assert.is_truthy(last_message():find("still being verified", 1, true))
+      assert.is_truthy(last_message():find("taking longer than usual", 1, true))
     end)
 
     it("keeps a run in the outbox when offline, and sends it next time", function()
@@ -428,6 +430,166 @@ describe("online", function()
         assert.is_true(online.can_submit(LEVEL))
         vimdojo.config.online.submit = "never"
         assert.is_false(online.can_submit(LEVEL))
+      end)
+    end)
+  end)
+
+  describe("boards in Neovim", function()
+    local LEVEL = "basic-motions-01"
+    local BOARD = {
+      status = 200,
+      body = {
+        entries = {
+          { rank = 1, handle = "ana", keys = 4, hinted = false, since = "2026-10-31" },
+          { rank = 2, handle = "bea", keys = 5, hinted = true, since = "2026-10-31" },
+        },
+      },
+    }
+
+    local function panel_text()
+      return table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), "\n")
+    end
+
+    after_each(function()
+      if vim.api.nvim_win_get_config(0).relative ~= "" then
+        vim.api.nvim_win_close(0, true)
+      end
+    end)
+
+    it("shows a board signed out, with no login needed", function()
+      responses = { BOARD }
+      online.board(LEVEL)
+      assert.are.equal(1, #requests)
+      assert.is_nil(requests[1].options.token)
+      assert.is_truthy(panel_text():find("ana", 1, true))
+      assert.is_truthy(panel_text():find("5*", 1, true))
+    end)
+
+    it("adds your place when signed in", function()
+      online.save_token(TOKEN)
+      responses = {
+        { status = 200, body = { entries = BOARD.body.entries } },
+        { status = 200, body = { rank = 60, keys = 9 } },
+      }
+      online.board(LEVEL)
+      assert.are.equal(TOKEN, requests[2].options.token)
+      assert.is_truthy(panel_text():find("You're #60, with 9 keys", 1, true))
+    end)
+
+    it("doesn't repeat your place when you're on the board", function()
+      online.save_token(TOKEN)
+      responses = {
+        { status = 200, body = { entries = BOARD.body.entries } },
+        { status = 200, body = { rank = 2, keys = 5 } },
+      }
+      online.board(LEVEL)
+      assert.is_nil(panel_text():find("You're #", 1, true))
+    end)
+
+    it("says so when a board is empty", function()
+      responses = { { status = 200, body = { entries = {} } } }
+      online.board(LEVEL)
+      assert.is_truthy(panel_text():find("No verified runs yet", 1, true))
+    end)
+
+    it("refuses a level that isn't ranked", function()
+      online.board("autocmds-01")
+      assert.are.same({}, requests)
+      assert.is_truthy(last_message():find("no board", 1, true))
+    end)
+
+    it("reports a failure instead of opening an empty panel", function()
+      online.board(LEVEL)
+      assert.is_truthy(last_message():find("couldn't reach", 1, true))
+    end)
+
+    it("asks which level when none is given, and only offers ranked ones", function()
+      local offered
+      online._set_deps({
+        select = function(items, _, callback)
+          offered = items
+          callback(items[1])
+        end,
+      })
+      responses = { BOARD }
+      online.board()
+      assert.is_true(#offered > 0)
+      for _, level in ipairs(offered) do
+        assert.is_nil(level.id:find("autocmds", 1, true))
+      end
+      assert.are.equal(1, #requests)
+    end)
+
+    it("needs online features on", function()
+      vimdojo.config.online.enabled = false
+      online.board(LEVEL)
+      online.scores()
+      assert.are.same({}, requests)
+    end)
+
+    describe("your scores", function()
+      local function save_run(level_id, keys)
+        keylog.record(vimdojo.config.keylog_dir, {
+          version = keylog.VERSION,
+          level_id = level_id,
+          level_hash = "sha256:h",
+          nvim = "0.12.6",
+          keys = { "j" },
+          deltas_ms = { 0 },
+          claimed = { keys = keys, seconds = 1, hinted = false },
+        })
+      end
+
+      before_each(function()
+        online.save_token(TOKEN)
+      end)
+
+      it("shows places, and what hasn't been sent", function()
+        save_run("basic-motions-02", 3)
+        save_run(LEVEL, 2)
+        responses = {
+          {
+            status = 200,
+            body = { scores = { { level_id = LEVEL, keys = 5, rank = 3, hinted = false } } },
+          },
+        }
+        online.scores()
+        local text = panel_text()
+        assert.is_truthy(text:find("#3 (2 not sent)", 1, true))
+        assert.is_truthy(text:find("not sent", 1, true))
+      end)
+
+      it("opens a level's board from its line", function()
+        responses = {
+          {
+            status = 200,
+            body = { scores = { { level_id = LEVEL, keys = 5, rank = 3, hinted = false } } },
+          },
+          BOARD,
+          { status = 200, body = { rank = 3, keys = 5 } },
+        }
+        online.scores()
+        local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+        for number, line in ipairs(lines) do
+          if line:find("#3", 1, true) then
+            vim.api.nvim_win_set_cursor(0, { number, 0 })
+          end
+        end
+        vim.api.nvim_feedkeys(vim.keycode("<CR>"), "x", false)
+        assert.are.equal(("/api/v1/levels/%s/board"):format(LEVEL), requests[2].path)
+        vim.api.nvim_win_close(0, true)
+      end)
+
+      it("says what to do when there's nothing yet", function()
+        responses = { { status = 200, body = { scores = {} } } }
+        online.scores()
+        assert.is_truthy(panel_text():find("Solve a level", 1, true))
+      end)
+
+      it("says when the login has expired", function()
+        responses = { { status = 401 } }
+        online.scores()
+        assert.is_truthy(last_message():find(":VimDojo login", 1, true))
       end)
     end)
   end)

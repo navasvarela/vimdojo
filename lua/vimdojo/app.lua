@@ -223,6 +223,7 @@ local function complete(play)
     outcome = outcome,
     record = state.progress.levels[level_id],
     has_next = next_level ~= nil,
+    has_board = online ~= nil and #goals.probes(play.level.goal) == 0,
     can_submit = online ~= nil and config().online.submit == "ask" and online.can_submit(
       play.level.id
     ),
@@ -230,6 +231,11 @@ local function complete(play)
     submit = function()
       if online then
         online.submit(play.level.id)
+      end
+    end,
+    board = function()
+      if online then
+        online.board(play.level.id)
       end
     end,
     next = function()

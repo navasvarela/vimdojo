@@ -108,6 +108,19 @@ export function preflight(request: Request, siteOrigin: string): Response {
   })
 }
 
+/** How long the CDN and browsers can reuse a public response. Boards can lag this much. */
+const PUBLIC_MAX_AGE_SECONDS = 60
+
+/** Boards and profiles: readable from anywhere, and the same for everyone. */
+export function withPublicHeaders(response: Response): Response {
+  const result = new Response(response.body, response)
+  result.headers.set("strict-transport-security", `max-age=${HSTS_MAX_AGE_SECONDS}`)
+  result.headers.set("x-content-type-options", "nosniff")
+  result.headers.set("cache-control", `public, max-age=${PUBLIC_MAX_AGE_SECONDS}`)
+  result.headers.set("access-control-allow-origin", "*")
+  return result
+}
+
 /** Only the site's own origin may read responses, or send its cookies. */
 export function withStandardHeaders(
   response: Response,

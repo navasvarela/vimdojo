@@ -55,6 +55,26 @@ export type BestRow = {
   readonly first_at: number
 }
 
+/** One line of a public board. Counts and handles only: never a run's keys. */
+export type BoardRow = {
+  readonly handle: string
+  readonly keys: number
+  readonly hinted: number
+  readonly first_at: number
+}
+
+/** One of a player's bests, as their public profile shows it. */
+export type ProfileBest = {
+  readonly level_id: string
+  readonly level_hash: string
+  readonly keys: number
+  readonly hinted: number
+  readonly first_at: number
+}
+
+/** One of the player's own bests, with their place on that level's board. */
+export type ScoreRow = ProfileBest & { readonly rank: number }
+
 /** A verdict from the cache: solved in this many keys, or null for not solved. */
 export type CachedVerdict = { readonly solved_keys: number | null }
 
@@ -218,6 +238,80 @@ export class RunStore {
       )
       .bind(month)
       .run()
+  }
+
+  /**
+   * Fewest keys first, then the earliest to reach that count: the only tie-break
+   * the server can vouch for. Players without a handle aren't shown.
+   */
+  async board(levelHash: string, limit: number): Promise<readonly BoardRow[]> {
+    const { results } = await this.db
+      .prepare(
+        `SELECT u.handle, b.keys, b.hinted, b.first_at
+         FROM bests b JOIN users u ON u.id = b.user_id
+         WHERE b.level_hash = ? AND u.handle IS NOT NULL
+         ORDER BY b.keys, b.first_at
+         LIMIT ?`,
+      )
+      .bind(levelHash, limit)
+      .all<BoardRow>()
+    return results
+  }
+
+  /** The player's place on a board, counting as `board` orders it. */
+  async rank(
+    userId: string,
+    levelHash: string,
+  ): Promise<{ rank: number; keys: number } | undefined> {
+    const row = await this.db
+      .prepare(
+        `SELECT mine.keys AS keys, (
+           SELECT count(*) FROM bests b JOIN users u ON u.id = b.user_id
+           WHERE b.level_hash = mine.level_hash AND u.handle IS NOT NULL
+             AND (b.keys < mine.keys OR (b.keys = mine.keys AND b.first_at < mine.first_at))
+         ) + 1 AS rank
+         FROM bests mine WHERE mine.user_id = ? AND mine.level_hash = ?`,
+      )
+      .bind(userId, levelHash)
+      .first<{ rank: number; keys: number }>()
+    return row ?? undefined
+  }
+
+  /** The player's bests and places, in one query: this backs `:VimDojo scores`. */
+  async scores(userId: string): Promise<readonly ScoreRow[]> {
+    const { results } = await this.db
+      .prepare(
+        `SELECT mine.level_id, mine.level_hash, mine.keys, mine.hinted, mine.first_at, (
+           SELECT count(*) FROM bests b JOIN users u ON u.id = b.user_id
+           WHERE b.level_hash = mine.level_hash AND u.handle IS NOT NULL
+             AND (b.keys < mine.keys OR (b.keys = mine.keys AND b.first_at < mine.first_at))
+         ) + 1 AS rank
+         FROM bests mine WHERE mine.user_id = ? ORDER BY mine.level_id`,
+      )
+      .bind(userId)
+      .all<ScoreRow>()
+    return results
+  }
+
+  /** @returns undefined when no player has that handle. */
+  async profile(
+    handle: string,
+  ): Promise<{ joined: number; bests: readonly ProfileBest[] } | undefined> {
+    const user = await this.db
+      .prepare("SELECT id, created_at FROM users WHERE handle = ?")
+      .bind(handle)
+      .first<{ id: string; created_at: number }>()
+    if (user === null) {
+      return undefined
+    }
+    const { results } = await this.db
+      .prepare(
+        `SELECT level_id, level_hash, keys, hinted, first_at FROM bests
+         WHERE user_id = ? ORDER BY level_id`,
+      )
+      .bind(user.id)
+      .all<ProfileBest>()
+    return { joined: user.created_at, bests: results }
   }
 
   /** For the player's export: everything stored about their runs. */

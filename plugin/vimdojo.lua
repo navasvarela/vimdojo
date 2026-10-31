@@ -10,7 +10,7 @@ vim.api.nvim_create_user_command("VimDojo", function(cmd)
 end, {
   nargs = "*",
   desc = "Open the vimdojo game",
-  complete = function()
-    return require("vimdojo").subcommands()
+  complete = function(arg_lead, cmd_line)
+    return require("vimdojo").complete(arg_lead, cmd_line)
   end,
 })
