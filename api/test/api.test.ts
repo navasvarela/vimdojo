@@ -1,13 +1,14 @@
-// The whole app against a real D1 (SQLite through Miniflare), with the real
-// migrations and a stand-in for GitHub.
+// The whole app against a real local D1 (wrangler's own, so the same engine as
+// `wrangler dev`), with the real migrations and a stand-in for GitHub.
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import { Miniflare } from "miniflare"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
+import { getPlatformProxy } from "wrangler"
 import { type App, handleRequest, sweep } from "../src/app"
 import { DAY_MS, TOKEN_LIFETIME_MS } from "../src/config"
 import { sha256Hex } from "../src/crypto"
 import type { DevicePoll, GitHub } from "../src/github"
+import type { Env } from "../src/config"
 import { ApiError, Status } from "../src/http"
 import { Store } from "../src/store"
 
@@ -16,7 +17,7 @@ const API = "https://api.test"
 const MIGRATIONS = new URL("../migrations/", import.meta.url).pathname
 
 type Harness = {
-  readonly mf: Miniflare
+  readonly dispose: () => Promise<void>
   readonly db: D1Database
   readonly app: App
   readonly advance: (ms: number) => void
@@ -34,8 +35,9 @@ async function applyMigrations(db: D1Database): Promise<void> {
 }
 
 async function harness(): Promise<Harness> {
-  const mf = new Miniflare({ modules: true, script: "export default {}", d1Databases: ["DB"] })
-  const db = (await mf.getD1Database("DB")) as unknown as D1Database
+  // persist: false gives each test its own empty database.
+  const { env, dispose } = await getPlatformProxy<Env>({ persist: false })
+  const db = env.DB
   await applyMigrations(db)
   let now = Date.UTC(2026, 9, 30)
   const gh: Harness["gh"] = {
@@ -69,7 +71,7 @@ async function harness(): Promise<Harness> {
     now: () => now,
   }
   return {
-    mf,
+    dispose,
     db,
     app,
     gh,
@@ -87,7 +89,7 @@ describe("the API", () => {
   })
 
   afterEach(async () => {
-    await h.mf.dispose()
+    await h.dispose()
   })
 
   type Options = {

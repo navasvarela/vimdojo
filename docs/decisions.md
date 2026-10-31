@@ -682,9 +682,10 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   measurements from M15 in mind.
 - **Reserved handles only, no word list.** Lists of offensive words are easy to get
   around and catch innocent handles. Reports go through moderation.
-- **Tests use the real D1, not a mock**: the actual migrations on SQLite through
-  Miniflare, pinned to stable 4.x because wrangler brings in a 5.x beta with a
-  different API. GitHub is the only stand-in.
+- **Tests use the real D1, not a mock**: the actual migrations on wrangler's own
+  local D1 (`getPlatformProxy`), the same engine as `wrangler dev`. GitHub is the
+  only stand-in. A separately pinned Miniflare 4 was tried first and dropped: it held
+  `undici` at a vulnerable 7.28.0, and it was one more thing to keep patched.
 - **The account page's CSP is a `<meta>`,** since GitHub Pages can't set headers, so
   it can't include `frame-ancestors`. Delete needs a typed phrase, and the API checks
   the same phrase, so a stray call can't delete anyone.
