@@ -51,15 +51,13 @@ preview.
 2. **Fill in the GitHub repo metadata.** Done: the description, website
    (https://vimdojo.org) and topics (`neovim`, `neovim-plugin`, `vim`,
    `lua`, `game`, `puzzle-game`, `learning`, `vim-motions`) are set.
-3. **Upload the social preview image** (Settings → General → Social
-   preview): `docs/brand/social-preview.png`, 1280×640, with the torii
-   logo, the name and the tagline. Reddit, Mastodon, Bluesky and Slack use
-   it when someone pastes the repo link. GitHub has no API for this.
-4. **Give feedback a home.** Discussions are on and linked from the README
-   and the site. Add two categories in the web UI (the API can't create
-   them): "Levels" (ideas and beaten pars, discussion format) and "Daily"
-   (one thread per day's puzzle, solutions in spoiler blocks). Then link
-   Discussions from the posts.
+3. **Social preview image.** Done: `docs/brand/social-preview.png`
+   (1280×640, the torii logo, the name and the tagline) is the repo's
+   preview, so Reddit, Mastodon, Bluesky and Slack show it when someone
+   pastes the repo link.
+4. **Give feedback a home.** Done: Discussions are on, with "Levels" (ideas
+   and beaten pars) and "Daily" (daily scores, solutions in spoiler blocks)
+   categories, and linked from the README, the site and the posts.
 5. **Record a second clip that shows what's new.** The README GIF shows two
    Basic Motions levels. Make a 20 to 40 second clip, as MP4 for Reddit and
    Bluesky and GIF for the README, that shows:
@@ -86,9 +84,8 @@ preview.
 8. **Publish the article on your own blog** (or keep it ready). It's the
    canonical copy for the dev.to and Hashnode cross-posts and the best thing
    to submit to Lobsters.
-9. **Measure.** Merge the Cloudflare Web Analytics PR before the first
-   post, so launch traffic on vimdojo.org is counted (cookieless, no
-   banner). GitHub's Insights → Traffic keeps views and referrers for only
+9. **Measure.** Done for the site: Cloudflare Web Analytics is live on
+   vimdojo.org (cookieless, no banner). GitHub's Insights → Traffic keeps views and referrers for only
    14 days, so save a screenshot of it a few days after each post.
 
 ## Phase 1: soft launch (Tuesday 2026-11-03)
@@ -209,9 +206,9 @@ How to handle what comes in:
 - [x] vimdojo.org serves over HTTPS (Enforce HTTPS on)
 - [x] Discussions enabled and linked from the README and the site
 - [x] Outside contributors' workflow runs need approval
-- [ ] Social preview image uploaded (`docs/brand/social-preview.png`)
-- [ ] "Levels" and "Daily" discussion categories added
-- [ ] Cloudflare Web Analytics merged and deployed
+- [x] Social preview image uploaded (`docs/brand/social-preview.png`)
+- [x] "Levels" and "Daily" discussion categories added
+- [x] Cloudflare Web Analytics merged and deployed
 - [ ] Second clip recorded (the daily with `y`, plus a Setup level)
 - [ ] Fresh-install smoke test passed; demo checked for focus, CPU and mobile
 - [ ] Manual terminal check: kitty, iTerm2, WezTerm, Windows Terminal
