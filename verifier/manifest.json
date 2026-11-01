@@ -50,6 +50,41 @@
       "hash": "sha256:4ac1738eff9e8bc592e2a43fe4d413e49483208ec95d8672dbdc0b25282c37e1",
       "ranked": true
     },
+    "boss-01": {
+      "daily": false,
+      "hash": "sha256:4ed326524ca555c8bc4855e29492238f477434c5de83df8e51a016c13b472a1d",
+      "ranked": true
+    },
+    "boss-02": {
+      "daily": false,
+      "hash": "sha256:6c1190e63e9f7f569cefe6cd76fb1f7bdb31586f4fa4eaf854321bb6f9bb132f",
+      "ranked": true
+    },
+    "boss-03": {
+      "daily": false,
+      "hash": "sha256:6290315bbc28d905c42f18c5edc7e7fbaeb5131da9d8eea4438752071860674f",
+      "ranked": true
+    },
+    "boss-04": {
+      "daily": false,
+      "hash": "sha256:8c77c6181c436abe6c98693b50ee64924db1f09f5a83a2589cafe6e4be9f8f6a",
+      "ranked": true
+    },
+    "boss-05": {
+      "daily": false,
+      "hash": "sha256:009f849c00bec1921db83e5bc6e6d1f951090c6288ae49fcd7b2b859212ab9f6",
+      "ranked": true
+    },
+    "boss-06": {
+      "daily": false,
+      "hash": "sha256:3db2a2d2b11e7cfdcedc2a80d342f97dda33650b66de20313b734849b4052d2c",
+      "ranked": true
+    },
+    "boss-07": {
+      "daily": false,
+      "hash": "sha256:739fd9819f41c9ce5c26c008ff373ba1fe8f14aaef6d70e17b9defc347622901",
+      "ranked": true
+    },
     "builtins-01": {
       "daily": false,
       "hash": "sha256:4d2cffaf73a3f3a299c54f5a8104e7b5c1dfb4de3154f9a42b595ac25e4cc689",
@@ -98,6 +133,46 @@
     "ex-06": {
       "daily": false,
       "hash": "sha256:44af921916642d7e6feadc5937f719ebd68a06ce57b7c541316a4e89fd1fdb75",
+      "ranked": true
+    },
+    "expr-01": {
+      "daily": false,
+      "hash": "sha256:acdfba16983299d60d42093f2c4b8534063ca6d6e180e6628a7d88d31ba49f93",
+      "ranked": true
+    },
+    "expr-02": {
+      "daily": false,
+      "hash": "sha256:b86a9b35f42cbc0d7f74f8d869516aae4b71f61301f75482fe7522138b1d3dc1",
+      "ranked": true
+    },
+    "expr-03": {
+      "daily": false,
+      "hash": "sha256:3c6f0fbadbe0334c471db8b1f03d6a762a423e78f0503f06b53a71af27f4d2e3",
+      "ranked": true
+    },
+    "expr-04": {
+      "daily": false,
+      "hash": "sha256:9caaf760a99d874951c7e7009e9c0a4f8ceafb63421c0aa03b201be585de8a93",
+      "ranked": true
+    },
+    "expr-05": {
+      "daily": false,
+      "hash": "sha256:eb712df44f3dd09fb58510f4c19f663d32d3cf6dafca448c55d3a88242cf7617",
+      "ranked": true
+    },
+    "expr-06": {
+      "daily": false,
+      "hash": "sha256:40ccaa2043658a5bf3aa5ce380e44047aba68c1eb806d3d3b1c4474169a043e9",
+      "ranked": true
+    },
+    "expr-07": {
+      "daily": false,
+      "hash": "sha256:9e805a47aba985a62d7bbb2cc13baa6f232011b47b0823992037514d950e094b",
+      "ranked": true
+    },
+    "expr-08": {
+      "daily": false,
+      "hash": "sha256:2d179c6e2296ddca6fff0683e36f6a0f15384c41904b4bd0a9bc75b89e7ba86a",
       "ranked": true
     },
     "find-and-jump-01": {
@@ -268,6 +343,56 @@
     "project-03": {
       "daily": false,
       "hash": "sha256:bb5d87114a4a3b353fdc87aaadde138588e1c36bb2dd766dc8aaeb2c5d2dd020",
+      "ranked": true
+    },
+    "regex-01": {
+      "daily": false,
+      "hash": "sha256:28152bd2b41efb59574bc845c8e92ea6eeb5def8ef6e24782b1232fa47bf58a9",
+      "ranked": true
+    },
+    "regex-02": {
+      "daily": false,
+      "hash": "sha256:f5644fc81ad74dc0348b95fe5694cab147be52b0f52f887dc80aaae4bcd1723c",
+      "ranked": true
+    },
+    "regex-03": {
+      "daily": false,
+      "hash": "sha256:0990421c54cb4e5e7e18186ae7b47d797fc078211776527262ad8b593f21eebf",
+      "ranked": true
+    },
+    "regex-04": {
+      "daily": false,
+      "hash": "sha256:42505deb7f7f329cf22fcbc1b023e2b02452fd67ae8b4a5700b322021e17df32",
+      "ranked": true
+    },
+    "regex-05": {
+      "daily": false,
+      "hash": "sha256:2053547852aca6d370facd1db026b2c37e701b92692d4dc71b4a48488716194c",
+      "ranked": true
+    },
+    "regex-06": {
+      "daily": false,
+      "hash": "sha256:50fe7b67e504696001fab966be257c2e49e9d0fffbe6a2b3b07432ef8ac289f6",
+      "ranked": true
+    },
+    "regex-07": {
+      "daily": false,
+      "hash": "sha256:863766542a9553416aaa8cab78234ca4ed0e747a9fd5bb017a5452acecc3b783",
+      "ranked": true
+    },
+    "regex-08": {
+      "daily": false,
+      "hash": "sha256:65e5654152427bd36d98b661d381a2130d3ed5635203bc224cd06b554cbfa97d",
+      "ranked": true
+    },
+    "regex-09": {
+      "daily": false,
+      "hash": "sha256:01802b581c185281f995dab2dde5bffd17765b35f8e10ba3f79e7ff591b6c87a",
+      "ranked": true
+    },
+    "regex-10": {
+      "daily": false,
+      "hash": "sha256:380cfcd0747c665778f965cac1f954b50d8891c95854872fc06509aa5691077b",
       "ranked": true
     },
     "registers-01": {

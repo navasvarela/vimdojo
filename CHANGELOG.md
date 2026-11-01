@@ -4,6 +4,13 @@
 
 ### Added
 
+- **Three advanced packs in the Motions track, 25 levels, all ranked.** The hardest
+  par was 42 keys, and few levels combined skills.
+  - **Regex Power:** `\v`, groups and backreferences, `&`, `\u`, `\zs`, `\ze`,
+    `\{-}` and lookaround (`\@!`, `\@<!`).
+  - **The Expression Register:** `<C-r>=`, `:put =` and `\=` in substitutions.
+  - **Boss Levels:** seven realistic refactors with pars from 49 to 62 keys, such as
+    extracting a function or turning a git log into release notes.
 - **Help inside the game.** `?` on the menu or the results card, or `:VimDojo help`,
   opens a panel with how to play, scoring, the keys you've configured, the commands and
   how to turn on the leaderboards. `:help vimdojo` is still the full manual.

@@ -3,7 +3,7 @@
   "pack": "project-wide",
   "title": "Project-Wide Edits",
   "description": "Work across files: follow paths, find files anywhere, and change every file at once with the quickfix list.",
-  "order": 11,
+  "order": 14,
   "authors": ["navasvarela"],
   "track": "usage",
   "levels": [

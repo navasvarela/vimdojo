@@ -3,7 +3,7 @@
   "pack": "autocmds-commands",
   "title": "Autocommands and Commands",
   "description": "React to events: yank highlights, filetype settings, trim on save, and augroups that survive re-sourcing.",
-  "order": 14,
+  "order": 17,
   "authors": ["navasvarela"],
   "track": "setup",
   "levels": [

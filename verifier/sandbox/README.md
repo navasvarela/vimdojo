@@ -27,7 +27,9 @@ node dist/build-snapshot.js     # prints VERIFIER_SNAPSHOT_ID=snap_…
 ```
 
 Add `VERIFIER_SNAPSHOT_ID` to `verifier/.env`. Rebuild the snapshot whenever
-the room's Lua, the goal rules or the harness change.
+the room's Lua, the goal rules, the harness or a ranked level change: it holds
+its own copy of `challenges/`, so it can't replay a level added after it was
+built.
 
 ## Run a batch
 
