@@ -764,3 +764,37 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   deliberately not rate limited: limiting would write to D1 on every read, which costs
   more than the cached read it would protect. Your own place isn't cached.
 - **A handle's profile shows only levels' current versions**, as the old boards are gone.
+
+## Advanced packs
+
+- **Nothing new in the engine.** Regex Power, The Expression Register and Boss Levels
+  use the existing goals. They're ranked, and off the web demo: `web_demo` would change
+  the daily rotation, and the emulation's regex engine throws on atoms like `\zs`.
+- **They're orders 10 to 12, and Usage and Setup moved to 13 to 19.** Orders 17 to 19
+  would have needed no renames, but `next_level` follows order, so finishing Ex Power
+  would have led into Usage, and finishing Setup into Regex Power. The menu and the
+  site print the number as well. Hashes don't cover order, so no board resets, and
+  progress is keyed by level id.
+- **Levels are built to beat the macro.** A macro costs the same for 5 lines or 50, so
+  uniform text makes the macro the honest par, and the regex a detour. Each regex and
+  expression level has what a macro can't handle: mixed spacing, several matches on a
+  line, lines to skip, or arithmetic. Each also has traps for shortcuts that would
+  miss the point, such as `this is` in the doubled-word level. Boss 7's rows are
+  uniform, so its par is a macro on purpose: choosing the tool is part of a boss.
+- **How the pars were found.** Each level was played against its likely rivals in real
+  Neovim (shorter patterns, `:g`, `:%norm`, `cgn`, macros, typing the answer). That
+  moved many of them: `:s` doesn't need its closing `/` without flags, and `.*2` beat
+  a careful pattern in Boss 4, where that par stands because it is the real shortest.
+  A boss's search space is too big to prove, so its par is the best route found.
+  `i a o O A I C S` and `c`/`d`/`y` with any taught motion count as known, as they
+  have in earlier packs.
+- **`<C-r>=` needed an answer you can't type.** M10 dropped it because typing `444`
+  beats `<C-r>=12*37`. `sha256()` fixes that: 64 characters nobody knows by heart.
+  `:put =` has the same problem with `<C-a>` macros, so it generates squares.
+- **Long commands are a trap.** The room is 60 columns wide in an 80-column terminal.
+  The first Expression 8 was a 73-character `:put =`, which wrapped and ended in a
+  "Press ENTER" prompt. That cost a key the par didn't count, and `solutions_spec.lua`
+  hung on it, because the next RPC call blocks at that prompt. It's now 59 characters,
+  and `docs/authoring-levels.md` has the limit.
+- **New ranked levels need a new verifier snapshot.** The snapshot holds its own copy
+  of `challenges/`, so until it's rebuilt, a run on these levels can't be verified.

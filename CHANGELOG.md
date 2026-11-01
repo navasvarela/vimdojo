@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Three advanced packs in the Motions track, 25 levels, all ranked.** The hardest
+  par was 42 keys, and few levels combined skills.
+  - **Regex Power:** `\v`, groups and backreferences, `&`, `\u`, `\zs`, `\ze`,
+    `\{-}` and lookaround (`\@!`, `\@<!`).
+  - **The Expression Register:** `<C-r>=`, `:put =` and `\=` in substitutions.
+  - **Boss Levels:** seven realistic refactors with pars from 49 to 62 keys, such as
+    extracting a function or turning a git log into release notes.
+
 ## v0.6.0 (2026-10-31)
 
 ### Added

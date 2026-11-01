@@ -168,6 +168,11 @@ basic-motions-01   par  5 | taught  5 jjjll      | any  2 Gw
 For `buffer_equals` levels, work the par out by hand. Keep `solution` at or
 under `par_keys`.
 
+Keep each Ex command in `solution` under 60 characters. The room is 60 columns
+wide in an 80-column terminal, and a command that wraps can end in a "Press ENTER"
+prompt. That costs the player a key the par doesn't count, and it hangs
+`solutions_spec.lua` instead of failing it.
+
 `par_seconds` is a generous time for someone who knows the answer: usually
 1-2 seconds per key, and never less than 5 seconds.
 

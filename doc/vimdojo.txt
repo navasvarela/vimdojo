@@ -24,8 +24,8 @@ snippet of text and a goal, such as "delete the typo" or "put the cursor on
 the last word". Solve it with Vim keys. Every attempt is scored on the number
 of keystrokes, the time taken, and the level's par.
 
-Packs belong to tracks. Motions has nine packs, from basic motions to
-macros and Ex commands. Usage has three, about windows, buffers, files
+Packs belong to tracks. Motions has twelve packs, from basic motions to
+macros, Ex commands, regular expressions and whole refactors. Usage has three, about windows, buffers, files
 and Neovim's built-in defaults; its levels open a small project of real
 files in the level's Neovim. Setup has four, where you edit an init.lua
 and the game runs it in a sandboxed Neovim to check what it does. Each
