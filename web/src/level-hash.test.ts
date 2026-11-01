@@ -30,17 +30,25 @@ describe("levelHash (shared fixtures)", () => {
   })
 })
 
-const Manifest = z.record(z.string(), z.object({ hash: z.string(), ranked: z.boolean() }))
+const Manifest = z.record(
+  z.string(),
+  z.object({ daily: z.boolean(), hash: z.string(), ranked: z.boolean() }),
+)
 
 describe("verifier/manifest.json", () => {
   it("agrees with this port on every shipped level's hash", async () => {
     const expected = Manifest.parse(manifest.levels)
     const levels = loadPacks().flatMap((pack) =>
-      pack.levels.map((level) => ({ level, ranked: pack.track !== "setup" })),
+      pack.levels.map((level) => ({
+        level,
+        daily: level.web_demo === true,
+        ranked: pack.track !== "setup",
+      })),
     )
     const actual = await Promise.all(
       levels.map(
-        async ({ level, ranked }) => [level.id, { hash: await levelHash(level), ranked }] as const,
+        async ({ level, daily, ranked }) =>
+          [level.id, { daily, hash: await levelHash(level), ranked }] as const,
       ),
     )
     expect(Object.fromEntries(actual)).toEqual(expected)

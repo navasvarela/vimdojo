@@ -53,7 +53,11 @@ describe("verifier/manifest.json", function()
     local expected = {}
     for _, pack in ipairs(assert(challenges.load_dir())) do
       for _, level in ipairs(pack.levels) do
-        expected[level.id] = { hash = level_hash.of(level), ranked = pack.track ~= "setup" }
+        expected[level.id] = {
+          daily = level.web_demo == true,
+          hash = level_hash.of(level),
+          ranked = pack.track ~= "setup",
+        }
       end
     end
     assert.are.same(expected, manifest)

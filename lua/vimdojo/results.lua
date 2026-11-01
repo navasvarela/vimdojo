@@ -43,8 +43,8 @@ function M.content(view)
     table.insert(lines, "  Hint used: capped at 2 stars")
   end
   table.insert(lines, "")
-  local submit = (view.can_submit and "[s] submit   " or "")
-    .. (view.has_board and "[b] board   " or "")
+  local board = view.daily_date and "[b] today's board   " or "[b] board   "
+  local submit = (view.can_submit and "[s] submit   " or "") .. (view.has_board and board or "")
   local actions = view.has_next
       and ("  [n] next   [r] retry   [y] copy result   %s[m] menu   [q] quit"):format(submit)
     or ("  [r] retry   [y] copy result   %s[m] menu   [q] quit"):format(submit)
