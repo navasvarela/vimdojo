@@ -70,7 +70,7 @@ describe("playing a level", function()
 
     it("keeps no key log for a run with pasted text", function()
       assert.is_true(player:start("basic-motions-01"))
-      assert.is_true(player:wait_for(CURRENT .. ".ready"))
+      assert.is_true(player:wait_for("(" .. CURRENT .. " or {}).ready"))
       -- Bracketed paste inserts the text even in Normal mode, which typing the
       -- same keys wouldn't: that is why such a run can't be replayed.
       player:lua("vim.api.nvim_paste('x', false, -1)")
@@ -127,6 +127,44 @@ describe("playing a level", function()
       player:input("n")
 
       assert.are.equal("basic-motions-02", player:wait_for(CURRENT_LEVEL).id)
+    end)
+
+    it("shows the player's keys beside the par route", function()
+      assert.is_true(player:start("basic-motions-01"))
+      player:type("jjjlhll")
+      player:wait_for_record("basic-motions-01")
+
+      local card =
+        table.concat(player:lua("return vim.api.nvim_buf_get_lines(0, 0, -1, false)"), "\n")
+      assert.is_truthy(card:find("You    jjjlhll", 1, true))
+      assert.is_truthy(card:find("Par    jjjll", 1, true))
+      assert.is_truthy(card:find("Learn  j, l", 1, true))
+    end)
+
+    it("keeps the par route back on today's daily", function()
+      -- Fixes the clock on a day whose daily is a level with a known solution.
+      player:lua([[
+        local daily = require("vimdojo.daily")
+        local challenges = require("vimdojo.challenges")
+        local pool = daily.pool(challenges.load_dir(challenges.default_dir()))
+        local day = 0
+        while daily.pick(pool, day) ~= "basic-motions-01" do
+          day = day + 1
+        end
+        os.time = function()
+          return day * 86400
+        end
+      ]])
+      player:lua("require('vimdojo.app').start_daily()")
+      player:wait_for("(" .. CURRENT .. " or {}).ready")
+      player:type("jjjll")
+      player:wait_for_record("basic-motions-01")
+
+      local card =
+        table.concat(player:lua("return vim.api.nvim_buf_get_lines(0, 0, -1, false)"), "\n")
+      assert.is_truthy(card:find("You    jjjll", 1, true))
+      assert.is_truthy(card:find("shown once today's daily ends", 1, true))
+      assert.is_falsy(card:find("Learn", 1, true))
     end)
 
     it("closes the level when the room's Neovim exits", function()

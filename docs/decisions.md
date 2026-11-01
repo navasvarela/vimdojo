@@ -825,3 +825,14 @@ PLAN-v3.md records the full table. The two departures from the proposal:
 - **The plugin words a verdict from its own clock and packs,** only to avoid a request
   on every other level. What counts is still the server's call, and the daily panel
   shows the day and level the server names.
+
+## Results card: show the par route
+
+- **The card shows your keys, the par route and what the level teaches.** The game
+  scored players without showing them the better way, and `solution` and `teaches` were
+  already in every level.
+- **Hidden on today's daily, by level id rather than how it was opened.** The same level
+  is in the menu, and a revealed route could be copied up that day's board. Solutions are
+  public in the repo either way, so this removes the easy path, not every path.
+- **The site shows no "You" line.** Its session counts keys and doesn't record them, and
+  recording them belongs with web runs.

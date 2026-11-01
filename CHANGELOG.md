@@ -11,6 +11,9 @@
   - **The Expression Register:** `<C-r>=`, `:put =` and `\=` in substitutions.
   - **Boss Levels:** seven realistic refactors with pars from 49 to 62 keys, such as
     extracting a function or turning a git log into release notes.
+- **See how par is done.** The results card now shows your keys beside the level's
+  par route and what the level teaches, in Neovim and on the site. On today's daily
+  the route stays hidden until the day ends, so the board can't be climbed by copying.
 - **Daily boards.** The daily challenge now has a board for each UTC day, starting
   empty: `:VimDojo board daily`, `b` on a daily's results card, or the top of
   [the boards page](https://vimdojo.org/boards/), which links back through past days.
