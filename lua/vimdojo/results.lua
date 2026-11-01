@@ -1,4 +1,5 @@
 -- The results card shown when an attempt reaches its goal.
+local help = require("vimdojo.help")
 local share = require("vimdojo.share")
 local ui = require("vimdojo.ui")
 
@@ -132,6 +133,9 @@ function M.open(view, actions)
     title = " " .. view.level.title .. ": solved ",
     lines = lines,
     highlights = highlights,
+    -- Not on the actions line, which is already wider than an 80-column screen
+    -- with the leaderboard keys on it.
+    footer = " ? help ",
   })
   vim.wo[panel.win].cursorline = false
 
@@ -149,6 +153,8 @@ function M.open(view, actions)
     end,
     q = run(actions.close),
     ["<Esc>"] = run(actions.close),
+    -- Stays open, for the player to come back to.
+    ["?"] = help.toggle,
   }
   if view.can_submit then
     -- Stays open: submitting is on the side of whatever the player does next.

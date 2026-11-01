@@ -260,7 +260,14 @@ end
 
 ---@param play vimdojo.Play
 local function enter_room(play)
-  if play.ready and not play.session:is_finished() then
+  -- nvim_open_win() fires these events while a new float still shows the room's
+  -- buffer. Without the window check, a panel opened during a level (help, a
+  -- board) starts in Insert mode, and its keys fail with E21 instead of working.
+  if
+    play.ready
+    and not play.session:is_finished()
+    and vim.api.nvim_get_current_win() == play.layout.room_win
+  then
     vim.cmd("startinsert")
   end
 end
