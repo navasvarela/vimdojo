@@ -40,6 +40,34 @@
       "hash": "sha256:4ac1738eff9e8bc592e2a43fe4d413e49483208ec95d8672dbdc0b25282c37e1",
       "ranked": true
     },
+    "boss-01": {
+      "hash": "sha256:4ed326524ca555c8bc4855e29492238f477434c5de83df8e51a016c13b472a1d",
+      "ranked": true
+    },
+    "boss-02": {
+      "hash": "sha256:6c1190e63e9f7f569cefe6cd76fb1f7bdb31586f4fa4eaf854321bb6f9bb132f",
+      "ranked": true
+    },
+    "boss-03": {
+      "hash": "sha256:6290315bbc28d905c42f18c5edc7e7fbaeb5131da9d8eea4438752071860674f",
+      "ranked": true
+    },
+    "boss-04": {
+      "hash": "sha256:8c77c6181c436abe6c98693b50ee64924db1f09f5a83a2589cafe6e4be9f8f6a",
+      "ranked": true
+    },
+    "boss-05": {
+      "hash": "sha256:009f849c00bec1921db83e5bc6e6d1f951090c6288ae49fcd7b2b859212ab9f6",
+      "ranked": true
+    },
+    "boss-06": {
+      "hash": "sha256:3db2a2d2b11e7cfdcedc2a80d342f97dda33650b66de20313b734849b4052d2c",
+      "ranked": true
+    },
+    "boss-07": {
+      "hash": "sha256:739fd9819f41c9ce5c26c008ff373ba1fe8f14aaef6d70e17b9defc347622901",
+      "ranked": true
+    },
     "builtins-01": {
       "hash": "sha256:4d2cffaf73a3f3a299c54f5a8104e7b5c1dfb4de3154f9a42b595ac25e4cc689",
       "ranked": true
