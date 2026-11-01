@@ -4,6 +4,13 @@
 
 ### Added
 
+- **Three advanced packs in the Motions track, 25 levels, all ranked.** The hardest
+  par was 42 keys, and few levels combined skills.
+  - **Regex Power:** `\v`, groups and backreferences, `&`, `\u`, `\zs`, `\ze`,
+    `\{-}` and lookaround (`\@!`, `\@<!`).
+  - **The Expression Register:** `<C-r>=`, `:put =` and `\=` in substitutions.
+  - **Boss Levels:** seven realistic refactors with pars from 49 to 62 keys, such as
+    extracting a function or turning a git log into release notes.
 - **See how par is done.** The results card now shows your keys beside the level's
   par route and what the level teaches, in Neovim and on the site. On today's daily
   the route stays hidden until the day ends, so the board can't be climbed by copying.

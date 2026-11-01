@@ -1,0 +1,233 @@
+{
+  "$schema": "./schema.json",
+  "pack": "boss-levels",
+  "title": "Boss Levels",
+  "description": "One realistic refactor per level, each several steps long. Nothing new here: everything you've learned, and the order you use it in.",
+  "order": 12,
+  "authors": ["navasvarela"],
+  "levels": [
+    {
+      "id": "boss-01",
+      "title": "Spreadsheet to docs",
+      "description": "Turn this CSV into a Markdown table, with the rows sorted by year and a |---|---|---| line under the header.",
+      "start_text": [
+        "name,language,year",
+        "Guido,Python,1991",
+        "Dennis,C,1972",
+        "Larry,Perl,1987",
+        "Yukihiro,Ruby,1995",
+        "Bjarne,C++,1985"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "| name | language | year |",
+          "|---|---|---|",
+          "| Dennis | C | 1972 |",
+          "| Bjarne | C++ | 1985 |",
+          "| Larry | Perl | 1987 |",
+          "| Guido | Python | 1991 |",
+          "| Yukihiro | Ruby | 1995 |"
+        ]
+      },
+      "par_keys": 49,
+      "par_seconds": 74,
+      "hint": "Sort first, while the data is simple: :sor n sorts by the first number on each line, and a line with no number stays on top. Then two :s commands build the table.",
+      "solution": ":sor n<CR>:%s/,/ | /g<CR>:%s/.*/| & |<CR>ggo|---|---|---|<Esc>",
+      "teaches": ["CSV to table"]
+    },
+    {
+      "id": "boss-02",
+      "title": "Private parts",
+      "description": "Make every field of this class private (#name), and add a getter for each one, after a blank line, in the same order.",
+      "start_text": ["class User {", "  name;", "  email;", "  age;", "}"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "class User {",
+          "  #name;",
+          "  #email;",
+          "  #age;",
+          "",
+          "  get name() { return this.#name; }",
+          "  get email() { return this.#email; }",
+          "  get age() { return this.#age; }",
+          "}"
+        ]
+      },
+      "par_keys": 58,
+      "par_seconds": 87,
+      "hint": "A block insert does the first step. Then copy the fields, and turn the copies into getters with :s on a line range. & already holds #name;",
+      "solution": "jw<C-v>2jI#<Esc>3yy2jpO<Esc>:6,8s/\\v#(.*);/get \\1() { return this.& }<CR>",
+      "teaches": ["fields to getters"]
+    },
+    {
+      "id": "boss-03",
+      "title": "Modern modules",
+      "description": "Move this file from require to import. Sort the imports by name, and turn the last line into a named export with the same list.",
+      "start_text": [
+        "const path = require(\"path\")",
+        "const fs = require(\"node:fs\")",
+        "const os = require(\"os\")",
+        "const zlib = require(\"node:zlib\")",
+        "const http = require(\"http\")",
+        "",
+        "module.exports = { path, fs, os, zlib, http }"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "import fs from \"node:fs\"",
+          "import http from \"http\"",
+          "import os from \"os\"",
+          "import path from \"path\"",
+          "import zlib from \"node:zlib\"",
+          "",
+          "export { path, fs, os, zlib, http }"
+        ]
+      },
+      "par_keys": 62,
+      "par_seconds": 93,
+      "hint": "A range keeps :sort away from the rest of the file. Then capture the two names with \\v groups, and leave out what you don't need.",
+      "solution": ":1,5sor<CR>:%s/\\v\\w+ (\\w*).*(\".*\")./import \\1 from \\2<CR>Gcf=export<Esc>",
+      "teaches": ["require to import"]
+    },
+    {
+      "id": "boss-04",
+      "title": "Single source of truth",
+      "description": "The host and port are repeated everywhere. Add HOST and PORT constants after the import, with a blank line before and after them, and use them in each call.",
+      "start_text": [
+        "import socket",
+        "",
+        "def connect():",
+        "    return socket.create_connection((\"db.internal\", 5432))",
+        "",
+        "def ping():",
+        "    s = socket.create_connection((\"db.internal\", 5432), timeout=1)",
+        "    s.close()",
+        "",
+        "def wait():",
+        "    return socket.create_connection((\"db.internal\", 5432), timeout=60)"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "import socket",
+          "",
+          "HOST = \"db.internal\"",
+          "PORT = 5432",
+          "",
+          "def connect():",
+          "    return socket.create_connection((HOST, PORT))",
+          "",
+          "def ping():",
+          "    s = socket.create_connection((HOST, PORT), timeout=1)",
+          "    s.close()",
+          "",
+          "def wait():",
+          "    return socket.create_connection((HOST, PORT), timeout=60)"
+        ]
+      },
+      "par_keys": 56,
+      "par_seconds": 84,
+      "hint": "Nothing clever about the constants: type them. The calls are one :%s, and the numbers in timeout= must survive it.",
+      "solution": "joHOST = \"db.internal\"<CR>PORT = 5432<CR><Esc>:%s/\".*2/HOST, PORT<CR>",
+      "teaches": ["extract constants"]
+    },
+    {
+      "id": "boss-05",
+      "title": "Extract function",
+      "description": "report() mixes up adding and printing. Pull the adding out into a sum(orders) above it, as in the goal, with a blank line between the two.",
+      "start_text": [
+        "function report(orders) {",
+        "  let total = 0",
+        "  for (const o of orders) {",
+        "    total += o.price * o.qty",
+        "  }",
+        "  console.log(\"Total: \" + total)",
+        "}"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "function sum(orders) {",
+          "  let total = 0",
+          "  for (const o of orders) {",
+          "    total += o.price * o.qty",
+          "  }",
+          "  return total",
+          "}",
+          "",
+          "function report(orders) {",
+          "  console.log(\"Total: \" + sum(orders))",
+          "}"
+        ]
+      },
+      "par_keys": 51,
+      "par_seconds": 76,
+      "hint": "Copy the whole function first. Then each copy needs only a small change: S replaces a line and keeps its indent, and d with a count removes the loop.",
+      "solution": "yapPwcwsum<Esc>5jSreturn total<Esc>jo<Esc>2j4dd$bcwsum(orders)<Esc>",
+      "teaches": ["extract function"]
+    },
+    {
+      "id": "boss-06",
+      "title": "Release notes",
+      "description": "Turn this git log into release notes: features first, then fixes, with the headings shown, and no chores. Each line loses its hash and its type. Careful: a commit message can hold a colon of its own.",
+      "start_text": [
+        "a1b2c3 feat: add dark mode",
+        "d4e5f6 fix: crash on empty file",
+        "0a0b0c chore: bump deps",
+        "1f2e3d feat: daily: one level a day",
+        "9c8b7a fix: typo in help",
+        "4d4d4d chore: format",
+        "7e7e7e feat: share your result"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "## Features",
+          "- add dark mode",
+          "- daily: one level a day",
+          "- share your result",
+          "",
+          "## Fixes",
+          "- crash on empty file",
+          "- typo in help"
+        ]
+      },
+      "par_keys": 62,
+      "par_seconds": 93,
+      "hint": "Do it in order: :g deletes the chores and moves the fixes to the end, then add the headings, then one lazy :%s strips the prefixes.",
+      "solution": ":g/e:/d<CR>:g/x:/m$<CR>?x:<CR>O<CR>## Fixes<Esc>ggO## Features<Esc>:%s/.\\{-}: /- <CR>",
+      "teaches": ["git log to release notes"]
+    },
+    {
+      "id": "boss-07",
+      "title": "Bulk insert",
+      "description": "Turn these rows into one SQL statement, with the names and roles quoted, as in the goal.",
+      "start_text": ["ada,36,admin", "grace,85,ops", "linus,55,dev", "ken,81,ops"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "INSERT INTO users VALUES",
+          "  ('ada', 36, 'admin'),",
+          "  ('grace', 85, 'ops'),",
+          "  ('linus', 55, 'dev'),",
+          "  ('ken', 81, 'ops');"
+        ]
+      },
+      "par_keys": 61,
+      "par_seconds": 92,
+      "hint": "Add the first line while you're up there. The rows are all the same shape, so record one, and let a macro beat the regex. The last line needs its own ending.",
+      "solution": "OINSERT INTO users VALUES<Esc>jqaI  ('<Esc>f,cl', <Esc>;a '<Esc>A'),<Esc>jq3@a$r;",
+      "teaches": ["rows to SQL"]
+    }
+  ]
+}
