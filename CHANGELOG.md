@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- With three or more panels open, such as help and a board over the menu, closing them
+  could leave a panel showing with the keys going somewhere behind it, so it couldn't be
+  closed. Closing a panel now returns to the one underneath.
+
 ## v0.7.1 (2026-11-01)
 
 ### Fixed
