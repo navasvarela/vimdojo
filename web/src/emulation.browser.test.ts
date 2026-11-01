@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest"
 import { userEvent } from "vitest/browser"
 import fixtureMotions from "../../tests/fixtures/packs/01-v2-motions.json"
-import { loadPacks, parsePacks, type Level } from "./challenges"
+import { loadPacks, type Level, type Pack, parsePacks } from "./challenges"
 import { createEditor, isNormalMode, snapshot } from "./game/editor"
 import { isMet, needsNeovim, registersFor } from "./goals"
 import { splitNotation } from "./keys"
@@ -57,9 +57,22 @@ async function solveInEmulation(level: Level): Promise<boolean> {
 }
 
 // Setup levels check a Neovim config, which the emulation can't run.
-const levels = loadPacks()
-  .flatMap((pack) => pack.levels)
-  .filter((level) => !needsNeovim(level.goal))
+function emulatable(packs: readonly Pack[]): Level[] {
+  return packs.flatMap((pack) => pack.levels).filter((level) => !needsNeovim(level.goal))
+}
+
+// Their solutions use Vim regex atoms such as \zs and \@<!, and the emulation's
+// JavaScript regex throws on those. The errors surface outside the test, so they
+// fail the run even though this report is only informational.
+const VIM_REGEX_PACKS: ReadonlySet<string> = new Set([
+  "regex-power",
+  "expression-register",
+  "boss-levels",
+])
+
+const packs = loadPacks()
+const levels = emulatable(packs)
+const reportedLevels = emulatable(packs.filter((pack) => !VIM_REGEX_PACKS.has(pack.pack)))
 
 describe("CodeMirror Vim emulation", () => {
   it.each(levels.filter((l) => l.web_demo === true).map((l) => [l.id, l] as const))(
@@ -81,7 +94,7 @@ describe("CodeMirror Vim emulation", () => {
 
   it("reports which levels the emulation can solve", async () => {
     const report: string[] = []
-    for (const level of levels) {
+    for (const level of reportedLevels) {
       report.push(`${(await solveInEmulation(level)) ? "ok  " : "FAIL"} ${level.id}`)
     }
     console.info(report.join("\n"))
