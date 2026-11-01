@@ -146,15 +146,7 @@ function M.quit()
   if not play then
     return
   end
-  -- Panels close before the room stops. On Windows, stopping a room within about a second
-  -- of a panel of 20 lines or more opening over it kills the player's Neovim outright,
-  -- with no error (seen on Neovim stable in CI; panels of 5 lines were safe). Never
-  -- reproduced elsewhere, and why the panel's height matters is unknown.
-  --
-  -- `state.play` clears first because closing a panel focuses the room again, and
-  -- enter_room would start Insert mode for the next screen, whose keys then fail with E21.
   state.play = nil
-  ui.close_panels()
   release_input(play)
   play.room:close()
   play.layout:close()
@@ -272,8 +264,7 @@ local function enter_room(play)
   -- buffer. Without the window check, a panel opened during a level (help, a
   -- board) starts in Insert mode, and its keys fail with E21 instead of working.
   if
-    state.play == play
-    and play.ready
+    play.ready
     and not play.session:is_finished()
     and vim.api.nvim_get_current_win() == play.layout.room_win
   then
