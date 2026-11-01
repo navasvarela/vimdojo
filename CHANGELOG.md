@@ -7,6 +7,8 @@
 - With three or more panels open, such as help and a board over the menu, closing them
   could leave a panel showing with the keys going somewhere behind it, so it couldn't be
   closed. Closing a panel now returns to the one underneath.
+- On Windows, leaving a level moments after opening help or another tall panel over it
+  could close Neovim. Leaving a level now closes its panels first.
 
 ## v0.7.1 (2026-11-01)
 
