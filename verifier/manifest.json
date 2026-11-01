@@ -216,6 +216,46 @@
       "hash": "sha256:bb5d87114a4a3b353fdc87aaadde138588e1c36bb2dd766dc8aaeb2c5d2dd020",
       "ranked": true
     },
+    "regex-01": {
+      "hash": "sha256:28152bd2b41efb59574bc845c8e92ea6eeb5def8ef6e24782b1232fa47bf58a9",
+      "ranked": true
+    },
+    "regex-02": {
+      "hash": "sha256:f5644fc81ad74dc0348b95fe5694cab147be52b0f52f887dc80aaae4bcd1723c",
+      "ranked": true
+    },
+    "regex-03": {
+      "hash": "sha256:0990421c54cb4e5e7e18186ae7b47d797fc078211776527262ad8b593f21eebf",
+      "ranked": true
+    },
+    "regex-04": {
+      "hash": "sha256:42505deb7f7f329cf22fcbc1b023e2b02452fd67ae8b4a5700b322021e17df32",
+      "ranked": true
+    },
+    "regex-05": {
+      "hash": "sha256:2053547852aca6d370facd1db026b2c37e701b92692d4dc71b4a48488716194c",
+      "ranked": true
+    },
+    "regex-06": {
+      "hash": "sha256:50fe7b67e504696001fab966be257c2e49e9d0fffbe6a2b3b07432ef8ac289f6",
+      "ranked": true
+    },
+    "regex-07": {
+      "hash": "sha256:863766542a9553416aaa8cab78234ca4ed0e747a9fd5bb017a5452acecc3b783",
+      "ranked": true
+    },
+    "regex-08": {
+      "hash": "sha256:65e5654152427bd36d98b661d381a2130d3ed5635203bc224cd06b554cbfa97d",
+      "ranked": true
+    },
+    "regex-09": {
+      "hash": "sha256:01802b581c185281f995dab2dde5bffd17765b35f8e10ba3f79e7ff591b6c87a",
+      "ranked": true
+    },
+    "regex-10": {
+      "hash": "sha256:380cfcd0747c665778f965cac1f954b50d8891c95854872fc06509aa5691077b",
+      "ranked": true
+    },
     "registers-01": {
       "hash": "sha256:bb37f5dd94ac6a4fca6df5566d4a0eb3ff2bca68c1a89cc1eed4dfa7398c9eba",
       "ranked": true

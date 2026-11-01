@@ -1,0 +1,282 @@
+{
+  "$schema": "./schema.json",
+  "pack": "regex-power",
+  "title": "Regex Power",
+  "description": "Patterns that do the work a macro can't: very magic, groups and backreferences, zero-width matches, lazy repeats and lookaround.",
+  "order": 10,
+  "authors": ["navasvarela"],
+  "levels": [
+    {
+      "id": "regex-01",
+      "title": "Expected goes first",
+      "description": "This test suite passes (actual, expected), but assert_eq wants (expected, actual). Swap the arguments of every assert_eq, and leave one space after each comma. round() stays as it is.",
+      "start_text": [
+        "test(\"totals\", function()",
+        "  assert_eq(cart.total,  41)",
+        "  assert_eq(cart.count,2)",
+        "  local tax = round(cart.total, 2)",
+        "  assert_eq(tax, 7) assert_eq(cart.owner,   \"ada\")",
+        "end)"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "test(\"totals\", function()",
+          "  assert_eq(41, cart.total)",
+          "  assert_eq(2, cart.count)",
+          "  local tax = round(cart.total, 2)",
+          "  assert_eq(7, tax) assert_eq(\"ada\", cart.owner)",
+          "end)"
+        ]
+      },
+      "par_keys": 36,
+      "par_seconds": 60,
+      "hint": "After \\v, ( ) + and friends need no backslash. Capture each argument with (\\S*), and bring them back as \\2 and \\1.",
+      "solution": ":%s/\\vq.(\\S*), *(\\S*)\\)/q(\\2, \\1)/g<CR>",
+      "teaches": ["\\v", "\\1"]
+    },
+    {
+      "id": "regex-02",
+      "title": "Fence the constants",
+      "description": "The docs mention constants as plain text. Wrap every ALL_CAPS name of two or more letters in backticks. JavaScript and the word A are not constants.",
+      "start_text": [
+        "A request fails after MAX_RETRIES attempts or TIMEOUT seconds.",
+        "Set API_KEY first, or JavaScript clients get a 401.",
+        "A missing BASE_URL falls back to DEFAULT_HOST and DEFAULT_PORT."
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "A request fails after `MAX_RETRIES` attempts or `TIMEOUT` seconds.",
+          "Set `API_KEY` first, or JavaScript clients get a 401.",
+          "A missing `BASE_URL` falls back to `DEFAULT_HOST` and `DEFAULT_PORT`."
+        ]
+      },
+      "par_keys": 21,
+      "par_seconds": 35,
+      "hint": "& in the replacement stands for the whole match, so no group is needed. \\u is any capital, so one capital followed by more of [A-Z_] skips the word A.",
+      "solution": ":%s/\\u[A-Z_]\\+/`&`/g<CR>",
+      "teaches": ["&"]
+    },
+    {
+      "id": "regex-03",
+      "title": "Editor's stutter",
+      "description": "Remove every doubled word, keeping one copy. Careful: 'this is' and 'the theory' are not doubled words.",
+      "start_text": [
+        "I think this is the the theory behind it,",
+        "and and it works if if you squint at at it.",
+        "The The bug is that this is is not tested.",
+        "We know the theory holds holds up."
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "I think this is the theory behind it,",
+          "and it works if you squint at it.",
+          "The bug is that this is not tested.",
+          "We know the theory holds up."
+        ]
+      },
+      "par_keys": 22,
+      "par_seconds": 35,
+      "hint": "A backreference works inside the pattern too: (\\w+) \\1 is a word, then itself. In very magic mode, < and > mark word edges.",
+      "solution": ":%s/\\v<lt>(\\w+) \\1>/\\1/g<CR>",
+      "teaches": ["\\1 in the pattern", "\\v<>"]
+    },
+    {
+      "id": "regex-04",
+      "title": "Const correctness",
+      "description": "Nothing here is ever reassigned. Turn every let and var keyword into const. outlet, letter, variable, val and len keep their names.",
+      "start_text": [
+        "let outlet = open(); var letter = outlet.read()",
+        "var val = letter.trim(); let len = val.length",
+        "let outlet_name = outlet.name",
+        "var variable = len * 2; let done = true"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "const outlet = open(); const letter = outlet.read()",
+          "const val = letter.trim(); const len = val.length",
+          "const outlet_name = outlet.name",
+          "const variable = len * 2; const done = true"
+        ]
+      },
+      "par_keys": 26,
+      "par_seconds": 40,
+      "hint": "In very magic mode, (a|b) matches either one. Word edges keep outlet and letter safe.",
+      "solution": ":%s/\\v<lt>(let|var)>/const/g<CR>",
+      "teaches": ["\\v(a|b)"]
+    },
+    {
+      "id": "regex-05",
+      "title": "Title case",
+      "description": "Capitalize every word of the Markdown headings. The body text stays lowercase.",
+      "start_text": [
+        "# how to train your editor",
+        "some people still use the arrow keys.",
+        "## why the mouse is lava",
+        "the mouse is far away from home row.",
+        "## where to go from here",
+        "go to the next pack."
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "# How To Train Your Editor",
+          "some people still use the arrow keys.",
+          "## Why The Mouse Is Lava",
+          "the mouse is far away from home row.",
+          "## Where To Go From Here",
+          "go to the next pack."
+        ]
+      },
+      "par_keys": 17,
+      "par_seconds": 30,
+      "hint": "\\u in the replacement capitalizes the next character. :g picks the heading lines, and \\< finds the start of each word.",
+      "solution": ":g/#/s/\\<lt>./\\u&/g<CR>",
+      "teaches": ["\\u"]
+    },
+    {
+      "id": "regex-06",
+      "title": "The last comma",
+      "description": "Lists read better with 'and': replace the last comma of each line with ' and'. Only the last one, and a line with no commas stays put.",
+      "start_text": [
+        "Dinner: eggs, milk, butter",
+        "Tools: hammer, nails, glue, tape",
+        "Pets: none",
+        "Rooms: kitchen, attic",
+        "Bugs: off-by-one, null, race, cache, naming"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "Dinner: eggs, milk and butter",
+          "Tools: hammer, nails, glue and tape",
+          "Pets: none",
+          "Rooms: kitchen and attic",
+          "Bugs: off-by-one, null, race, cache and naming"
+        ]
+      },
+      "par_keys": 16,
+      "par_seconds": 24,
+      "hint": "\\zs says where the match really starts. Everything before it must still match, but isn't replaced, and .* is greedy.",
+      "solution": ":%s/.*\\zs,/ and<CR>",
+      "teaches": ["\\zs"]
+    },
+    {
+      "id": "regex-07",
+      "title": "Thousands",
+      "description": "Nobody can read these sizes. Add a comma every three digits, counted from the right. Short numbers don't need one.",
+      "start_text": [
+        "kernel 12345678 bytes, 42 files",
+        "initrd 7654321 bytes, 987 files",
+        "rootfs 1234567890 bytes, 123456 files",
+        "swap   4096 bytes, 1 file"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "kernel 12,345,678 bytes, 42 files",
+          "initrd 7,654,321 bytes, 987 files",
+          "rootfs 1,234,567,890 bytes, 123,456 files",
+          "swap   4,096 bytes, 1 file"
+        ]
+      },
+      "par_keys": 26,
+      "par_seconds": 40,
+      "hint": "\\ze says where the match really ends. Match one digit that has groups of three digits between it and the end of the number, and replace it with itself plus a comma.",
+      "solution": ":%s/\\v\\d\\ze(\\d{3})+>/&,/g<CR>",
+      "teaches": ["\\ze"]
+    },
+    {
+      "id": "regex-08",
+      "title": "Uncommented",
+      "description": "Delete every block comment and the space before it. Comments can hold * and / of their own, there can be two on a line, and the division stays.",
+      "start_text": [
+        "int width /* 2 * margin */ = 40;",
+        "int ratio /* w/h */ = 2; int depth /* not used */ = 0;",
+        "int area /* w * h, see a/b.c */ = 80; /* in cm */",
+        "int half = total / 2; /* TODO */"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "int width = 40;",
+          "int ratio = 2; int depth = 0;",
+          "int area = 80;",
+          "int half = total / 2;"
+        ]
+      },
+      "par_keys": 20,
+      "par_seconds": 30,
+      "hint": ".\\{-} is .* that takes as little as it can. Any character can delimit :s, so :s#a/b#c# saves escaping the slashes.",
+      "solution": ":%s# /\\*.\\{-}\\*/##g<CR>",
+      "teaches": ["\\{-}", ":s#"]
+    },
+    {
+      "id": "regex-09",
+      "title": "Secure by default",
+      "description": "Move every http:// URL to https://, except the ones on localhost. login.example.com and local.example.com are real hosts, ftp stays ftp, and https is already fine.",
+      "start_text": [
+        "api: http://staging.example.net:8443/v1",
+        "auth: http://login.example.com/oauth",
+        "cors: http://localhost:3000 http://local.example.com",
+        "shop: http://shop.example.com",
+        "docs: https://docs.example.com",
+        "dev: http://localhost:8080 ftp://files.example.com"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "api: https://staging.example.net:8443/v1",
+          "auth: https://login.example.com/oauth",
+          "cors: http://localhost:3000 https://local.example.com",
+          "shop: https://shop.example.com",
+          "docs: https://docs.example.com",
+          "dev: http://localhost:8080 ftp://files.example.com"
+        ]
+      },
+      "par_keys": 30,
+      "par_seconds": 45,
+      "hint": "X@! in very magic mode means 'not followed by X', and it consumes nothing. The lines mix URLs, so :g can't sort them out.",
+      "solution": ":%s/\\vttp:(..l\\w*h)@!/ttps:/g<CR>",
+      "teaches": ["\\@!"]
+    },
+    {
+      "id": "regex-10",
+      "title": "Print statement",
+      "description": "Replace every bare print with log. Methods stay: self.print and buffer.print are someone else's problem.",
+      "start_text": [
+        "  print(\"start\")",
+        "  self.print(\"header\") print(\"middle\")",
+        "  buffer.print(total) print(parse(total))",
+        "  print(self.print(prompt(\"footer\")))"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "  log(\"start\")",
+          "  self.print(\"header\") log(\"middle\")",
+          "  buffer.print(total) log(parse(total))",
+          "  log(self.print(prompt(\"footer\")))"
+        ]
+      },
+      "par_keys": 22,
+      "par_seconds": 35,
+      "hint": "X\\@<! means 'not preceded by X', and it consumes nothing. \\zs can't do this: it can only ask for what is there.",
+      "solution": ":%s/\\.\\@<!print/log/g<CR>",
+      "teaches": ["\\@<!"]
+    }
+  ]
+}
