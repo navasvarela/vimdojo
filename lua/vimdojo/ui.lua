@@ -118,6 +118,9 @@ end
 ---@field win integer
 ---@field close fun()
 
+---@type table<integer, fun()> Each open panel's window -> its close function.
+local open_panels = {}
+
 --- A centered, read-only floating panel that takes focus (menus, results).
 ---@param spec vimdojo.PanelSpec
 ---@return vimdojo.Panel
@@ -144,15 +147,23 @@ function M.open_panel(spec)
   })
   vim.wo[win].cursorline = true
 
-  return {
-    buf = buf,
-    win = win,
-    close = function()
-      if vim.api.nvim_win_is_valid(win) then
-        vim.api.nvim_win_close(win, true)
-      end
-    end,
-  }
+  local function close()
+    open_panels[win] = nil
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_close(win, true)
+    end
+  end
+  open_panels[win] = close
+
+  return { buf = buf, win = win, close = close }
+end
+
+--- Panels draw above a level, so one left open hides the level while focus and every
+--- key go to the level underneath. Whatever replaces the screen closes them first.
+function M.close_panels()
+  for _, close in pairs(open_panels) do
+    close()
+  end
 end
 
 ---@param buf integer

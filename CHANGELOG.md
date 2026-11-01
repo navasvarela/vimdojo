@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- `:VimDojo daily` with the menu or help open started the level underneath them, where
+  it couldn't be seen, and every key went to the hidden level. Starting a level now
+  closes any open panel, and opening the menu twice no longer stacks a second one.
+
 ## v0.7.0 (2026-11-01)
 
 ### Added
