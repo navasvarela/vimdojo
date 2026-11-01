@@ -80,6 +80,38 @@
       "hash": "sha256:44af921916642d7e6feadc5937f719ebd68a06ce57b7c541316a4e89fd1fdb75",
       "ranked": true
     },
+    "expr-01": {
+      "hash": "sha256:acdfba16983299d60d42093f2c4b8534063ca6d6e180e6628a7d88d31ba49f93",
+      "ranked": true
+    },
+    "expr-02": {
+      "hash": "sha256:b86a9b35f42cbc0d7f74f8d869516aae4b71f61301f75482fe7522138b1d3dc1",
+      "ranked": true
+    },
+    "expr-03": {
+      "hash": "sha256:3c6f0fbadbe0334c471db8b1f03d6a762a423e78f0503f06b53a71af27f4d2e3",
+      "ranked": true
+    },
+    "expr-04": {
+      "hash": "sha256:9caaf760a99d874951c7e7009e9c0a4f8ceafb63421c0aa03b201be585de8a93",
+      "ranked": true
+    },
+    "expr-05": {
+      "hash": "sha256:eb712df44f3dd09fb58510f4c19f663d32d3cf6dafca448c55d3a88242cf7617",
+      "ranked": true
+    },
+    "expr-06": {
+      "hash": "sha256:40ccaa2043658a5bf3aa5ce380e44047aba68c1eb806d3d3b1c4474169a043e9",
+      "ranked": true
+    },
+    "expr-07": {
+      "hash": "sha256:9e805a47aba985a62d7bbb2cc13baa6f232011b47b0823992037514d950e094b",
+      "ranked": true
+    },
+    "expr-08": {
+      "hash": "sha256:2d179c6e2296ddca6fff0683e36f6a0f15384c41904b4bd0a9bc75b89e7ba86a",
+      "ranked": true
+    },
     "find-and-jump-01": {
       "hash": "sha256:18ca6e560f9205d6a0ee8f727c8f35cb7ee0bbde370e6644a599107456e27d6b",
       "ranked": true

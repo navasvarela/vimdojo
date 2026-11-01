@@ -1,0 +1,282 @@
+{
+  "$schema": "./schema.json",
+  "pack": "expression-register",
+  "title": "The Expression Register",
+  "description": "Let Vim do the arithmetic: <C-r>= while typing, \\= in substitutions and :put = to generate lines.",
+  "order": 11,
+  "authors": ["navasvarela"],
+  "levels": [
+    {
+      "id": "expr-01",
+      "title": "Sign the release",
+      "description": "The release notes need the SHA-256 of their first line on the checksum line. You can't type that from memory, and you don't have to.",
+      "start_text": ["vimdojo 1.0 is ready to ship", "checksum: "],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "vimdojo 1.0 is ready to ship",
+          "checksum: c48643711b8092d9d0cc9717a2e50ee89c0078dab85b4830a09751d2ed85a290"
+        ]
+      },
+      "par_keys": 18,
+      "par_seconds": 27,
+      "hint": "In Insert mode, <C-r>= lets you type any expression and inserts its value. Try sha256(). The registers are variables in there: @\" is the one you just yanked into.",
+      "solution": "y$jA<C-r>=sha256(@\")<CR><Esc>",
+      "teaches": ["<C-r>=", "@\""]
+    },
+    {
+      "id": "expr-02",
+      "title": "Lookup table",
+      "description": "Add the squares of 1 to 20 below the comment, one per line.",
+      "start_text": ["# Perfect squares, for the lookup table"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "# Perfect squares, for the lookup table",
+          "1",
+          "4",
+          "9",
+          "16",
+          "25",
+          "36",
+          "49",
+          "64",
+          "81",
+          "100",
+          "121",
+          "144",
+          "169",
+          "196",
+          "225",
+          "256",
+          "289",
+          "324",
+          "361",
+          "400"
+        ]
+      },
+      "par_keys": 32,
+      "par_seconds": 48,
+      "hint": ":put = puts the value of an expression below the cursor, and a list goes on one line per item. range() makes a list, and map() with a lambda like {_,v->v+1} changes every item. :put can be shortened to :pu.",
+      "solution": ":pu=map(range(1,20),{_,v->v*v})<CR>",
+      "teaches": [":put =", "map()"]
+    },
+    {
+      "id": "expr-03",
+      "title": "Retina ready",
+      "description": "Everything in this stylesheet doubles for high-density screens: double every px value. The z-index and the opacity are not sizes.",
+      "start_text": [
+        ".card {",
+        "  margin: 8px 12px 16px 24px;",
+        "  padding: 4px 6px;",
+        "  width: 320px;",
+        "  height: 180px;",
+        "  z-index: 10;",
+        "  opacity: 0.75;",
+        "  border: 1px solid;",
+        "}"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          ".card {",
+          "  margin: 16px 24px 32px 48px;",
+          "  padding: 8px 12px;",
+          "  width: 640px;",
+          "  height: 360px;",
+          "  z-index: 10;",
+          "  opacity: 0.75;",
+          "  border: 2px solid;",
+          "}"
+        ]
+      },
+      "par_keys": 31,
+      "par_seconds": 46,
+      "hint": "A replacement starting with \\= is an expression. submatch(0) is the whole match, and it turns into a number when you do arithmetic with it. \\ze stops the match before the px.",
+      "solution": ":%s/\\d*\\zepx/\\=submatch(0)*2/g<CR>",
+      "teaches": ["\\=", "submatch()"]
+    },
+    {
+      "id": "expr-04",
+      "title": "Where am I",
+      "description": "Replace each __LINE__ with the number of the line it is on. __init__ and __name__ are fine as they are.",
+      "start_text": [
+        "def __init__(self):",
+        "    log(\"__LINE__: starting\")",
+        "    self.name = __name__",
+        "    log(\"__LINE__: named\")",
+        "",
+        "def load(self):",
+        "    log(\"__LINE__: loading\")",
+        "    self.data = read()",
+        "    log(\"__LINE__: read\")",
+        "    self.parse()",
+        "    log(\"__LINE__: parsed\")",
+        "",
+        "def __del__(self):",
+        "    log(\"__LINE__: gone\")"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "def __init__(self):",
+          "    log(\"2: starting\")",
+          "    self.name = __name__",
+          "    log(\"4: named\")",
+          "",
+          "def load(self):",
+          "    log(\"7: loading\")",
+          "    self.data = read()",
+          "    log(\"9: read\")",
+          "    self.parse()",
+          "    log(\"11: parsed\")",
+          "",
+          "def __del__(self):",
+          "    log(\"14: gone\")"
+        ]
+      },
+      "par_keys": 23,
+      "par_seconds": 34,
+      "hint": "line('.') is the number of the line being substituted, even in a :%s.",
+      "solution": ":%s/__L\\w*/\\=line('.')<CR>",
+      "teaches": ["line('.')"]
+    },
+    {
+      "id": "expr-05",
+      "title": "Special characters",
+      "description": "Replace PREFIX with the path in register a everywhere it appears. The path holds both / and &, which mean something to :s, and pasting it with <C-r>a won't survive that.",
+      "start_text": [
+        "bin=PREFIX/bin",
+        "lib=PREFIX/lib",
+        "man=PREFIX/man",
+        "etc=PREFIX/etc",
+        "var=PREFIX/var",
+        "doc=PREFIX/doc",
+        "src=PREFIX/src",
+        "tmp=PREFIX/tmp",
+        "PATH=PREFIX/bin:PREFIX/tools:$PATH"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "bin=/opt/R&D/bin",
+          "lib=/opt/R&D/lib",
+          "man=/opt/R&D/man",
+          "etc=/opt/R&D/etc",
+          "var=/opt/R&D/var",
+          "doc=/opt/R&D/doc",
+          "src=/opt/R&D/src",
+          "tmp=/opt/R&D/tmp",
+          "PATH=/opt/R&D/bin:/opt/R&D/tools:$PATH"
+        ]
+      },
+      "par_keys": 17,
+      "par_seconds": 26,
+      "hint": "An expression's value goes in literally, so nothing in it is special. @a reads register a.",
+      "solution": ":%s/PR\\u*/\\=@a/g<CR>",
+      "teaches": ["\\=@a"],
+      "preset": {
+        "registers": {
+          "a": "/opt/R&D"
+        }
+      }
+    },
+    {
+      "id": "expr-06",
+      "title": "Hex to decimal",
+      "description": "Somebody pasted this from a debugger. Convert every 0x value to decimal.",
+      "start_text": [
+        "status=0x1F flags=0xA0",
+        "mask=0xFF retries=0x3",
+        "port=0x1F90 uid=0x3E8",
+        "offset=0x10 size=0x400",
+        "limit=0xC8 nice=0x13"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "status=31 flags=160",
+          "mask=255 retries=3",
+          "port=8080 uid=1000",
+          "offset=16 size=1024",
+          "limit=200 nice=19"
+        ]
+      },
+      "par_keys": 26,
+      "par_seconds": 39,
+      "hint": "Vim reads a string like 0x1F as a number when it does arithmetic with it.",
+      "solution": ":%s/0\\w*/\\=+submatch(0)/g<CR>",
+      "teaches": ["unary +"]
+    },
+    {
+      "id": "expr-07",
+      "title": "Count them for me",
+      "description": "Each strncmp's last argument should be the length of its string. They all say 0. Let Vim count.",
+      "start_text": [
+        "strncmp(hdr, \"content-type\", 0)",
+        "strncmp(hdr, \"content-length\", 0)",
+        "strncmp(hdr, \"transfer-encoding\", 0)",
+        "strncmp(hdr, \"accept-language\", 0)",
+        "strncmp(hdr, \"if-none-match\", 0)",
+        "strncmp(hdr, \"x-forwarded-for\", 0)",
+        "strncmp(hdr, \"user-agent\", 0)",
+        "strncmp(hdr, \"cache-control\", 0)"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "strncmp(hdr, \"content-type\", 12)",
+          "strncmp(hdr, \"content-length\", 14)",
+          "strncmp(hdr, \"transfer-encoding\", 17)",
+          "strncmp(hdr, \"accept-language\", 15)",
+          "strncmp(hdr, \"if-none-match\", 13)",
+          "strncmp(hdr, \"x-forwarded-for\", 15)",
+          "strncmp(hdr, \"user-agent\", 10)",
+          "strncmp(hdr, \"cache-control\", 13)"
+        ]
+      },
+      "par_keys": 38,
+      "par_seconds": 57,
+      "hint": "submatch(1) is the first group, even when \\zs leaves it outside the replaced text. len() counts the bytes of a string.",
+      "solution": ":%s/\\v\"(.*)\", \\zs0/\\=len(submatch(1))<CR>",
+      "teaches": ["submatch(1)", "len()"]
+    },
+    {
+      "id": "expr-08",
+      "title": "Twelve columns",
+      "description": "Generate the widths of a twelve-column grid below the comment, as in the goal. Each width is its column's share of 100%, to two decimals.",
+      "start_text": ["# column width"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "# column width",
+          "col1 8.33%",
+          "col2 16.67%",
+          "col3 25.00%",
+          "col4 33.33%",
+          "col5 41.67%",
+          "col6 50.00%",
+          "col7 58.33%",
+          "col8 66.67%",
+          "col9 75.00%",
+          "col10 83.33%",
+          "col11 91.67%",
+          "col12 100.00%"
+        ]
+      },
+      "par_keys": 60,
+      "par_seconds": 90,
+      "hint": "printf() does the formatting, and %% is a literal percent sign. v:val/0.12 is a float. In a map() lambda, the second argument is the item.",
+      "solution": ":pu=map(range(1,12),{_,v->printf('col%d %.2f%%',v,v/0.12)})<CR>",
+      "teaches": ["printf()"]
+    }
+  ]
+}
