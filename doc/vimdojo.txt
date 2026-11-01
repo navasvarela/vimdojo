@@ -90,8 +90,10 @@ config loads without errors and every check passes. Your own config and
 files are never read or changed. This is isolation, not a security sandbox:
 the code runs with your permissions, so only play packs you trust.
 
-When you solve a level, a results card shows your stars, points, keys, time
-and your best so far:
+When you solve a level, a results card shows your stars, points, keys, time,
+your best so far, the keys you pressed beside the level's par route, and what
+the level teaches. On today's daily the par route stays hidden until the day
+ends (00:00 UTC):
 
   n or <CR>   Next level (when it is unlocked)
   r           Retry the level

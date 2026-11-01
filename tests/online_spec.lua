@@ -415,7 +415,7 @@ describe("online", function()
     describe("the results card", function()
       local function card(can_submit)
         local lines = results.content({
-          level = { par_keys = 5, par_seconds = 8 },
+          level = { par_keys = 5, par_seconds = 8, solution = "jjjll", teaches = { "j" } },
           outcome = { keys = 5, seconds = 1, stars = 3, points = 1000 },
           record = { best_keys = 5, best_seconds = 1, stars = 3 },
           has_next = true,
@@ -426,7 +426,7 @@ describe("online", function()
 
       it("names today's board on a daily", function()
         local lines = results.content({
-          level = { par_keys = 5, par_seconds = 8 },
+          level = { par_keys = 5, par_seconds = 8, solution = "jjjll", teaches = { "j" } },
           daily_date = "2026-10-31",
           outcome = { keys = 5, seconds = 1, stars = 3, points = 1000 },
           record = { best_keys = 5, best_seconds = 1, stars = 3 },
