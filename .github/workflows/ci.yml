@@ -226,6 +226,7 @@ jobs:
       # Downloads a checksum-pinned actionlint; it also runs shellcheck (on
       # the runner image) over every run: block.
       - run: scripts/actionlint.sh
+      - run: exit 1
 
   # The one check the main ruleset requires, so adding or renaming a job needs no
   # ruleset change. `always()` is load-bearing: without it this job is skipped when a
