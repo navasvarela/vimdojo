@@ -1,20 +1,9 @@
 name: CI
 
-# Docs-only changes skip this: nothing here reads Markdown (docs.yml lints it).
-# docs/brand/ feeds the site and doc/ is the plugin's help, so those still run.
-# A change that also touches code runs everything.
 on:
   push:
     branches: [main]
-    paths-ignore:
-      - "**.md"
-      - "docs/launch/**"
-      - "docs/proposals/**"
   pull_request:
-    paths-ignore:
-      - "**.md"
-      - "docs/launch/**"
-      - "docs/proposals/**"
 
 # Pull requests run their own levels in CI (solution tests type keys into a
 # real Neovim, and Setup levels run Lua), so a fork's PR is untrusted code.
@@ -26,7 +15,42 @@ permissions:
   contents: read
 
 jobs:
+  # Docs-only changes skip every job below: nothing here reads Markdown (docs.yml
+  # lints it). docs/brand/ feeds the site and doc/ is the plugin's help, so those
+  # still run, and a change that also touches code runs everything.
+  #
+  # This isn't `paths-ignore` because a workflow skipped that way reports no checks
+  # at all, and a required check that never reports blocks the PR forever. A skipped
+  # job does report, and counts as passing.
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.diff.outputs.code }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - id: diff
+        env:
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.sha }}
+        run: |
+          # Anything unexpected runs everything: an empty diff, or a base that a
+          # force-push has removed. Wrongly running costs minutes; wrongly skipping
+          # would let untested code merge.
+          if ! changed=$(git diff --name-only "$BASE" "$HEAD"); then
+            echo "code=true" >>"$GITHUB_OUTPUT"
+          elif grep -qvE '\.md$|^docs/launch/|^docs/proposals/' <<<"$changed"; then
+            echo "code=true" >>"$GITHUB_OUTPUT"
+          else
+            echo "code=false" >>"$GITHUB_OUTPUT"
+          fi
+
   lint:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -45,6 +69,8 @@ jobs:
           args: lua plugin tests
 
   challenges:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -57,8 +83,13 @@ jobs:
       - run: make validate
 
   plugin-tests:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    # Nightly warns of what's coming, but its breakage isn't this PR's fault, so a
+    # failure there shows on the PR without failing the job for ci-passed.
+    continue-on-error: ${{ matrix.neovim == 'nightly' }}
     strategy:
       fail-fast: false
       matrix:
@@ -78,6 +109,8 @@ jobs:
   # Exercises the clean room on Windows: named pipes for RPC and ConPTY
   # terminals behave differently there.
   plugin-tests-windows:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: windows-latest
     timeout-minutes: 40
     defaults:
@@ -99,6 +132,8 @@ jobs:
           PLENARY_DIR: ${{ github.workspace }}/.deps/plenary.nvim
 
   web:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     defaults:
@@ -126,6 +161,8 @@ jobs:
   # The leaderboard verifier (PLAN-v3): replays every Motions and Usage
   # reference solution through its harness and runs its adversarial tests.
   verifier:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -156,6 +193,8 @@ jobs:
   # The leaderboard API, tested on a real local D1. It doesn't deploy:
   # that needs the maintainer's Cloudflare login (api/README.md).
   api:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -176,6 +215,8 @@ jobs:
       - run: npm run build
 
   workflows:
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -185,3 +226,20 @@ jobs:
       # Downloads a checksum-pinned actionlint; it also runs shellcheck (on
       # the runner image) over every run: block.
       - run: scripts/actionlint.sh
+
+  # The one check the main ruleset requires, so adding or renaming a job needs no
+  # ruleset change. `always()` is load-bearing: without it this job is skipped when a
+  # job it needs fails, and a skipped required check counts as passing.
+  ci-passed:
+    needs: [changes, lint, challenges, plugin-tests, plugin-tests-windows, web, verifier, api, workflows]
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "Results: $RESULTS"
+          case " $RESULTS " in
+            *" failure "* | *" cancelled "*) exit 1 ;;
+          esac

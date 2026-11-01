@@ -854,3 +854,14 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   from it or from the manual.
 - **No sign-in state in the panel.** Working it out would load `online.lua`, which stays
   unloaded while online features are off. The panel only says whether they're on.
+
+## CI: one required check
+
+- **The main ruleset requires `ci-passed` and `CodeQL`, not each job.** New or renamed
+  jobs then need no ruleset change, and matrix names stay out of the settings.
+- **Docs-only changes skip jobs instead of the workflow.** With `paths-ignore`, a
+  required check on a Markdown-only PR never reports, and the PR can't merge. A `changes`
+  job now decides, the other jobs are skipped, and `ci-passed` reports. **Downside
+  accepted:** those PRs spend a runner for a minute or so.
+- **Neovim nightly can't block a merge.** Its failures still show on the PR, but they're
+  usually Neovim's, not the PR's. **Downside accepted:** nobody is forced to look at them.
