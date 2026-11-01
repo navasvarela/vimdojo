@@ -118,8 +118,25 @@ end
 ---@field win integer
 ---@field close fun()
 
----@type table<integer, fun()> Each open panel's window -> its close function.
+---@type vimdojo.Panel[] Oldest first, so the last one is on top.
 local open_panels = {}
+
+---@param win integer
+local function forget_panel(win)
+  open_panels = vim.tbl_filter(function(panel)
+    return panel.win ~= win
+  end, open_panels)
+end
+
+--- Panels all share a zindex, so a panel can be left showing with focus somewhere behind
+--- it, and keys typed at it then go where the player can't see. Neovim doesn't prevent
+--- this: closing a window focuses the previous one, and only one previous is remembered.
+local function focus_top_panel()
+  local top = open_panels[#open_panels]
+  if top and vim.api.nvim_win_is_valid(top.win) then
+    vim.api.nvim_set_current_win(top.win)
+  end
+end
 
 --- A centered, read-only floating panel that takes focus (menus, results).
 ---@param spec vimdojo.PanelSpec
@@ -131,6 +148,7 @@ function M.open_panel(spec)
 
   local width = math.min(max_width(spec.lines) + 2, vim.o.columns - 4)
   local height = math.min(#spec.lines, vim.o.lines - 4)
+  local opener = vim.api.nvim_get_current_win()
   local win = vim.api.nvim_open_win(buf, true, {
     relative = "editor",
     width = width,
@@ -148,21 +166,38 @@ function M.open_panel(spec)
   vim.wo[win].cursorline = true
 
   local function close()
-    open_panels[win] = nil
-    if vim.api.nvim_win_is_valid(win) then
-      vim.api.nvim_win_close(win, true)
+    forget_panel(win)
+    if not vim.api.nvim_win_is_valid(win) then
+      return
     end
+    local had_focus = vim.api.nvim_get_current_win() == win
+    vim.api.nvim_win_close(win, true)
+    if had_focus and vim.api.nvim_win_is_valid(opener) then
+      vim.api.nvim_set_current_win(opener)
+    end
+    focus_top_panel()
   end
-  open_panels[win] = close
 
-  return { buf = buf, win = win, close = close }
+  -- `:q` closes a panel without going through close().
+  vim.api.nvim_create_autocmd("WinClosed", {
+    pattern = tostring(win),
+    once = true,
+    callback = function()
+      forget_panel(win)
+      vim.schedule(focus_top_panel)
+    end,
+  })
+
+  local panel = { buf = buf, win = win, close = close }
+  table.insert(open_panels, panel)
+  return panel
 end
 
 --- Panels draw above a level, so one left open hides the level while focus and every
 --- key go to the level underneath. Whatever replaces the screen closes them first.
 function M.close_panels()
-  for _, close in pairs(open_panels) do
-    close()
+  for _, panel in ipairs(open_panels) do
+    panel.close()
   end
 end
 
