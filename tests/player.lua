@@ -47,7 +47,7 @@ function M.spawn(setup)
     "--noplugin",
     "-u",
     helpers.root .. "/tests/minimal_init.lua",
-  }, { rpc = true })
+  }, { rpc = true, on_exit = function(_, code) _G.LAST_EXIT = code end })
   local player = setmetatable({
     chan = chan,
     pid = vim.fn.jobpid(chan),
