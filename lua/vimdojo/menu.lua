@@ -1,6 +1,7 @@
 -- Level select: tracks, their packs and levels, with lock state, stars, and
 -- bests.
 local challenges = require("vimdojo.challenges")
+local help = require("vimdojo.help")
 local ui = require("vimdojo.ui")
 
 local M = {}
@@ -43,15 +44,7 @@ function M.availability(model, level)
   return model.unlocked[level.id] and "open" or "locked"
 end
 
----@param rows vimdojo.MenuRows
----@param line string
----@param group string|nil Highlight for the whole line.
-local function add(rows, line, group)
-  table.insert(rows.lines, line)
-  if group then
-    table.insert(rows.highlights, { line = #rows.lines - 1, col = 0, group = group })
-  end
-end
+local add = ui.add_line
 
 ---@param rows vimdojo.MenuRows
 ---@param stars_count integer
@@ -145,7 +138,7 @@ function M.open(model, on_select)
     title = " vimdojo ",
     lines = rows.lines,
     highlights = rows.highlights,
-    footer = " <CR> play · q close ",
+    footer = " <CR> play · ? help · q close ",
   })
   local start_line = rows.first_open or rows.first_level or 1
   vim.api.nvim_win_set_cursor(panel.win, { start_line, 4 })
@@ -176,7 +169,12 @@ function M.open(model, on_select)
     end
   end
 
-  ui.map(panel.buf, { ["<CR>"] = select, q = panel.close, ["<Esc>"] = panel.close })
+  ui.map(panel.buf, {
+    ["<CR>"] = select,
+    ["?"] = help.toggle,
+    q = panel.close,
+    ["<Esc>"] = panel.close,
+  })
 end
 
 return M

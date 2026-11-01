@@ -23,15 +23,7 @@ local HINTED_MARK = "*"
 ---@field rank integer|nil
 ---@field keys integer|nil
 
----@param rows vimdojo.MenuRows|table
----@param line string
----@param group string|nil
-local function add(rows, line, group)
-  table.insert(rows.lines, line)
-  if group then
-    table.insert(rows.highlights, { line = #rows.lines - 1, col = 0, group = group })
-  end
-end
+local add = ui.add_line
 
 ---@param entry vimdojo.BoardEntry
 ---@return string

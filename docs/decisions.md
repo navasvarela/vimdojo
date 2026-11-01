@@ -836,3 +836,21 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   public in the repo either way, so this removes the easy path, not every path.
 - **The site shows no "You" line.** Its session counts keys and doesn't record them, and
   recording them belongs with web runs.
+
+## In-game help
+
+- **A panel, `:VimDojo help` and `?` on the menu and results card, rather than sending
+  players to `:help vimdojo`.** `:help` opens a split behind the game's floats and takes
+  a player out of what they were doing. The panel opens above whatever is showing and
+  closing it goes back there. The manual stays the reference, and the panel points to it.
+- **No key inside a level.** Every key there belongs to the level: `?` is a search, and
+  it could be part of the shortest route. A new control would be one more key taken from
+  players, and the clock can't pause, because the timer is what's scored. The level's
+  header already lists its controls. `:VimDojo help` still works there, at the cost of the
+  two keys that leave Terminal mode (`<C-\><C-n>`).
+- **Built so it can't drift from the game.** Scoring numbers come from `scoring.lua` and
+  control keys from the config. The command list is written by hand so it can be grouped
+  and worded for a reader, and `tests/help_spec.lua` fails if a subcommand is missing
+  from it or from the manual.
+- **No sign-in state in the panel.** Working it out would load `online.lua`, which stays
+  unloaded while online features are off. The panel only says whether they're on.

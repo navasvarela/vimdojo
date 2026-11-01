@@ -11,6 +11,9 @@
   - **The Expression Register:** `<C-r>=`, `:put =` and `\=` in substitutions.
   - **Boss Levels:** seven realistic refactors with pars from 49 to 62 keys, such as
     extracting a function or turning a git log into release notes.
+- **Help inside the game.** `?` on the menu or the results card, or `:VimDojo help`,
+  opens a panel with how to play, scoring, the keys you've configured, the commands and
+  how to turn on the leaderboards. `:help vimdojo` is still the full manual.
 - **See how par is done.** The results card now shows your keys beside the level's
   par route and what the level teaches, in Neovim and on the site. On today's daily
   the route stays hidden until the day ends, so the board can't be climbed by copying.

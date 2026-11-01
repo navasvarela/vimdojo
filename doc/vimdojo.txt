@@ -58,6 +58,13 @@ Calling |vimdojo.setup()| is optional. Without it the defaults apply.
 
 Run |:VimDojo| to open the level menu. Move to a level and press <CR>.
 
+                                                                *vimdojo-help*
+Press `?` on the menu or the results card, or run `:VimDojo help`, for a panel
+with how to play, scoring, the keys, the commands and how to turn on the
+leaderboards. `?`, `q` or <Esc> closes it and returns to what was showing. There
+is no key for it inside a level, where `?` belongs to the level. The panel is a
+summary: this manual has the detail.
+
 Each level runs in its own Neovim: a stock `nvim --clean` started in a
 terminal window, either floating or in a new tab (see |vimdojo-config|). Your
 registers, windows, options and plugins are never touched, and every level
@@ -104,6 +111,7 @@ ends (00:00 UTC):
               `vimdojo daily 2026-10-30 ★★★ 7 keys (par 7) 4.3s`, to the
               clipboard (and the unnamed register)
   m           Back to the menu
+  ?           Show the help (see |vimdojo-help|)
   q or <Esc>  Quit
 
                                                             *vimdojo-controls*
@@ -128,6 +136,7 @@ type `:q` inside a level, the level closes.
 
     menu    Open the level menu.
     daily   Play today's daily challenge (see |vimdojo-daily|).
+    help    Open or close the help panel (see |vimdojo-help|).
     hint    Show the current level's hint (same as <leader>h).
     reset   Restart the current level (same as <leader>r).
     quit    Leave the current level (same as <Esc><Esc>).

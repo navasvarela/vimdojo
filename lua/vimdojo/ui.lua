@@ -75,6 +75,17 @@ function M.apply_highlights(buf, highlights)
   end
 end
 
+--- Appends a line to rows being built for a panel.
+---@param rows { lines: string[], highlights: vimdojo.Highlight[] }
+---@param line string
+---@param group string|nil Highlight for the whole line.
+function M.add_line(rows, line, group)
+  table.insert(rows.lines, line)
+  if group then
+    table.insert(rows.highlights, { line = #rows.lines - 1, col = 0, group = group })
+  end
+end
+
 ---@param lines string[]
 ---@return integer
 local function max_width(lines)
