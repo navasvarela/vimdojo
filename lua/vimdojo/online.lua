@@ -251,25 +251,29 @@ end
 ---@field defer fun(callback: fun(), ms: integer)
 ---@field input fun(opts: table, callback: fun(value: string|nil))
 ---@field select fun(items: table, opts: table, callback: fun(item: any))
+---@field now fun(): integer
 
----@type vimdojo.OnlineDeps
-local deps =
-  { request = curl_request, defer = vim.defer_fn, input = vim.ui.input, select = vim.ui.select }
-
---- Lets tests stand in for the network, timers and prompts.
----@param overrides table
-function M._set_deps(overrides)
-  deps = vim.tbl_extend("force", deps, overrides)
-end
-
-function M._reset_deps()
-  deps = {
+---@return vimdojo.OnlineDeps
+local function default_deps()
+  return {
     request = curl_request,
     defer = vim.defer_fn,
     input = vim.ui.input,
     select = vim.ui.select,
     now = os.time,
   }
+end
+
+local deps = default_deps()
+
+--- Lets tests stand in for the network, timers, prompts and clock.
+---@param overrides table
+function M._set_deps(overrides)
+  deps = vim.tbl_extend("force", deps, overrides)
+end
+
+function M._reset_deps()
+  deps = default_deps()
 end
 
 ---@return boolean

@@ -253,6 +253,32 @@ describe("online", function()
       online.save_token(TOKEN)
     end)
 
+    -- `before_each` always supplies `now`, so only a freshly loaded module has the
+    -- dependencies a player's Neovim starts with.
+    it("reports a verdict with the dependencies a fresh load starts with", function()
+      package.loaded["vimdojo.online"] = nil
+      local fresh = require("vimdojo.online")
+      package.loaded["vimdojo.online"] = online
+      fresh._set_deps({
+        request = answer,
+        defer = function(callback)
+          table.insert(timers, callback)
+        end,
+      })
+      save_run()
+      responses = {
+        { status = 202, body = { id = "r1", status = "pending" } },
+        {
+          status = 200,
+          body = { status = "verified", verified_keys = 1, claimed_keys = 1, level_id = LEVEL },
+        },
+        { status = 200, body = { rank = 4 } },
+      }
+      fresh.submit(LEVEL)
+      run_timers()
+      assert.is_truthy(last_message():find("verified: 1 keys", 1, true))
+    end)
+
     it("sends the best run, then reports the verdict", function()
       save_run()
       responses = {
