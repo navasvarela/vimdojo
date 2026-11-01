@@ -11,6 +11,13 @@ local SOLUTION = "jjjll"
 -- instead of looping forever.
 local MAX_ESCAPE_STEPS = 6
 
+-- On Windows, stopping a room within about 200 ms of a tall panel opening over it kills
+-- the player's Neovim with no error. A CI probe found it on Neovim stable: 500 ms later was
+-- safe, as was a 5-line panel, and closing the panel first didn't help. Nobody can type a
+-- command that fast, so the game doesn't work around it and this test waits it out. The
+-- cause is unknown, and a scripted `help` then `quit` would still hit it.
+local WINDOWS_PANEL_SETTLE_MS = 500
+
 -- The network is the one thing replaced: every other dependency is the real one.
 local STUB_NETWORK = [[
   local level_id = ...
@@ -240,6 +247,9 @@ describe("every command from every screen", function()
     for _, command in ipairs(COMMANDS) do
       it((":VimDojo %s from %s"):format(command, screen.name), function()
         screen.open(player)
+        if vim.fn.has("win32") == 1 then
+          vim.wait(WINDOWS_PANEL_SETTLE_MS)
+        end
         player:lua("vim.v.errmsg = ''")
         run(player, command)
 
