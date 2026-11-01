@@ -15,6 +15,7 @@ import { shareText } from "../share"
 import { h, stars } from "../ui/dom"
 import { createEditor, freezeEditor, isNormalMode, resetEditor, snapshot, vimMode } from "./editor"
 import { presentGoal, type GoalPresentation } from "./goal-view"
+import { readableKeys, SOLUTION_HIDDEN } from "./lesson"
 import { Session, type Outcome } from "./session"
 
 // 100 ms keeps the timer readable to a tenth of a second.
@@ -392,6 +393,8 @@ export class Demo {
   private showResults(play: Play, outcome: Outcome): void {
     const record = this.progress.levels[play.level.id]
     const next = nextLevel(this.packs, play.level.id)
+    // By level, not by how it was opened: the same level is in the list too.
+    const solutionHidden = this.todaysDaily()?.level.id === play.level.id
     const nextButton = next
       ? h("button", { className: "primary", attrs: { type: "button" } }, ["Next level (N)"])
       : undefined
@@ -426,6 +429,12 @@ export class Demo {
             h("dd", {}, [
               `${record.best_keys} keys · ${record.best_seconds.toFixed(1)}s · ${stars(record.stars)}`,
             ]),
+          h("dt", {}, ["Par"]),
+          h("dd", {}, [
+            solutionHidden ? SOLUTION_HIDDEN : h("code", {}, [readableKeys(play.level.solution)]),
+          ]),
+          !solutionHidden && h("dt", {}, ["Learn"]),
+          !solutionHidden && h("dd", {}, [play.level.teaches.join(", ")]),
         ]),
         outcome.hinted && h("p", { className: "results-note" }, ["Hint used: capped at 2 stars."]),
         h("div", { className: "results-actions" }, [nextButton, retryButton, copyButton]),

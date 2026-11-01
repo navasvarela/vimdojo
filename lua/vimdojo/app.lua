@@ -217,10 +217,14 @@ local function complete(play)
 
   local level_id = play.level.id
   local next_level = next_playable(level_id)
+  local key_log = play.session:key_log()
   state.results = results.open({
     level = play.level,
     daily_date = play.daily_date,
     outcome = outcome,
+    typed_keys = key_log and key_log.keys,
+    -- By level, not by how it was opened: the same level is in the menu too.
+    solution_hidden = daily.pick(daily.pool(state.packs), daily.day_number(os.time())) == level_id,
     record = state.progress.levels[level_id],
     has_next = next_level ~= nil,
     has_board = online ~= nil and #goals.probes(play.level.goal) == 0,

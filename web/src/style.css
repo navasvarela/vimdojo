@@ -540,6 +540,7 @@ h2::before {
 
 .results-stats dd {
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .results-note {

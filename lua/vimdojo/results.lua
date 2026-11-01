@@ -8,6 +8,8 @@ local M = {}
 ---@field level vimdojo.Level
 ---@field daily_date string|nil Set when this was the daily challenge.
 ---@field outcome vimdojo.Outcome
+---@field typed_keys string[]|nil What the player pressed. Nil when text was pasted.
+---@field solution_hidden boolean It's today's daily: the board is still open.
 ---@field record vimdojo.LevelRecord Best-so-far, including this attempt.
 ---@field has_next boolean
 ---@field can_submit boolean Offer to submit this run to the leaderboards.
@@ -20,6 +22,50 @@ local M = {}
 ---@field close fun()
 ---@field submit fun()
 ---@field board fun()
+
+-- Cut so that a long, wandering attempt doesn't stretch the card past the screen.
+local MAX_TYPED_WIDTH = 60
+
+--- Key notation spells a typed "<" as "<lt>", which reads as a command to a player.
+---@param keys string
+---@return string
+local function readable(keys)
+  return (keys:gsub("<lt>", "<"))
+end
+
+---@param keys string[]
+---@return string
+local function typed_summary(keys)
+  local shown = {}
+  local width = 0
+  for _, key in ipairs(keys) do
+    width = width + #key
+    if width > MAX_TYPED_WIDTH then
+      table.insert(shown, "…")
+      break
+    end
+    table.insert(shown, key)
+  end
+  return readable(table.concat(shown))
+end
+
+--- What the attempt can teach: the player's keys beside the par route. On today's
+--- daily, showing it would let anyone copy their way up the board until the day ends.
+---@param view vimdojo.ResultsView
+---@return string[]
+local function lesson_lines(view)
+  local lines = {}
+  if view.typed_keys then
+    table.insert(lines, "  You    " .. typed_summary(view.typed_keys))
+  end
+  if view.solution_hidden then
+    table.insert(lines, "  Par    shown once today's daily ends (00:00 UTC)")
+    return lines
+  end
+  table.insert(lines, "  Par    " .. readable(view.level.solution))
+  table.insert(lines, "  Learn  " .. table.concat(view.level.teaches, ", "))
+  return lines
+end
 
 ---@param view vimdojo.ResultsView
 ---@return string[] lines
@@ -42,6 +88,8 @@ function M.content(view)
   if outcome.hinted then
     table.insert(lines, "  Hint used: capped at 2 stars")
   end
+  table.insert(lines, "")
+  vim.list_extend(lines, lesson_lines(view))
   table.insert(lines, "")
   local board = view.daily_date and "[b] today's board   " or "[b] board   "
   local submit = (view.can_submit and "[s] submit   " or "") .. (view.has_board and board or "")
