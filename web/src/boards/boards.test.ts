@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest"
 import { renderLevelOptions } from "../../build/board-levels"
 import { parsePacks } from "../challenges"
 import { BoardsApi } from "./api"
-import { boardUrl, playerUrl, showBoard, showPlayer } from "./pages"
+import { boardUrl, dailyUrl, playerUrl, showBoard, showDaily, showPlayer } from "./pages"
 
 type Route = { readonly status: number; readonly body?: unknown }
 
@@ -103,6 +103,88 @@ describe("the board page", () => {
     expect(root.textContent).toContain(hostile)
     expect(root.querySelector("tbody a")?.getAttribute("href")).toBe(playerUrl(hostile))
     expect(playerUrl(hostile)).not.toContain("<")
+  })
+})
+
+describe("the daily board", () => {
+  const NOW = Date.UTC(2026, 9, 31, 12)
+  const NAMES = new Map([["l", "Basic motions"]])
+  const DAILY_ENTRY = { rank: 1, handle: "ana", keys: 4, hinted: false }
+  const today = { date: undefined, now: NOW, levelNames: NAMES }
+  const body = (entries: readonly unknown[], date = "2026-10-31") => ({
+    date,
+    level_id: "l",
+    entries,
+  })
+  let root: HTMLElement
+
+  beforeEach(() => {
+    root = document.createElement("div")
+  })
+
+  const links = (): Array<string | null> =>
+    [...root.querySelectorAll("p.aside a")].map((link) => link.getAttribute("href"))
+
+  it("names the day and its level, and lists players", async () => {
+    const { api } = apiWith({
+      "/daily": { status: 200, body: body([DAILY_ENTRY]) },
+      "/daily/me": { status: 401 },
+    })
+    await showDaily(root, api, today)
+    expect(root.textContent).toContain("2026-10-31: Basic motions")
+    expect(root.textContent).toContain(":VimDojo daily")
+    expect(root.querySelector("tbody a")?.getAttribute("href")).toBe("/player/?handle=ana")
+  })
+
+  it("marks your line today, sending the cookie only for that", async () => {
+    const { api, calls } = apiWith({
+      "/daily": { status: 200, body: body([DAILY_ENTRY]) },
+      "/daily/me": { status: 200, body: { rank: 1, keys: 4 } },
+    })
+    await showDaily(root, api, today)
+    expect(root.querySelector(".board-mine")).not.toBeNull()
+    expect(root.textContent).toContain("You're #1")
+    expect(calls.filter((init) => init?.credentials === "include")).toHaveLength(1)
+  })
+
+  it("still shows the board if your place fails", async () => {
+    const { api } = apiWith({ "/daily": { status: 200, body: body([DAILY_ENTRY]) } })
+    await showDaily(root, api, today)
+    expect(root.textContent).toContain("ana")
+  })
+
+  it("says so when nobody has played yet", async () => {
+    const { api } = apiWith({ "/daily": { status: 200, body: body([]) } })
+    await showDaily(root, api, today)
+    expect(root.textContent).toContain("No verified runs yet")
+  })
+
+  it("links back from today, and not forward", async () => {
+    const { api } = apiWith({ "/daily": { status: 200, body: body([]) } })
+    await showDaily(root, api, today)
+    expect(links()).toEqual([dailyUrl("2026-10-30")])
+  })
+
+  it("shows a past day without asking for your place, linking both ways", async () => {
+    const { api, calls } = apiWith({
+      "/daily/2026-10-01": { status: 200, body: body([DAILY_ENTRY], "2026-10-01") },
+    })
+    await showDaily(root, api, { ...today, date: "2026-10-01" })
+    expect(calls).toHaveLength(1)
+    expect(root.textContent).not.toContain(":VimDojo daily")
+    expect(links()).toEqual([dailyUrl("2026-09-30"), dailyUrl("2026-10-02")])
+  })
+
+  it("says when a day has no board", async () => {
+    const { api } = apiWith({ "/daily/2030-01-01": { status: 404 } })
+    await showDaily(root, api, { ...today, date: "2030-01-01" })
+    expect(root.textContent).toContain("no daily board")
+  })
+
+  it("reports a failure", async () => {
+    const { api } = apiWith({})
+    await showDaily(root, api, today)
+    expect(root.querySelector("[role=alert]")).not.toBeNull()
   })
 })
 

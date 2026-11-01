@@ -2,6 +2,7 @@
 -- and nothing here runs at startup: the network is only touched when the player
 -- calls one of these commands.
 local challenges = require("vimdojo.challenges")
+local daily = require("vimdojo.daily")
 local keylog = require("vimdojo.keylog")
 local scoreboard = require("vimdojo.scoreboard")
 local storage = require("vimdojo.storage")
@@ -41,6 +42,8 @@ local VERIFY_POLL_TRIES = 60
 local UNRANKED_TRACK = "setup"
 -- `:VimDojo submit` stays under the API's 30 runs a minute.
 local SUBMIT_ALL_GAP_SECONDS = 3
+--- What `:VimDojo board` takes, instead of a level, for today's daily.
+M.DAILY_BOARD = "daily"
 
 ---@param message string
 ---@param level integer|nil
@@ -260,8 +263,13 @@ function M._set_deps(overrides)
 end
 
 function M._reset_deps()
-  deps =
-    { request = curl_request, defer = vim.defer_fn, input = vim.ui.input, select = vim.ui.select }
+  deps = {
+    request = curl_request,
+    defer = vim.defer_fn,
+    input = vim.ui.input,
+    select = vim.ui.select,
+    now = os.time,
+  }
 end
 
 ---@return boolean
@@ -381,6 +389,8 @@ local RUN_OUTCOMES = {
   end,
 }
 
+local ALREADY_VERIFIED = { verified = true, mismatch = true }
+
 --- Levels that can rank, from the packs that ship with the plugin.
 ---@return vimdojo.ScoreLevel[]
 function M.ranked_levels()
@@ -406,14 +416,12 @@ local function ranked_level(level_id)
   end
 end
 
----@param level vimdojo.ScoreLevel
----@param entries vimdojo.BoardEntry[]
----@param mine vimdojo.OwnRank|nil
-local function open_board_panel(level, entries, mine)
+---@param title string
+---@param rows { lines: string[], highlights: vimdojo.Highlight[] }
+local function open_board_panel(title, rows)
   ui.define_highlights()
-  local rows = scoreboard.board_rows(entries, mine)
   local panel = ui.open_panel({
-    title = (" %s: par %d "):format(level.title, level.par_keys),
+    title = title,
     lines = rows.lines,
     highlights = rows.highlights,
     footer = " q close ",
@@ -421,31 +429,58 @@ local function open_board_panel(level, entries, mine)
   ui.map(panel.buf, { q = panel.close, ["<Esc>"] = panel.close })
 end
 
----@param level vimdojo.ScoreLevel
-local function show_board(level)
-  local path = ("/api/v1/levels/%s/board"):format(level.id)
+--- Fetches a board, then the player's place on it when signed in.
+---@param path string
+---@param on_ready fun(board: table, mine: vimdojo.OwnRank|nil)
+local function fetch_board(path, on_ready)
   deps.request("GET", path, {}, function(res)
     if res.status ~= HTTP_OK or not res.body then
       notify(failure_message(res), vim.log.levels.WARN)
       return
     end
-    local entries = res.body.entries or {}
     local token = M.token()
     if not token then
-      open_board_panel(level, entries, nil)
+      on_ready(res.body, nil)
       return
     end
     deps.request("GET", path .. "/me", { token = token }, function(own)
-      open_board_panel(level, entries, own.status == HTTP_OK and own.body or nil)
+      on_ready(res.body, own.status == HTTP_OK and own.body or nil)
     end)
   end)
 end
 
---- `:VimDojo board [level]`: a level's board, without leaving Neovim. Boards are
+---@param level vimdojo.ScoreLevel
+local function show_board(level)
+  fetch_board(("/api/v1/levels/%s/board"):format(level.id), function(board, mine)
+    open_board_panel(
+      (" %s: par %d "):format(level.title, level.par_keys),
+      scoreboard.board_rows(board.entries or {}, mine)
+    )
+  end)
+end
+
+--- Today's board. The server says which level and day that is, so the panel is right
+--- even if this machine's clock or packs aren't.
+local function show_daily_board()
+  fetch_board("/api/v1/daily", function(board, mine)
+    local level = ranked_level(board.level_id)
+    open_board_panel(
+      level and (" Daily %s: %s, par %d "):format(board.date, level.title, level.par_keys)
+        or (" Daily %s: %s "):format(board.date, board.level_id),
+      scoreboard.daily_rows(board.entries or {}, mine)
+    )
+  end)
+end
+
+--- `:VimDojo board [level|daily]`: a board, without leaving Neovim. Boards are
 --- public, so this works signed out too; signed in, it also shows your place.
----@param level_id string|nil Asks which level when left out.
+---@param level_id string|nil A level, or `M.DAILY_BOARD`. Asks which level when left out.
 function M.board(level_id)
   if not require_enabled() then
+    return
+  end
+  if level_id == M.DAILY_BOARD then
+    show_daily_board()
     return
   end
   if level_id then
@@ -528,11 +563,38 @@ function M.scores()
   end)
 end
 
+--- Only for how a verdict is worded: the server decides what enters the daily. Read
+--- from the local packs and clock, so a player on any other level costs no request.
+---@param level_id string
+---@return boolean
+local function is_todays_daily(level_id)
+  local packs = challenges.load_dir()
+  return daily.pick(daily.pool(packs or {}), daily.day_number(deps.now())) == level_id
+end
+
+--- Adds today's place to a verdict on the daily.
+---@param token string
+---@param message string
+local function notify_with_daily_rank(token, message)
+  deps.request("GET", "/api/v1/daily/me", { token = token }, function(res)
+    local rank = res.status == HTTP_OK and res.body and res.body.rank
+    if rank then
+      notify(("%s You're #%d today: :VimDojo board %s"):format(message, rank, M.DAILY_BOARD))
+    else
+      notify(message)
+    end
+  end)
+end
+
 --- Adds the player's place to a verdict, so the good news doesn't need a second step.
 ---@param token string
 ---@param level_id string
 ---@param message string
 local function notify_with_rank(token, level_id, message)
+  if is_todays_daily(level_id) then
+    notify_with_daily_rank(token, message)
+    return
+  end
   deps.request(
     "GET",
     ("/api/v1/levels/%s/board/me"):format(level_id),
@@ -548,12 +610,32 @@ local function notify_with_rank(token, level_id, message)
   )
 end
 
+local await_verdict
+
+--- Asks for the verdict, and keeps waiting if there isn't one yet.
+---@param token string
+---@param run_id string
+---@param level_id string
+---@param tries_left integer
+local function fetch_verdict(token, run_id, level_id, tries_left)
+  deps.request("GET", "/api/v1/runs/" .. run_id, { token = token }, function(res)
+    local outcome = res.body and RUN_OUTCOMES[res.body.status]
+    if outcome and res.body.verified_keys then
+      notify_with_rank(token, level_id, outcome(res.body))
+    elseif outcome then
+      notify(outcome(res.body))
+    else
+      await_verdict(token, run_id, level_id, tries_left - 1)
+    end
+  end)
+end
+
 --- Waits for the verdict, without holding anything up: a player can keep playing.
 ---@param token string
 ---@param run_id string
 ---@param level_id string
 ---@param tries_left integer
-local function await_verdict(token, run_id, level_id, tries_left)
+await_verdict = function(token, run_id, level_id, tries_left)
   if tries_left == 0 then
     notify(
       ("%s is taking longer than usual to verify. It's safe: run :VimDojo scores later."):format(
@@ -563,16 +645,7 @@ local function await_verdict(token, run_id, level_id, tries_left)
     return
   end
   deps.defer(function()
-    deps.request("GET", "/api/v1/runs/" .. run_id, { token = token }, function(res)
-      local outcome = res.body and RUN_OUTCOMES[res.body.status]
-      if outcome and res.body.verified_keys then
-        notify_with_rank(token, level_id, outcome(res.body))
-      elseif outcome then
-        notify(outcome(res.body))
-      else
-        await_verdict(token, run_id, level_id, tries_left - 1)
-      end
-    end)
+    fetch_verdict(token, run_id, level_id, tries_left)
   end, VERIFY_POLL_SECONDS * 1000)
 end
 
@@ -608,6 +681,10 @@ local function send_run(level_id, token, quiet)
     if res.body.status == "pending" then
       notify(("%s submitted. Verifying: the result will show here in a moment."):format(level_id))
       await_verdict(token, res.body.id, level_id, VERIFY_POLL_TRIES)
+    elseif ALREADY_VERIFIED[res.body.status] then
+      -- A run the server has seen. Its reply has no count, and a verified run sent
+      -- again can enter today's daily, so ask for the verdict rather than wait for one.
+      fetch_verdict(token, res.body.id, level_id, VERIFY_POLL_TRIES)
     else
       local outcome = RUN_OUTCOMES[res.body.status]
       notify(

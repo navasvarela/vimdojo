@@ -1,6 +1,7 @@
 // What the public can see: counts and handles, never a run's keys (they are the
 // level's solution). Self-reported time isn't shown either: it can't be verified,
 // and nothing checks that it's plausible yet.
+import { type Daily, dailyForDate, todaysDaily } from "./daily"
 import { ApiError, Status } from "./http"
 import { type ManifestEntry, manifestEntry } from "./manifest"
 import type { RunStore } from "./run-store"
@@ -33,6 +34,40 @@ export async function publicBoard(store: RunStore, levelId: string) {
       hinted: row.hinted === 1,
       since: isoDay(row.first_at),
     })),
+  }
+}
+
+function requireDaily(daily: Daily | undefined): Daily {
+  if (daily === undefined) {
+    throw new ApiError(Status.NotFound, "not_found", "There's no daily for that date.")
+  }
+  return daily
+}
+
+/** @param date A day that has happened, or today when left out. */
+export async function publicDaily(store: RunStore, now: number, date?: string) {
+  const daily = requireDaily(date === undefined ? todaysDaily(now) : dailyForDate(date, now))
+  const rows = await store.dailyBoard(daily.date, BOARD_SIZE)
+  return {
+    date: daily.date,
+    level_id: daily.levelId,
+    entries: rows.map((row, index) => ({
+      rank: index + 1,
+      handle: row.handle,
+      keys: row.keys,
+      hinted: row.hinted === 1,
+    })),
+  }
+}
+
+export async function ownDailyRank(store: RunStore, userId: string, now: number) {
+  const daily = requireDaily(todaysDaily(now))
+  const mine = await store.dailyRank(userId, daily.date)
+  return {
+    date: daily.date,
+    level_id: daily.levelId,
+    rank: mine?.rank ?? null,
+    keys: mine?.keys ?? null,
   }
 }
 

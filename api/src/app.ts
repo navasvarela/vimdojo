@@ -12,7 +12,7 @@ import {
   TOKEN_TOUCH_INTERVAL_MS,
 } from "./config"
 import { newToken, pkceChallenge, randomUrlSafe, sha256Hex } from "./crypto"
-import { ownRank, ownScores, publicBoard, publicProfile } from "./boards"
+import { ownDailyRank, ownRank, ownScores, publicBoard, publicDaily, publicProfile } from "./boards"
 import type { GitHub } from "./github"
 import { HANDLE_RULES, handleProblem } from "./handles"
 import {
@@ -374,11 +374,17 @@ function parseStoredJson(text: string): unknown {
 const exportMe: Handler = async (request, app) => {
   const { token } = await authenticate(request, app)
   const tokens = await app.store.tokensOf(token.user_id, app.now())
-  const [runs, bests] = await Promise.all([
+  const [runs, bests, dailies] = await Promise.all([
     app.runs.runsOf(token.user_id),
     app.runs.bestsOf(token.user_id),
+    app.runs.dailyEntriesOf(token.user_id),
   ])
   return json({
+    daily_entries: dailies.map((entry) => ({
+      ...entry,
+      hinted: entry.hinted === 1,
+      first_at: isoDate(entry.first_at),
+    })),
     runs: runs.map((run) => ({
       ...publicRun(run),
       level_hash: run.level_hash,
@@ -431,7 +437,7 @@ const postRun: Handler = async (request, app) => {
   }
   const body = await parseBody(request, RunBody)
   const result = await submitRun(app.runs, token.user_id, body, app.now())
-  if (result.isNew && result.status === "pending") {
+  if (result.needsReplay) {
     app.verifySoon(token.user_id)
   }
   return json({ id: result.id, status: result.status }, result.isNew ? Status.Accepted : Status.Ok)
@@ -462,11 +468,20 @@ const getOwnScores: Handler = async (request, app) => {
 const getPlayer: Handler = async (_request, app, [handle]) =>
   json(await publicProfile(app.runs, handle ?? ""))
 
+const getDaily: Handler = async (_request, app, [date]) =>
+  json(await publicDaily(app.runs, app.now(), date))
+
+const getOwnDaily: Handler = async (request, app) => {
+  const { token } = await authenticate(request, app)
+  return json(await ownDailyRank(app.runs, token.user_id, app.now()))
+}
+
 // Boards and profiles are the same for everyone, so they carry no cookies, can be
 // cached, and can be read from anywhere.
 const PUBLIC_ROUTES: ReadonlyArray<readonly [RegExp, Handler]> = [
   [/^\/api\/v1\/levels\/([\w-]+)\/board$/, getBoard],
   [/^\/api\/v1\/players\/([\w-]+)$/, getPlayer],
+  [/^\/api\/v1\/daily(?:\/(\d{4}-\d{2}-\d{2}))?$/, getDaily],
 ]
 
 /** Whether a GET to this path is public, and so safe to cache for everyone. */
@@ -477,6 +492,7 @@ export function isPublicPath(pathname: string): boolean {
 const ROUTES: ReadonlyArray<readonly [string, RegExp, Handler]> = [
   ["GET", /^\/api\/v1\/levels\/([\w-]+)\/board\/me$/, getOwnRank],
   ["GET", /^\/api\/v1\/me\/scores$/, getOwnScores],
+  ["GET", /^\/api\/v1\/daily\/me$/, getOwnDaily],
   ["GET", /^\/api\/v1\/auth\/github\/start$/, githubStart],
   ["GET", /^\/api\/v1\/auth\/github\/callback$/, githubCallback],
   ["POST", /^\/api\/v1\/auth\/device$/, deviceStart],

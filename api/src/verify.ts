@@ -1,5 +1,6 @@
 // The scheduled verifier: replays pending runs and turns verdicts into statuses
 // and bests. One sandbox per player, so a hostile log can only affect its owner.
+import { dailyDateOf } from "./daily"
 import type { RunRow, RunStore } from "./run-store"
 
 // Each batch makes several calls to Vercel, and a Worker gets 50 per run on the
@@ -57,6 +58,17 @@ async function applyVerdict(
     solvedKeys,
   )
   await store.recordBest(run, solvedKeys)
+  if (run.daily_at !== null) {
+    // Its place is from when it was entered: how long the verifier took isn't the player's doing.
+    await store.recordDaily(
+      dailyDateOf(run.daily_at),
+      run.user_id,
+      run.level_id,
+      solvedKeys,
+      run.hinted,
+      run.daily_at,
+    )
+  }
 }
 
 async function fromCache(store: RunStore, run: RunRow, now: number): Promise<boolean> {

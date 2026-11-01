@@ -764,3 +764,30 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   deliberately not rate limited: limiting would write to D1 on every read, which costs
   more than the cached read it would protect. Your own place isn't cached.
 - **A handle's profile shows only levels' current versions**, as the old boards are gone.
+
+## Daily boards
+
+- **The server decides what counts.** The client never claims a run is the daily. A
+  run counts if it's on today's level and the server receives it today, so a modified
+  plugin can't backfill a board or enter another day. The API uses the site's picker
+  (`web/src/daily.ts`), with the pool from the manifest, so all three agree.
+- **A run belongs to the day it arrived,** even if it's verified after midnight: how
+  long the verifier takes isn't the player's doing.
+- **Each day ranks on its own.** It's a separate table, not a filter on `bests`. A run
+  worse than your all-time best can still be your best today, so on the daily the bar
+  for spending a replay is today's entry, not your best ever. `bests` still only takes
+  a lower count.
+- **A log seen before is entered, not refused.** The plugin keeps only its best run per
+  level and the server treats the same keys as the same run, so without this a player
+  whose best predates today could never enter. It costs no replay if it was verified.
+  If it was skipped as not worth replaying, it now gets one, unless today's entry
+  already beats it. **Downside accepted:** an old best can enter a new day without
+  being played again. Daily levels come round again and can be practised anyway, so the
+  board can't prove a run was played today, and it doesn't claim to.
+- **Ties go by when a run was entered (`runs.daily_at`), not when it first arrived.**
+  Using `received_at` would let an old log outrank everyone who played today.
+- **Old days keep their boards,** at their own dates, until the player deletes their
+  account. Entries hold counts only, so the keys' 90-day limit doesn't apply to them.
+- **The plugin words a verdict from its own clock and packs,** only to avoid a request
+  on every other level. What counts is still the server's call, and the daily panel
+  shows the day and level the server names.

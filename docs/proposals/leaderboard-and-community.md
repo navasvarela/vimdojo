@@ -575,7 +575,7 @@ To add:
 - **Daily challenge:** a curated rotation in `challenges/daily.json` (or a
   hash of the date over eligible levels). Works offline: the plugin and the
   site pick the same level from the date. Online, it gets its own board,
-  reset every day (UTC).
+  reset every day (UTC). Built: see "Daily boards" in `docs/decisions.md`.
 - **Shareable results** as spoiler-free text, Wordle-style, copyable from
   the results card in both clients:
   `vimdojo daily 2026-10-19 ★★★ 7 keys (par 7) 4.2s`. Later, a share URL

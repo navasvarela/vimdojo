@@ -25,6 +25,8 @@ export type RunRow = {
   readonly status: RunStatus
   readonly verified_keys: number | null
   readonly attempts: number
+  /** When the server entered this run into the daily, if it did. */
+  readonly daily_at: number | null
   readonly received_at: number
   readonly expires_at: number
 }
@@ -41,6 +43,7 @@ export type NewRun = {
   readonly claimedSeconds: number
   readonly hinted: boolean
   readonly status: RunStatus
+  readonly dailyAt: number | null
   readonly receivedAt: number
   readonly expiresAt: number
 }
@@ -75,6 +78,14 @@ export type ProfileBest = {
 /** One of the player's own bests, with their place on that level's board. */
 export type ScoreRow = ProfileBest & { readonly rank: number }
 
+export type DailyEntryRow = {
+  readonly date: string
+  readonly level_id: string
+  readonly keys: number
+  readonly hinted: number
+  readonly first_at: number
+}
+
 /** A verdict from the cache: solved in this many keys, or null for not solved. */
 export type CachedVerdict = { readonly solved_keys: number | null }
 
@@ -103,8 +114,8 @@ export class RunStore {
     await this.db
       .prepare(
         `INSERT INTO runs (id, user_id, level_id, level_hash, log_hash, keys, deltas_ms, nvim,
-           claimed_keys, claimed_seconds, hinted, status, received_at, expires_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           claimed_keys, claimed_seconds, hinted, status, daily_at, received_at, expires_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .bind(
         id,
@@ -119,6 +130,7 @@ export class RunStore {
         run.claimedSeconds,
         run.hinted ? 1 : 0,
         run.status,
+        run.dailyAt,
         run.receivedAt,
         run.expiresAt,
       )
@@ -312,6 +324,87 @@ export class RunStore {
       .bind(user.id)
       .all<ProfileBest>()
     return { joined: user.created_at, bests: results }
+  }
+
+  /** Counts an earlier run for today's daily, replaying it first if it never was. */
+  async enterDaily(runId: string, now: number, status: RunStatus): Promise<void> {
+    await this.db
+      .prepare("UPDATE runs SET daily_at = ?, status = ? WHERE id = ?")
+      .bind(now, status, runId)
+      .run()
+  }
+
+  async dailyKeys(userId: string, date: string): Promise<number | undefined> {
+    const row = await this.db
+      .prepare("SELECT keys FROM daily_entries WHERE user_id = ? AND date = ?")
+      .bind(userId, date)
+      .first<{ keys: number }>()
+    return row?.keys
+  }
+
+  /** Keeps the lower count; a tie keeps the earlier entry, which ranks ahead. */
+  async recordDaily(
+    date: string,
+    userId: string,
+    levelId: string,
+    keys: number,
+    hinted: number,
+    now: number,
+  ): Promise<void> {
+    await this.db
+      .prepare(
+        `INSERT INTO daily_entries (date, user_id, level_id, keys, hinted, first_at)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT (date, user_id) DO UPDATE SET
+           keys = excluded.keys, hinted = excluded.hinted, first_at = excluded.first_at
+         WHERE excluded.keys < daily_entries.keys`,
+      )
+      .bind(date, userId, levelId, keys, hinted, now)
+      .run()
+  }
+
+  /** Ordered like every board. Players without a handle aren't shown. */
+  async dailyBoard(date: string, limit: number): Promise<readonly BoardRow[]> {
+    const { results } = await this.db
+      .prepare(
+        `SELECT u.handle, d.keys, d.hinted, d.first_at
+         FROM daily_entries d JOIN users u ON u.id = d.user_id
+         WHERE d.date = ? AND u.handle IS NOT NULL
+         ORDER BY d.keys, d.first_at
+         LIMIT ?`,
+      )
+      .bind(date, limit)
+      .all<BoardRow>()
+    return results
+  }
+
+  async dailyRank(
+    userId: string,
+    date: string,
+  ): Promise<{ rank: number; keys: number } | undefined> {
+    const row = await this.db
+      .prepare(
+        `SELECT mine.keys AS keys, (
+           SELECT count(*) FROM daily_entries d JOIN users u ON u.id = d.user_id
+           WHERE d.date = mine.date AND u.handle IS NOT NULL
+             AND (d.keys < mine.keys OR (d.keys = mine.keys AND d.first_at < mine.first_at))
+         ) + 1 AS rank
+         FROM daily_entries mine WHERE mine.user_id = ? AND mine.date = ?`,
+      )
+      .bind(userId, date)
+      .first<{ rank: number; keys: number }>()
+    return row ?? undefined
+  }
+
+  /** For the player's export. */
+  async dailyEntriesOf(userId: string): Promise<readonly DailyEntryRow[]> {
+    const { results } = await this.db
+      .prepare(
+        "SELECT date, level_id, keys, hinted, first_at FROM daily_entries WHERE user_id = ? ORDER BY date",
+      )
+      .bind(userId)
+      .all<DailyEntryRow>()
+    return results
   }
 
   /** For the player's export: everything stored about their runs. */

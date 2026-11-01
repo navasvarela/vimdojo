@@ -97,7 +97,7 @@ and your best so far:
   r           Retry the level
   s           Submit the run to the leaderboards (when signed in, see
               |vimdojo-online|)
-  b           Show this level's leaderboard
+  b           Show this level's leaderboard, or today's on a daily
   y           Copy a spoiler-free result to share, such as
               `vimdojo daily 2026-10-30 ★★★ 7 keys (par 7) 4.3s`, to the
               clipboard (and the unnamed register)
@@ -135,6 +135,7 @@ type `:q` inside a level, the level closes.
     submit  Send the best run of every level you've played, to be verified.
     board [level]
             Show a level's leaderboard. Without a level, asks which one.
+            `:VimDojo board daily` shows today's daily board.
     scores  Show your verified bests and places, and what you haven't sent.
 
     Keys typed on the command line count as keystrokes, so prefer the
@@ -206,6 +207,12 @@ Everything is available from inside Neovim. `:VimDojo scores` lists your bests, 
 place on each board and any runs you haven't sent. `<CR>` there, or `b` on the results
 card, opens a level's board. Boards show handles and key counts only. The same boards
 are at https://vimdojo.org/boards/.
+
+The daily challenge has a board of its own for each UTC day, starting empty. A run
+counts if it's on that day's level and the server receives it that day, even if it's
+verified after midnight. Your best local run counts when you send it, even from an
+earlier day, and a run that doesn't beat your all-time best can still be your best
+today. Only your lowest count today is shown.
 
                                                             *vimdojo-keylogs*
 When you solve a level, vimdojo keeps the keys of your best run for that level

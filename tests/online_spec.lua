@@ -5,6 +5,8 @@ local results = require("vimdojo.results")
 local vimdojo = require("vimdojo")
 
 local TOKEN = "vdj_secret-token-value"
+-- A day when basic-motions-01, which most of these tests play, isn't the daily.
+local FIXED_NOW = os.time({ year = 2026, month = 10, day = 31, hour = 12 })
 
 describe("online", function()
   local requests, responses, timers, messages, inputs, original_notify
@@ -44,6 +46,9 @@ describe("online", function()
       end,
       input = function(_, callback)
         callback(table.remove(inputs, 1))
+      end,
+      now = function()
+        return FIXED_NOW
       end,
     })
   end)
@@ -419,6 +424,17 @@ describe("online", function()
         return table.concat(lines, "\n")
       end
 
+      it("names today's board on a daily", function()
+        local lines = results.content({
+          level = { par_keys = 5, par_seconds = 8 },
+          daily_date = "2026-10-31",
+          outcome = { keys = 5, seconds = 1, stars = 3, points = 1000 },
+          record = { best_keys = 5, best_seconds = 1, stars = 3 },
+          has_board = true,
+        })
+        assert.is_truthy(table.concat(lines, "\n"):find("[b] today's board", 1, true))
+      end)
+
       it("offers to submit only when it can", function()
         assert.is_truthy(card(true):find("[s] submit", 1, true))
         assert.is_nil(card(false):find("submit", 1, true))
@@ -490,6 +506,55 @@ describe("online", function()
       responses = { { status = 200, body = { entries = {} } } }
       online.board(LEVEL)
       assert.is_truthy(panel_text():find("No verified runs yet", 1, true))
+    end)
+
+    describe("today's daily", function()
+      local DAILY = {
+        status = 200,
+        body = {
+          date = "2026-10-31",
+          level_id = LEVEL,
+          entries = { { rank = 1, handle = "ana", keys = 4, hinted = false } },
+        },
+      }
+
+      it("shows the day and its level, signed out", function()
+        responses = { DAILY }
+        online.board(online.DAILY_BOARD)
+        assert.are.equal("/api/v1/daily", requests[1].path)
+        assert.is_nil(requests[1].options.token)
+        assert.is_truthy(panel_text():find("ana", 1, true))
+        assert.is_truthy(
+          vim.inspect(vim.api.nvim_win_get_config(0).title):find("2026-10-31", 1, true)
+        )
+      end)
+
+      it("adds your place when signed in", function()
+        online.save_token(TOKEN)
+        responses = { DAILY, { status = 200, body = { rank = 60, keys = 9 } } }
+        online.board(online.DAILY_BOARD)
+        assert.are.equal("/api/v1/daily/me", requests[2].path)
+        assert.are.equal(TOKEN, requests[2].options.token)
+        assert.is_truthy(panel_text():find("You're #60, with 9 keys", 1, true))
+      end)
+
+      it("still opens for a level this plugin doesn't have yet", function()
+        responses = {
+          { status = 200, body = { date = "2026-10-31", level_id = "new-01", entries = {} } },
+        }
+        online.board(online.DAILY_BOARD)
+        assert.is_truthy(panel_text():find("No verified runs yet", 1, true))
+      end)
+
+      it("reports a failure instead of opening an empty panel", function()
+        responses = { { status = 500, body = {} } }
+        online.board(online.DAILY_BOARD)
+        assert.are.equal("", panel_text())
+      end)
+
+      it("is offered after :VimDojo board", function()
+        assert.are.same({ "daily" }, vimdojo.complete("dai", "VimDojo board dai"))
+      end)
     end)
 
     it("refuses a level that isn't ranked", function()
@@ -591,6 +656,99 @@ describe("online", function()
         online.scores()
         assert.is_truthy(last_message():find(":VimDojo login", 1, true))
       end)
+    end)
+  end)
+
+  it("reports a run the server already verified, with its count", function()
+    online.save_token(TOKEN)
+    assert.is_true(keylog.record(vimdojo.config.keylog_dir, {
+      version = keylog.VERSION,
+      level_id = "basic-motions-01",
+      level_hash = "sha256:h",
+      nvim = "0.12.6",
+      keys = { "j" },
+      deltas_ms = { 0 },
+      claimed = { keys = 1, seconds = 0.5, hinted = false },
+    }))
+    responses = {
+      { status = 200, body = { id = "r1", status = "verified" } },
+      {
+        status = 200,
+        body = {
+          status = "verified",
+          verified_keys = 1,
+          claimed_keys = 1,
+          level_id = "basic-motions-01",
+        },
+      },
+      { status = 200, body = { rank = 4, keys = 1 } },
+    }
+    online.submit("basic-motions-01")
+    assert.is_truthy(last_message():find("verified: 1 keys", 1, true))
+    assert.is_truthy(last_message():find("You're #4", 1, true))
+  end)
+
+  describe("a verdict on today's daily", function()
+    local daily = require("vimdojo.daily")
+    local challenges = require("vimdojo.challenges")
+
+    local function todays_level()
+      local packs = challenges.load_dir()
+      return daily.pick(daily.pool(packs), daily.day_number(FIXED_NOW))
+    end
+
+    local function save_todays_run(level_id)
+      online.save_token(TOKEN)
+      assert.is_true(keylog.record(vimdojo.config.keylog_dir, {
+        version = keylog.VERSION,
+        level_id = level_id,
+        level_hash = "sha256:h",
+        nvim = "0.12.6",
+        keys = { "j" },
+        deltas_ms = { 0 },
+        claimed = { keys = 1, seconds = 0.5, hinted = false },
+      }))
+    end
+
+    it("says your place today, not your place on the level", function()
+      local level_id = todays_level()
+      save_todays_run(level_id)
+      responses = {
+        { status = 202, body = { id = "r1", status = "pending" } },
+        {
+          status = 200,
+          body = { status = "verified", verified_keys = 1, claimed_keys = 1, level_id = level_id },
+        },
+        { status = 200, body = { rank = 3, keys = 1 } },
+      }
+      online.submit(level_id)
+      run_timers()
+      assert.are.equal("/api/v1/daily/me", requests[#requests].path)
+      assert.is_truthy(last_message():find("You're #3 today: :VimDojo board daily", 1, true))
+    end)
+
+    it("says your place at once for a run the server has seen", function()
+      local level_id = todays_level()
+      save_todays_run(level_id)
+      responses = {
+        { status = 200, body = { id = "r1", status = "verified" } },
+        {
+          status = 200,
+          body = { status = "verified", verified_keys = 1, claimed_keys = 1, level_id = level_id },
+        },
+        { status = 200, body = { rank = 2, keys = 1 } },
+      }
+      online.submit(level_id)
+      assert.is_truthy(last_message():find("You're #2 today", 1, true))
+    end)
+
+    it("doesn't claim a place for a run that didn't count", function()
+      local level_id = todays_level()
+      save_todays_run(level_id)
+      responses = { { status = 200, body = { id = "r1", status = "not_best" } } }
+      online.submit(level_id)
+      assert.are.equal(1, #requests)
+      assert.is_nil(last_message():find("today", 1, true))
     end)
   end)
 

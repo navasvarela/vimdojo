@@ -2,10 +2,20 @@
 // data itself stays out of the Worker: the verifier reads it from its own copy.
 import manifest from "../../verifier/manifest.json"
 
-export type ManifestEntry = { readonly hash: string; readonly ranked: boolean }
+export type ManifestEntry = {
+  readonly daily: boolean
+  readonly hash: string
+  readonly ranked: boolean
+}
 
 const LEVELS: ReadonlyMap<string, ManifestEntry> = new Map(Object.entries(manifest.levels))
 
 export function manifestEntry(levelId: string): ManifestEntry | undefined {
   return LEVELS.get(levelId)
 }
+
+/** The daily challenge's pool, sorted by id: the plugin and the site pick from the same. */
+export const DAILY_POOL: readonly string[] = [...LEVELS]
+  .filter(([, entry]) => entry.daily)
+  .map(([id]) => id)
+  .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
