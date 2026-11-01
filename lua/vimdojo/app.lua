@@ -405,6 +405,7 @@ end
 ---@param daily_date string|nil
 local function open_level(level, daily_date)
   M.quit()
+  ui.close_panels()
   local play = {
     level = level,
     daily_date = daily_date,
@@ -503,6 +504,7 @@ function M.open_menu()
     return
   end
   M.quit()
+  ui.close_panels()
   menu.open({
     packs = state.packs,
     progress = state.progress,

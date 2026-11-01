@@ -18,6 +18,45 @@ describe("playing a level", function()
       player = player_mod.spawn()
     end)
 
+    describe("with a panel already open", function()
+      local PANELS = [[
+        local count = 0
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+          if vim.api.nvim_win_get_config(win).zindex == 60 then
+            count = count + 1
+          end
+        end
+        return count
+      ]]
+      local IN_ROOM = "return " .. CURRENT .. ".layout.room_win == vim.api.nvim_get_current_win()"
+
+      -- The menu has the higher zindex, so left open it hides the level, while focus
+      -- and every key go to the level underneath.
+      it("closes them when :VimDojo daily starts a level", function()
+        player:lua("vim.cmd('VimDojo')")
+        player:lua("vim.cmd('VimDojo help')")
+        assert.are.equal(2, player:lua(PANELS))
+        player:lua("vim.cmd('VimDojo daily')")
+        assert.is_true(player:wait_for("(" .. CURRENT .. " or {}).ready"))
+        assert.are.equal(0, player:lua(PANELS))
+        assert.is_true(player:lua(IN_ROOM))
+      end)
+
+      it("doesn't stack a second menu on the first", function()
+        player:lua("vim.cmd('VimDojo')")
+        player:lua("vim.cmd('VimDojo')")
+        assert.are.equal(1, player:lua(PANELS))
+      end)
+
+      it("still opens help after a level closed it", function()
+        player:lua("vim.cmd('VimDojo help')")
+        player:lua("vim.cmd('VimDojo daily')")
+        assert.is_true(player:wait_for("(" .. CURRENT .. " or {}).ready"))
+        player:lua("vim.cmd('VimDojo help')")
+        assert.are.equal(1, player:lua(PANELS))
+      end)
+    end)
+
     it("records keys, time, and stars when the goal is reached, and saves them", function()
       assert.is_true(player:start("basic-motions-01"))
       player:type("jjjll")
