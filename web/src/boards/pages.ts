@@ -1,7 +1,8 @@
 // The boards and profile pages. Handles come from other players, so they're only
 // ever added as text, and only go into a URL encoded.
+import { dailyDate, dayNumber } from "../daily"
 import { h } from "../ui/dom"
-import type { BoardEntry, BoardsApi, OwnRank, Player } from "./api"
+import type { BoardEntry, BoardsApi, DailyBoard, OwnRank, Player } from "./api"
 
 const HINT_NOTE = "* used the hint, which doesn't change the rank."
 const LOAD_FAILED = "Couldn't load this. Check your connection and try again."
@@ -12,6 +13,10 @@ export function playerUrl(handle: string): string {
 
 export function boardUrl(levelId: string): string {
   return `/boards/?level=${encodeURIComponent(levelId)}`
+}
+
+export function dailyUrl(date: string): string {
+  return `/boards/?daily=${encodeURIComponent(date)}`
 }
 
 function failure(): HTMLElement {
@@ -66,6 +71,75 @@ export async function showBoard(root: HTMLElement, api: BoardsApi, levelId: stri
         entries.map((entry) => boardRow(entry, mine)),
       ),
       entries.some((entry) => entry.hinted) ? h("p", { className: "aside" }, [HINT_NOTE]) : "",
+    )
+  } catch {
+    root.replaceChildren(failure())
+  }
+}
+
+export type DailyView = {
+  /** A past day, or undefined for today. */
+  readonly date: string | undefined
+  /** What the player's clock says today is: no link goes past it. */
+  readonly now: number
+  readonly levelNames: ReadonlyMap<string, string>
+}
+
+function dailyRow(entry: DailyBoard["entries"][number], mine: OwnRank | undefined): HTMLElement {
+  return h("tr", mine?.rank === entry.rank ? { className: "board-mine" } : {}, [
+    h("td", {}, [String(entry.rank)]),
+    h("td", {}, [h("a", { attrs: { href: playerUrl(entry.handle) } }, [entry.handle])]),
+    h("td", {}, [keysCell(entry.keys, entry.hinted)]),
+  ])
+}
+
+function dayLink(date: string, offset: number, text: string): HTMLElement {
+  const day = dayNumber(Date.parse(`${date}T00:00:00Z`)) + offset
+  return h("a", { attrs: { href: dailyUrl(dailyDate(day)) } }, [text])
+}
+
+/** Every day's board stays up, one link away from the next. */
+function dayLinks(date: string, now: number): HTMLElement {
+  const today = dailyDate(dayNumber(now))
+  return h("p", { className: "aside" }, [
+    dayLink(date, -1, "Previous day"),
+    ...(date < today ? [" · ", dayLink(date, 1, "Next day")] : []),
+  ])
+}
+
+export async function showDaily(root: HTMLElement, api: BoardsApi, view: DailyView): Promise<void> {
+  try {
+    const isToday = view.date === undefined
+    // The player's place is extra: failing to get it shouldn't lose the board.
+    const [board, mine] = await Promise.all([
+      api.daily(view.date),
+      isToday ? api.ownDailyRank().catch(() => undefined) : undefined,
+    ])
+    if (board === undefined) {
+      root.replaceChildren(h("p", {}, ["There's no daily board for that day."]))
+      return
+    }
+    const level = view.levelNames.get(board.level_id) ?? board.level_id
+    const place =
+      mine?.rank != null
+        ? h("p", { className: "account-status" }, [`You're #${mine.rank}, with ${mine.keys} keys.`])
+        : ""
+    root.replaceChildren(
+      h("p", {}, [
+        `${board.date}: ${level}. `,
+        ...(isToday ? [h("code", {}, [":VimDojo daily"]), " to play it."] : []),
+      ]),
+      place,
+      board.entries.length === 0
+        ? h("p", {}, ["No verified runs yet. Yours could be the first."])
+        : table(
+            ["#", "Player", "Keys"],
+            board.entries.map((entry) => dailyRow(entry, mine)),
+          ),
+      board.entries.some((entry) => entry.hinted)
+        ? h("p", { className: "aside" }, [HINT_NOTE])
+        : "",
+      dayLinks(board.date, view.now),
     )
   } catch {
     root.replaceChildren(failure())

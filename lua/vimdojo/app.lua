@@ -235,7 +235,7 @@ local function complete(play)
     end,
     board = function()
       if online then
-        online.board(play.level.id)
+        online.board(play.daily_date and online.DAILY_BOARD or play.level.id)
       end
     end,
     next = function()

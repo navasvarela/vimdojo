@@ -1,6 +1,11 @@
 // The daily challenge, ported from lua/vimdojo/daily.lua: one level per UTC
 // day, the same in both clients. tests/fixtures/daily.json pins both.
-import type { Pack } from "./challenges"
+//
+// Takes its own narrow shape rather than challenges.ts's Pack: the API imports
+// this file, and challenges.ts only builds under Vite.
+
+type DailyCandidate = { readonly id: string; readonly web_demo?: boolean | undefined }
+type DailyPack = { readonly levels: readonly DailyCandidate[] }
 
 const MS_PER_DAY = 86_400_000
 
@@ -10,7 +15,7 @@ const MODULUS = 2_147_483_647
 const MULTIPLIER = 48_271
 
 /** The demo levels, sorted by id (see `M.pool` in daily.lua). */
-export function dailyPool(packs: readonly Pack[]): string[] {
+export function dailyPool(packs: readonly DailyPack[]): string[] {
   return packs
     .flatMap((pack) => pack.levels)
     .filter((level) => level.web_demo === true)

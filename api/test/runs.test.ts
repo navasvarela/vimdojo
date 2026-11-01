@@ -7,7 +7,9 @@ import { type App, handleRequest, sweep } from "../src/app"
 import type { Env } from "../src/config"
 import { sha256Hex } from "../src/crypto"
 import type { GitHub } from "../src/github"
-import { manifestEntry } from "../src/manifest"
+import { dayNumber, pickDaily } from "../../web/src/daily"
+import { todaysDaily } from "../src/daily"
+import { DAILY_POOL, manifestEntry } from "../src/manifest"
 import { RunStore } from "../src/run-store"
 import { Store } from "../src/store"
 import {
@@ -483,6 +485,246 @@ describe("runs", () => {
         (subject, window) => app.store.countRequest(subject, window),
       )
       expect((await statusOf(token, id)).status).toBe("pending")
+    })
+  })
+
+  describe("daily boards", () => {
+    const today = (): { date: string; levelId: string } => {
+      const daily = todaysDaily(now)
+      if (daily === undefined) throw new Error("no daily")
+      return daily
+    }
+
+    const publicGet = (path: string): Promise<Response> =>
+      handleRequest(new Request(`${API}${path}`), app)
+
+    type DailyBoard = {
+      date: string
+      level_id: string
+      entries: Array<{ rank: number; handle: string; keys: number }>
+    }
+    const dailyBoard = async (date?: string): Promise<DailyBoard> =>
+      (await publicGet(date === undefined ? "/api/v1/daily" : `/api/v1/daily/${date}`)).json()
+
+    const named = async (id: number, handle: string): Promise<string> => {
+      const token = await player(id)
+      await call("PATCH", "/api/v1/me", token, { handle })
+      return token
+    }
+
+    const dailyRun = (keys: readonly string[], claimed = keys.length) =>
+      runBody(keys, claimed, today().levelId)
+
+    it("picks a level from the daily pool, the same way the site does", async () => {
+      const board = await dailyBoard()
+      expect(board.date).toBe("2026-10-31")
+      expect(manifestEntry(board.level_id)?.daily).toBe(true)
+      expect(board.level_id).toBe(pickDaily(DAILY_POOL, dayNumber(now)))
+    })
+
+    it("ranks today's verified runs, by keys then first to get there", async () => {
+      await submit(await named(1, "slow"), dailyRun(["a", "b", "c"]))
+      now += 1000
+      await submit(await named(2, "first"), dailyRun(["d", "e"]))
+      now += 1000
+      await submit(await named(3, "second"), dailyRun(["f", "g"]))
+      await verify()
+      const { entries } = await dailyBoard()
+      expect(entries.map((e) => [e.rank, e.handle, e.keys])).toEqual([
+        [1, "first", 2],
+        [2, "second", 2],
+        [3, "slow", 3],
+      ])
+    })
+
+    it("shows only verified runs, at the verifier's count, and never the keys", async () => {
+      const liar = await named(1, "liar")
+      await submit(liar, dailyRun(["a", "b", "c"], 1))
+      expect((await dailyBoard()).entries).toEqual([])
+      await verify()
+      const text = await (await publicGet("/api/v1/daily")).text()
+      expect(JSON.parse(text).entries[0]).toMatchObject({ handle: "liar", keys: 3 })
+      expect(text).not.toContain('"a"')
+    })
+
+    it("ignores runs on other levels", async () => {
+      const other = DAILY_POOL.find((id) => id !== today().levelId) ?? ""
+      await submit(await named(1, "ana"), runBody(["a"], 1, other))
+      await verify()
+      expect((await dailyBoard()).entries).toEqual([])
+    })
+
+    it("counts a run for the day it arrived, even if verified after midnight", async () => {
+      const date = today().date
+      await submit(await named(1, "ana"), dailyRun(["a"]))
+      now += DAY_MS
+      await verify()
+      expect((await dailyBoard(date)).entries[0]).toMatchObject({ handle: "ana" })
+      expect((await dailyBoard()).entries).toEqual([])
+    })
+
+    it("starts empty each day", async () => {
+      await submit(await named(1, "ana"), dailyRun(["a"]))
+      await verify()
+      now += DAY_MS
+      expect((await dailyBoard()).entries).toEqual([])
+    })
+
+    it("judges a run against today, not the player's all-time best", async () => {
+      const token = await named(1, "ana")
+      const level = today().levelId
+      // A day earlier this level wasn't the daily, so this is an ordinary best.
+      now -= DAY_MS
+      await submit(token, runBody(["a"], 1, level))
+      await verify()
+      now += DAY_MS
+      const worse = await submit(token, dailyRun(["b", "c", "d"]))
+      expect(worse.status).toBe("pending")
+      await verify()
+      expect((await dailyBoard()).entries[0]).toMatchObject({ keys: 3 })
+      expect((await bestOf(token))[0]?.keys).toBe(1)
+    })
+
+    it("doesn't replay a run that can't beat the player's best today", async () => {
+      const token = await named(1, "ana")
+      await submit(token, dailyRun(["a", "b"]))
+      await verify()
+      const worse = await submit(token, dailyRun(["c", "d", "e"]))
+      expect(worse.status).toBe("not_best")
+    })
+
+    it("keeps the player's lowest count", async () => {
+      const token = await named(1, "ana")
+      await submit(token, dailyRun(["a", "b", "c"]))
+      await verify()
+      now += 1000
+      await submit(token, dailyRun(["d", "e"]))
+      await verify()
+      expect((await dailyBoard()).entries).toMatchObject([{ keys: 2 }])
+    })
+
+    it("counts the same keys again when the level comes back as the daily", async () => {
+      const token = await named(1, "ana")
+      const level = today().levelId
+      now -= DAY_MS
+      await submit(token, runBody(["a", "b"], 2, level))
+      await verify()
+      now += DAY_MS
+      jobsSeen = []
+      verifySoonCalls = []
+      const again = await submit(token, dailyRun(["a", "b"]))
+      expect(again.status).toBe("verified")
+      expect((await dailyBoard()).entries).toMatchObject([{ keys: 2 }])
+      expect(jobsSeen).toEqual([])
+      expect(verifySoonCalls).toEqual([])
+    })
+
+    it("replays a run first if it was never verified", async () => {
+      const token = await named(1, "ana")
+      const level = today().levelId
+      now -= DAY_MS
+      await submit(token, runBody(["x"], 1, level))
+      await verify()
+      const skipped = await submit(token, runBody(["a", "b"], 2, level))
+      expect(skipped.status).toBe("not_best")
+      now += DAY_MS
+      verifySoonCalls = []
+      const again = await submit(token, dailyRun(["a", "b"]))
+      expect(again.status).toBe("pending")
+      expect(verifySoonCalls).toHaveLength(1)
+      await verify()
+      expect((await dailyBoard()).entries).toMatchObject([{ keys: 2 }])
+    })
+
+    it("ranks a run sent again by when it was entered, not when it first arrived", async () => {
+      const again = await named(1, "again")
+      const level = today().levelId
+      now -= DAY_MS
+      await submit(again, runBody(["x"], 1, level))
+      await verify()
+      await submit(again, runBody(["a", "b"], 2, level))
+      now += DAY_MS
+      await submit(await named(2, "first"), dailyRun(["c", "d"]))
+      now += 1000
+      await submit(again, dailyRun(["a", "b"]))
+      await verify()
+      expect((await dailyBoard()).entries.map((e) => e.handle)).toEqual(["first", "again"])
+    })
+
+    it("leaves a skipped run skipped if today's entry already beats it", async () => {
+      const token = await named(1, "ana")
+      const level = today().levelId
+      now -= DAY_MS
+      await submit(token, runBody(["x"], 1, level))
+      await verify()
+      await submit(token, runBody(["a", "b"], 2, level))
+      now += DAY_MS
+      await submit(token, dailyRun(["y"]))
+      await verify()
+      const again = await submit(token, dailyRun(["a", "b"]))
+      expect(again.status).toBe("not_best")
+    })
+
+    it("leaves out a player with no handle", async () => {
+      await submit(await player(1), dailyRun(["a"]))
+      await verify()
+      expect((await dailyBoard()).entries).toEqual([])
+    })
+
+    it.each([
+      ["a future date", "2026-11-05"],
+      ["a date that doesn't exist", "2026-02-31"],
+    ])("has no board for %s", async (_name, date) => {
+      expect((await publicGet(`/api/v1/daily/${date}`)).status).toBe(404)
+    })
+
+    it("can be cached and read from anywhere", async () => {
+      const response = await publicGet("/api/v1/daily")
+      expect(response.headers.get("cache-control")).toContain("public")
+      expect(response.headers.get("access-control-allow-origin")).toBe("*")
+    })
+
+    describe("your place", () => {
+      it("says where you are today", async () => {
+        await submit(await named(1, "first"), dailyRun(["a"]))
+        now += 1000
+        const token = await named(2, "mine")
+        await submit(token, dailyRun(["b", "c"]))
+        await verify()
+        const response = await call("GET", "/api/v1/daily/me", token)
+        expect(await response.json()).toEqual({
+          date: "2026-10-31",
+          level_id: today().levelId,
+          rank: 2,
+          keys: 2,
+        })
+        expect(response.headers.get("cache-control")).toBe("no-store")
+      })
+
+      it("is empty before you've entered", async () => {
+        const body = (await (await call("GET", "/api/v1/daily/me", await player(1))).json()) as {
+          rank: unknown
+        }
+        expect(body.rank).toBeNull()
+      })
+
+      it("needs a login", async () => {
+        expect((await publicGet("/api/v1/daily/me")).status).toBe(401)
+      })
+    })
+
+    it("exports your entries, and deletes them with your account", async () => {
+      const token = await named(1, "ana")
+      await submit(token, dailyRun(["a"]))
+      await verify()
+      const data = (await (await call("GET", "/api/v1/me/export", token)).json()) as {
+        daily_entries: Array<{ date: string; keys: number }>
+      }
+      expect(data.daily_entries).toMatchObject([{ date: "2026-10-31", keys: 1 }])
+      await call("DELETE", "/api/v1/me", token, { confirm: "delete my account" })
+      expect((await dailyBoard("2026-10-31")).entries).toEqual([])
+      const row = await db.prepare("SELECT count(*) AS n FROM daily_entries").first<{ n: number }>()
+      expect(row?.n).toBe(0)
     })
   })
 

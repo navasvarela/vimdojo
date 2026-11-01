@@ -11,6 +11,16 @@
   - **The Expression Register:** `<C-r>=`, `:put =` and `\=` in substitutions.
   - **Boss Levels:** seven realistic refactors with pars from 49 to 62 keys, such as
     extracting a function or turning a git log into release notes.
+- **Daily boards.** The daily challenge now has a board for each UTC day, starting
+  empty: `:VimDojo board daily`, `b` on a daily's results card, or the top of
+  [the boards page](https://vimdojo.org/boards/), which links back through past days.
+  A verdict on today's level says your place today. The server's clock decides what
+  counts, so nothing can be backfilled.
+
+### Fixed
+
+- Sending a run the server had already verified raised an error in the plugin instead
+  of reporting the verdict.
 
 ## v0.6.0 (2026-10-31)
 

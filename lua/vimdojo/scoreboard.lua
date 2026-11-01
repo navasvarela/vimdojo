@@ -13,7 +13,11 @@ local HINTED_MARK = "*"
 ---@field handle string
 ---@field keys integer
 ---@field hinted boolean
----@field since string
+---@field since string|nil A level's board has it. On a day's board, it would always be that day.
+
+---@class vimdojo.BoardColumns
+---@field heading string
+---@field row fun(entry: vimdojo.BoardEntry): string
 
 ---@class vimdojo.OwnRank
 ---@field rank integer|nil
@@ -29,34 +33,53 @@ local function add(rows, line, group)
   end
 end
 
+---@param entry vimdojo.BoardEntry
+---@return string
+local function keys_cell(entry)
+  return tostring(entry.keys) .. (entry.hinted and HINTED_MARK or "")
+end
+
+---@type vimdojo.BoardColumns
+local LEVEL_COLUMNS = {
+  heading = ("  %4s  %s  %5s  %s"):format("#", ui.pad("Player", HANDLE_WIDTH), "Keys", "Since"),
+  row = function(entry)
+    return ("  %4d  %s  %5s  %s"):format(
+      entry.rank,
+      ui.pad(entry.handle, HANDLE_WIDTH),
+      keys_cell(entry),
+      entry.since
+    )
+  end,
+}
+
+---@type vimdojo.BoardColumns
+local DAILY_COLUMNS = {
+  heading = ("  %4s  %s  %5s"):format("#", ui.pad("Player", HANDLE_WIDTH), "Keys"),
+  row = function(entry)
+    return ("  %4d  %s  %5s"):format(
+      entry.rank,
+      ui.pad(entry.handle, HANDLE_WIDTH),
+      keys_cell(entry)
+    )
+  end,
+}
+
 ---@param entries vimdojo.BoardEntry[]
 ---@param mine vimdojo.OwnRank|nil The player's place, when signed in.
+---@param columns vimdojo.BoardColumns
 ---@return { lines: string[], highlights: vimdojo.Highlight[] }
-function M.board_rows(entries, mine)
+local function ranked_rows(entries, mine, columns)
   local rows = { lines = { "" }, highlights = {} }
   if #entries == 0 then
     add(rows, "  No verified runs yet. Yours could be the first.", "VimDojoMuted")
   else
-    add(
-      rows,
-      ("  %4s  %s  %5s  %s"):format("#", ui.pad("Player", HANDLE_WIDTH), "Keys", "Since"),
-      "VimDojoMuted"
-    )
+    add(rows, columns.heading, "VimDojoMuted")
   end
   local shown = false
   for _, entry in ipairs(entries) do
     local is_mine = mine ~= nil and mine.rank == entry.rank
     shown = shown or is_mine
-    add(
-      rows,
-      ("  %4d  %s  %5s  %s"):format(
-        entry.rank,
-        ui.pad(entry.handle, HANDLE_WIDTH),
-        tostring(entry.keys) .. (entry.hinted and HINTED_MARK or ""),
-        entry.since
-      ),
-      is_mine and "VimDojoGood" or nil
-    )
+    add(rows, columns.row(entry), is_mine and "VimDojoGood" or nil)
   end
   add(rows, "")
   if mine and mine.rank and not shown then
@@ -71,6 +94,20 @@ function M.board_rows(entries, mine)
     )
   end
   return rows
+end
+
+---@param entries vimdojo.BoardEntry[]
+---@param mine vimdojo.OwnRank|nil
+---@return { lines: string[], highlights: vimdojo.Highlight[] }
+function M.board_rows(entries, mine)
+  return ranked_rows(entries, mine, LEVEL_COLUMNS)
+end
+
+---@param entries vimdojo.BoardEntry[]
+---@param mine vimdojo.OwnRank|nil
+---@return { lines: string[], highlights: vimdojo.Highlight[] }
+function M.daily_rows(entries, mine)
+  return ranked_rows(entries, mine, DAILY_COLUMNS)
 end
 
 ---@class vimdojo.Score

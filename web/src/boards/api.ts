@@ -16,6 +16,15 @@ const Board = z.object({
 })
 export type BoardEntry = z.infer<typeof Board>["entries"][number]
 
+const DailyBoard = z.object({
+  date: z.string(),
+  level_id: z.string(),
+  entries: z.array(
+    z.object({ rank: z.number(), handle: z.string(), keys: z.number(), hinted: z.boolean() }),
+  ),
+})
+export type DailyBoard = z.infer<typeof DailyBoard>
+
 const OwnRank = z.object({ rank: z.number().nullable(), keys: z.number().nullable() })
 export type OwnRank = z.infer<typeof OwnRank>
 
@@ -51,6 +60,27 @@ export class BoardsApi {
       `${apiOrigin()}/api/v1/levels/${encodeURIComponent(levelId)}/board/me`,
       { credentials: "include" },
     )
+    return response.ok ? OwnRank.parse(await response.json()) : undefined
+  }
+
+  /** @returns undefined when there's no board for that day. */
+  async daily(date: string | undefined): Promise<DailyBoard | undefined> {
+    const day = date === undefined ? "" : `/${encodeURIComponent(date)}`
+    const response = await this.fetcher(`${apiOrigin()}/api/v1/daily${day}`)
+    if (response.status === HTTP_NOT_FOUND) {
+      return undefined
+    }
+    if (!response.ok) {
+      throw new Error(`the daily board answered ${response.status}`)
+    }
+    return DailyBoard.parse(await response.json())
+  }
+
+  /** @returns undefined when signed out: that's normal here, not a failure. */
+  async ownDailyRank(): Promise<OwnRank | undefined> {
+    const response = await this.fetcher(`${apiOrigin()}/api/v1/daily/me`, {
+      credentials: "include",
+    })
     return response.ok ? OwnRank.parse(await response.json()) : undefined
   }
 

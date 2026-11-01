@@ -26,7 +26,10 @@ const Run = z.object({
 })
 
 const Manifest = z.object({
-  levels: z.record(z.string(), z.object({ hash: z.string(), ranked: z.boolean() })),
+  levels: z.record(
+    z.string(),
+    z.object({ daily: z.boolean(), hash: z.string(), ranked: z.boolean() }),
+  ),
 })
 
 function playSolutions(nvim: string, dir: string): void {

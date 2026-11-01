@@ -11,6 +11,33 @@ local keys = require("vimdojo.keys")
 local level_hash = require("vimdojo.level_hash")
 local player_mod = require("player")
 
+-- Columns of the room's command line in the player's 80-column terminal. A longer
+-- command wraps, so whatever it prints ends in a "Press ENTER" prompt: measured on
+-- 0.12, 59 keys including the colon fit and 60 prompt. The prompt costs a key the
+-- par doesn't count, and the room serves no requests until it's dismissed.
+local MAX_EX_COMMAND_KEYS = 59
+
+--- The keys of the longest Ex command `solution` runs, colon included. A colon
+--- typed in Insert mode counts too if a <CR> follows, which only matters for a
+--- line of text too long to fit in the room anyway.
+---@param solution string
+---@return integer
+local function longest_ex_command(solution)
+  local longest, length = 0, nil
+  for _, key in ipairs(keys.split(solution)) do
+    if length and key == "<CR>" then
+      longest, length = math.max(longest, length), nil
+    elseif length and key == "<Esc>" then
+      length = nil
+    elseif length then
+      length = length + 1
+    elseif key == ":" then
+      length = 1
+    end
+  end
+  return longest
+end
+
 -- The shipped curriculum, plus fixture packs that exercise every schema
 -- feature (presets, options, register goals, version gates).
 local sources = {
@@ -33,6 +60,13 @@ for _, source in ipairs(sources) do
               assert.is_true(keys.count(level.solution) <= level.par_keys)
             end)
 
+            it("has Ex commands that fit on the room's command line", function()
+              assert.is_true(
+                longest_ex_command(level.solution) <= MAX_EX_COMMAND_KEYS,
+                ("an Ex command in %q is over %d keys"):format(level.solution, MAX_EX_COMMAND_KEYS)
+              )
+            end)
+
             it("is solved in the clean room by its reference solution", function()
               local player =
                 player_mod.spawn(vim.tbl_extend("force", { unlock_all = true }, source.setup))
@@ -47,10 +81,10 @@ for _, source in ipairs(sources) do
                 -- after the snapshot above; a starter config that already
                 -- passes every probe would solve the level with zero keys.
                 if #goals.probes(level.goal) > 0 then
-                  local checked = player:wait_for(
-                    "(function() local s = require('vimdojo.app').current().room:snapshot();"
-                      .. " return s and s.config_passed ~= nil and s end)()"
-                  )
+                  local checked = player:poll(function()
+                    local snapshot = player:snapshot()
+                    return snapshot and snapshot.config_passed ~= nil and snapshot
+                  end)
                   local solved_itself = player:lua(
                     ("return require('vimdojo.app').progress().levels[%q] ~= nil"):format(level.id)
                   )
@@ -68,13 +102,8 @@ for _, source in ipairs(sources) do
                 player:type(level.solution)
 
                 local record = player:wait_for_record(level.id)
-                local final = player:lua(
-                  "local p = require('vimdojo.app').current(); return p and p.room:snapshot()"
-                )
-                local messages = record and ""
-                  or player:lua(
-                    "local p = require('vimdojo.app').current(); return p and p.room:call('messages')"
-                  )
+                local final = player:snapshot()
+                local messages = record and "" or player:room_call("messages")
                 assert.is_truthy(
                   record,
                   ("solution %q did not solve it; final state %s; messages:%s"):format(
