@@ -191,6 +191,11 @@ make par        # for cursor_at levels
 is not met at the start, types the `solution` and checks that the goal is met
 within `par_keys`.
 
+A room stuck at a "Press ENTER" prompt fails its level and shows the room's screen.
+If a run seems to hang on a Mac, check that it isn't asleep before suspecting the
+level: every process stops while the lid is closed, even under `caffeinate -i`, and
+the log just stops at whichever level was running. `pmset -g log` shows the sleeps.
+
 To flag a level for the web demo, run the emulation test in real Chromium:
 
 ```sh
