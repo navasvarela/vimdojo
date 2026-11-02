@@ -3,7 +3,7 @@
   "pack": "options-keymaps",
   "title": "Options and Keymaps",
   "description": "Write your own init.lua: options, the leader key, and keymaps that do what they say.",
-  "order": 16,
+  "order": 19,
   "authors": ["navasvarela"],
   "track": "setup",
   "levels": [

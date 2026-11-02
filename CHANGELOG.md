@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Three more packs in the Motions track, 26 levels, all ranked.**
+  - **Marks and Jumps:** `m`, backtick and `'` as motions, capital marks across files,
+    `<C-o>` and `g;`.
+  - **Ex Ranges:** `:t`, ranges inside `:g`, relative addresses, marks as addresses,
+    `:argdo` and building the argument list.
+  - **Filters and Formatting:** `!` with `sort`, `gq`, `gw` and `=`.
+
+### Changed
+
+- Usage and Setup packs moved from orders 13-19 to 16-22, so the new packs follow Boss
+  Levels. Progress and leaderboards aren't affected.
+
 ## v0.7.2 (2026-11-01)
 
 ### Fixed

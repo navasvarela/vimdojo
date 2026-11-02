@@ -3,7 +3,7 @@
   "pack": "windows-buffers",
   "title": "Windows and Buffers",
   "description": "Split, swap, move and close windows, and hop between buffers.",
-  "order": 13,
+  "order": 16,
   "authors": ["navasvarela"],
   "track": "usage",
   "levels": [

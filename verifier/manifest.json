@@ -135,6 +135,51 @@
       "hash": "sha256:44af921916642d7e6feadc5937f719ebd68a06ce57b7c541316a4e89fd1fdb75",
       "ranked": true
     },
+    "ex-ranges-01": {
+      "daily": false,
+      "hash": "sha256:2d5dcdd19e2bd7bf23a092d61a1087659c94c39ad36390589553046b2e959507",
+      "ranked": true
+    },
+    "ex-ranges-02": {
+      "daily": false,
+      "hash": "sha256:d6a47180154758479c4e914c099b18798820db6e6b392beccbdc80a137b9fba4",
+      "ranked": true
+    },
+    "ex-ranges-03": {
+      "daily": false,
+      "hash": "sha256:c8f5fac4ee4433189174689682d90fb790d0b73f129729d637c18639eaf666df",
+      "ranked": true
+    },
+    "ex-ranges-04": {
+      "daily": false,
+      "hash": "sha256:6bc45edc1cf2ff5985af5b4ee0a8c186417f51c0b674db473ac237a0cc15ede4",
+      "ranked": true
+    },
+    "ex-ranges-05": {
+      "daily": false,
+      "hash": "sha256:d161206e46c064d678b4a3730446da139fed7d1c7bd893a85441ace540502e4d",
+      "ranked": true
+    },
+    "ex-ranges-06": {
+      "daily": false,
+      "hash": "sha256:4d7d7db058aad731049d5f7a867ad33ebb2f84864c5560ddf11f32a2f297c3ff",
+      "ranked": true
+    },
+    "ex-ranges-07": {
+      "daily": false,
+      "hash": "sha256:d95f1225388680123f29b5f72d061cd74df0d634632f5f06f6c150543fb64d6a",
+      "ranked": true
+    },
+    "ex-ranges-08": {
+      "daily": false,
+      "hash": "sha256:a264951f1dac0d8b136fcccc3bb11a9b0a4a6cf59efecc14dc3bd6ee24c997c4",
+      "ranked": true
+    },
+    "ex-ranges-09": {
+      "daily": false,
+      "hash": "sha256:7768e8bec8d0beaeaf029efa7c297b25c28a4e79249d4433b57a548f12f8efa9",
+      "ranked": true
+    },
     "expr-01": {
       "daily": false,
       "hash": "sha256:acdfba16983299d60d42093f2c4b8534063ca6d6e180e6628a7d88d31ba49f93",
@@ -173,6 +218,56 @@
     "expr-08": {
       "daily": false,
       "hash": "sha256:2d179c6e2296ddca6fff0683e36f6a0f15384c41904b4bd0a9bc75b89e7ba86a",
+      "ranked": true
+    },
+    "filters-01": {
+      "daily": false,
+      "hash": "sha256:9810c2171d23bb77bc657cce68f66bb609a2326c3a533ce652c1c5ab887dd5e2",
+      "ranked": true
+    },
+    "filters-02": {
+      "daily": false,
+      "hash": "sha256:e6bc1d689b5596b47724047c21b6d81a115117f91ae6f7078c70255ff39c6888",
+      "ranked": true
+    },
+    "filters-03": {
+      "daily": false,
+      "hash": "sha256:24c954a5a53d3857b8b6fc73f714147107f6bae7f8d550172a62e24ea2b5c9cc",
+      "ranked": true
+    },
+    "filters-04": {
+      "daily": false,
+      "hash": "sha256:1e3a843965b5b550ddb6945f2120de3d6c3167c04037b9ecb4b1d962d547b4c0",
+      "ranked": true
+    },
+    "filters-05": {
+      "daily": false,
+      "hash": "sha256:8a790bc40e487c74cfd54e9d468f71a41ce47431a4014ba10bb16f41c9ea159e",
+      "ranked": true
+    },
+    "filters-06": {
+      "daily": false,
+      "hash": "sha256:6d750978fdb09af4a447b15e4f409a486e2f04a4f6b2d6454036ef5bf2456a45",
+      "ranked": true
+    },
+    "filters-07": {
+      "daily": false,
+      "hash": "sha256:50ce9af29b3d850bd4443e2ceb1bea8241ae8e4f62f8d4e990cef0b809cf4ca4",
+      "ranked": true
+    },
+    "filters-08": {
+      "daily": false,
+      "hash": "sha256:71fcf14534a3fa2a9ac848576a5e1805f738f3c2e1284f6af5b395d27dc8758a",
+      "ranked": true
+    },
+    "filters-09": {
+      "daily": false,
+      "hash": "sha256:169392e1aee9a1d804a09a25d8e7bb3661a8e66f11f100233135663a9279db21",
+      "ranked": true
+    },
+    "filters-10": {
+      "daily": false,
+      "hash": "sha256:597c563d24a8d88f857ad1a077ae58baf49cf3c4d86a2b613cf19b2076b1875a",
       "ranked": true
     },
     "find-and-jump-01": {
@@ -243,6 +338,41 @@
     "macros-03": {
       "daily": false,
       "hash": "sha256:2ad4b9646449e2e0fefd40ea014db792c3e5827f2fb7f38f657404306f2bf1ed",
+      "ranked": true
+    },
+    "marks-01": {
+      "daily": false,
+      "hash": "sha256:b55db44613d5194c2ea47d746844a25701af809e7c97f4031fa2bce78d39d1b3",
+      "ranked": true
+    },
+    "marks-02": {
+      "daily": false,
+      "hash": "sha256:8904fe710a8e7eb66b443b89f2eeaa483a8bc565f90f23d3ed1c1fe008d34a45",
+      "ranked": true
+    },
+    "marks-03": {
+      "daily": false,
+      "hash": "sha256:a6d01a0a5e6d527364802769ff9c61d8269cf4e55631216af45700cc697ee8b2",
+      "ranked": true
+    },
+    "marks-04": {
+      "daily": false,
+      "hash": "sha256:938d974dfe74964b13e9aced0473a71c3304996fca0a21bcf6f8c0cb85639945",
+      "ranked": true
+    },
+    "marks-05": {
+      "daily": false,
+      "hash": "sha256:9383a4c1f00de1ed0976e47d6b094edd616c095ebeaf54058bc95ff27abb08cd",
+      "ranked": true
+    },
+    "marks-06": {
+      "daily": false,
+      "hash": "sha256:f08f2e7b11665b700430385e37247f855972771a01d937f0efae22af8ac39c7d",
+      "ranked": true
+    },
+    "marks-07": {
+      "daily": false,
+      "hash": "sha256:0cb34cb49c18569a3e634d21f7648b7096badb3f8355be85c695292c8cfd2726",
       "ranked": true
     },
     "modern-01": {

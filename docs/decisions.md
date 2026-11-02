@@ -799,6 +799,47 @@ PLAN-v3.md records the full table. The two departures from the proposal:
 - **New ranked levels need a new verifier snapshot.** The snapshot holds its own copy
   of `challenges/`, so until it's rebuilt, a run on these levels can't be verified.
 
+## Marks, Ex ranges and filters
+
+- **They come after Boss Levels, as orders 13 to 15, and Usage and Setup moved to 16
+  to 22.** Putting them before the bosses would relock Boss Levels for anyone who has
+  reached them, because packs unlock in order.
+- **`!` levels use plain `sort` over same-case letters, with no OS gate.** Replays run
+  with `PATH=/usr/bin:/bin` and `LANG=C.UTF-8`, and CI plays every solution on Windows,
+  where `sort` may be `sort.exe`. Their flags differ and their collation can, so `-r`,
+  `-n` or `tac` can't be in a solution. The lines share a prefix and differ first at a
+  lowercase letter, where every `sort` agrees. An OS gate would be a schema change for
+  no gain. Replays set no `SHELL`, so Neovim runs the filter with `sh`, not the replay
+  user's `/sbin/nologin`.
+- **`!` only wins on part of a buffer.** `:sort<CR>` is 6 keys and `:%!sort<CR>` is 9,
+  so every `!` level leaves lines out. `!ip` and `!G` then win by one key, over
+  `vip:sort` and `VG:sort`.
+- **Shell tools are a route the pars don't count.** Where `tac` exists, `:3,7!tac<CR>` is 9
+  keys against par 11 in `ex-ranges-07`. Beating par that way is allowed, and pars stay
+  reachable on every platform.
+- **A mark you set yourself is hard to justify on keys alone.** Returning with `<C-o>`
+  costs 1 key, or 2 with a count, against 4 for `ma` and `` `a ``. A visual selection
+  also beats a mark as an operator's far end. So `marks-04` comes before `<C-o>` is
+  taught, and its par of 14 follows the par rule: `<C-o>` gets 11 once you know it. The
+  levels with preset marks are real wins: `d'e` beats `d15j`.
+- **Some pars are ties.** `:'a,'bs` costs the same as `:11,15s` and `'aV'b:s`, and `:t`
+  beats yanking by one key at most. `ex-ranges-09`'s solution uses `:n src/*`, because
+  it's a key shorter than `:ar src/*` and three shorter than `:args src/*`. The hint
+  names both.
+- **Traps set the pattern length.** A `:g` trap only works outside the blocks being
+  deleted: a match inside one is deleted before `:g` reaches it, so the first
+  `ex-ranges-04` could be solved with `:g/G/,/ND/d`.
+- **Motions levels can have files.** `ex-ranges-08`, `ex-ranges-09` and `marks-07`
+  need real files. Nothing ties files to the Usage track, and the replay handles them.
+  `:s` without the `e` flag doesn't stop `:argdo` here, but each error can add a prompt,
+  so every listed file in `ex-ranges-08` has a match.
+- **Commands in a preset are one undo block, and one change-list entry.** `marks-06`
+  needs two entries for `g;`, so its preset runs `let &undolevels = &undolevels`
+  between the edits, which starts a new block. Without it `2g;` fails with E662.
+- **Why `marks-06` checks the buffer as well as the cursor.** `allow_edit` alone would
+  let `uu` reach the same spot by undoing the edits it's asking you to keep.
+- **Like the first advanced packs, these need a new verifier snapshot.**
+
 ## Daily boards
 
 - **The server decides what counts.** The client never claims a run is the daily. A

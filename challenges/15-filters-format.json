@@ -1,0 +1,419 @@
+{
+  "$schema": "./schema.json",
+  "pack": "filters-format",
+  "title": "Filters and Formatting",
+  "description": "Hand lines to sort, rewrap prose with gq and gw, and let = fix the indentation.",
+  "order": 15,
+  "authors": ["navasvarela"],
+  "levels": [
+    {
+      "id": "filters-01",
+      "title": "Through the filter",
+      "description": "Sort this block of imports. The rest of the file stays put, including the import below the blank line.",
+      "start_text": [
+        "#!/usr/bin/env python3",
+        "\"\"\"Deploy helper.\"\"\"",
+        "",
+        "import sys",
+        "import json",
+        "import time",
+        "import argparse",
+        "import os",
+        "",
+        "from app import deploy",
+        "",
+        "deploy(sys.argv)"
+      ],
+      "cursor_start": [5, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "#!/usr/bin/env python3",
+          "\"\"\"Deploy helper.\"\"\"",
+          "",
+          "import argparse",
+          "import json",
+          "import os",
+          "import sys",
+          "import time",
+          "",
+          "from app import deploy",
+          "",
+          "deploy(sys.argv)"
+        ]
+      },
+      "par_keys": 8,
+      "par_seconds": 14,
+      "hint": "! takes a motion like any operator, then sends those lines through a command. Try it with sort and a text object.",
+      "solution": "!ipsort<CR>",
+      "teaches": ["!"]
+    },
+    {
+      "id": "filters-02",
+      "title": "To the end of the file",
+      "description": "Sort the regions, from here to the end of the file. The keys above them stay where they are.",
+      "start_text": [
+        "name: api",
+        "owner: platform",
+        "replicas: 3",
+        "regions:",
+        "  - tokyo",
+        "  - dublin",
+        "  - oregon",
+        "  - sydney",
+        "  - frankfurt"
+      ],
+      "cursor_start": [5, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "name: api",
+          "owner: platform",
+          "replicas: 3",
+          "regions:",
+          "  - dublin",
+          "  - frankfurt",
+          "  - oregon",
+          "  - sydney",
+          "  - tokyo"
+        ]
+      },
+      "par_keys": 7,
+      "par_seconds": 12,
+      "hint": "! with G filters everything from the cursor down.",
+      "solution": "!Gsort<CR>",
+      "teaches": ["!G"]
+    },
+    {
+      "id": "filters-03",
+      "title": "No blank lines to help",
+      "description": "Sort only the packages. There are no blank lines around them, so a paragraph won't do.",
+      "start_text": [
+        "stages:",
+        "  - test",
+        "  - build",
+        "packages:",
+        "  - zlib",
+        "  - curl",
+        "  - nginx",
+        "  - jq",
+        "  - git",
+        "ports:",
+        "  - http",
+        "  - https"
+      ],
+      "cursor_start": [5, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "stages:",
+          "  - test",
+          "  - build",
+          "packages:",
+          "  - curl",
+          "  - git",
+          "  - jq",
+          "  - nginx",
+          "  - zlib",
+          "ports:",
+          "  - http",
+          "  - https"
+        ]
+      },
+      "par_keys": 8,
+      "par_seconds": 14,
+      "hint": "!! filters the current line, and a count makes that several lines.",
+      "solution": "5!!sort<CR>",
+      "teaches": ["!!"]
+    },
+    {
+      "id": "filters-04",
+      "title": "Too long for the screen",
+      "description": "Rewrap this comment to fit 'textwidth', which is 50 here.",
+      "start_text": [
+        "function fetchAll(urls) {",
+        "// Retries with exponential backoff, because the upstream rate limiter drops bursts and a fixed delay would hit it again on the same tick.",
+        "  return urls.map(fetchWithRetry)",
+        "}"
+      ],
+      "cursor_start": [2, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "function fetchAll(urls) {",
+          "// Retries with exponential backoff, because the",
+          "// upstream rate limiter drops bursts and a fixed",
+          "// delay would hit it again on the same tick.",
+          "  return urls.map(fetchWithRetry)",
+          "}"
+        ]
+      },
+      "par_keys": 3,
+      "par_seconds": 5,
+      "hint": "gq is an operator that formats text, and doubling the last letter does the current line. It keeps the comment leader.",
+      "solution": "gqq",
+      "teaches": ["gqq"],
+      "options": {
+        "textwidth": 50
+      }
+    },
+    {
+      "id": "filters-05",
+      "title": "Rewrap the paragraph",
+      "description": "This paragraph has been edited to pieces. Rewrap only this one to 'textwidth'.",
+      "start_text": [
+        "Release notes",
+        "",
+        "The new scheduler",
+        "keeps a small",
+        "queue per worker and steals from its neighbours",
+        "when it runs dry, which",
+        "cuts latency under load",
+        "by a third.",
+        "",
+        "Upgrade notes are in the docs."
+      ],
+      "cursor_start": [5, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "Release notes",
+          "",
+          "The new scheduler keeps a small queue per worker",
+          "and steals from its neighbours when it runs dry,",
+          "which cuts latency under load by a third.",
+          "",
+          "Upgrade notes are in the docs."
+        ]
+      },
+      "par_keys": 4,
+      "par_seconds": 6,
+      "hint": "gq takes any motion or text object.",
+      "solution": "gqip",
+      "teaches": ["gq"],
+      "options": {
+        "textwidth": 50
+      }
+    },
+    {
+      "id": "filters-06",
+      "title": "Stay where you are",
+      "description": "Rewrap this paragraph too, and finish with the cursor still on the word held.",
+      "start_text": [
+        "Why now",
+        "",
+        "Old workers",
+        "held one big lock",
+        "and spent most of the peak",
+        "hour waiting on it, so",
+        "adding hosts made",
+        "things worse.",
+        "",
+        "See the graphs."
+      ],
+      "cursor_start": [4, 0],
+      "goal": {
+        "type": "all_of",
+        "goals": [
+          {
+            "type": "buffer_equals",
+            "value": [
+              "Why now",
+              "",
+              "Old workers held one big lock and spent most of",
+              "the peak hour waiting on it, so adding hosts made",
+              "things worse.",
+              "",
+              "See the graphs."
+            ]
+          },
+          {
+            "type": "cursor_at",
+            "line": 3,
+            "col": 12,
+            "allow_edit": true
+          }
+        ]
+      },
+      "par_keys": 4,
+      "par_seconds": 6,
+      "hint": "gw formats like gq, then leaves the cursor on the same text.",
+      "solution": "gwip",
+      "teaches": ["gw"],
+      "options": {
+        "textwidth": 50
+      }
+    },
+    {
+      "id": "filters-07",
+      "title": "One crooked line",
+      "description": "Fix the indentation of this line. It's off by three, so shifting won't help.",
+      "start_text": ["int add(int a, int b) {", "    int sum = a + b;", "       return sum;", "}"],
+      "cursor_start": [3, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["int add(int a, int b) {", "    int sum = a + b;", "    return sum;", "}"]
+      },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "= is the indent operator, and == does the current line.",
+      "solution": "==",
+      "teaches": ["=="],
+      "options": {
+        "shiftwidth": 4,
+        "expandtab": true
+      }
+    },
+    {
+      "id": "filters-08",
+      "title": "Just this function",
+      "description": "Fix the indentation inside total(). The other functions use two spaces on purpose, and the blank lines rule out a paragraph.",
+      "start_text": [
+        "int keep(void) {",
+        "  return 1;",
+        "}",
+        "",
+        "int total(int *xs, int n) {",
+        "int sum = 0;",
+        "",
+        "      for (int i = 0; i < n; i++) {",
+        "  sum += xs[i];",
+        "        }",
+        "",
+        "  return sum;",
+        "}",
+        "",
+        "int also_keep(void) {",
+        "  return 2;",
+        "}"
+      ],
+      "cursor_start": [6, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "int keep(void) {",
+          "  return 1;",
+          "}",
+          "",
+          "int total(int *xs, int n) {",
+          "    int sum = 0;",
+          "",
+          "    for (int i = 0; i < n; i++) {",
+          "        sum += xs[i];",
+          "    }",
+          "",
+          "    return sum;",
+          "}",
+          "",
+          "int also_keep(void) {",
+          "  return 2;",
+          "}"
+        ]
+      },
+      "par_keys": 3,
+      "par_seconds": 5,
+      "hint": "= takes text objects, and i{ is the inside of the braces.",
+      "solution": "=i{",
+      "teaches": ["=i{"],
+      "options": {
+        "shiftwidth": 4,
+        "expandtab": true
+      }
+    },
+    {
+      "id": "filters-09",
+      "title": "The whole file",
+      "description": "Reindent the entire file. You're in the middle of it.",
+      "start_text": [
+        "int main(void) {",
+        "  int n = read_count();",
+        "if (n < 0) {",
+        "return 1;",
+        "      }",
+        "",
+        "        while (n--) {",
+        "  step(n);",
+        "            log_step(n);",
+        "}",
+        "  return 0;",
+        "}"
+      ],
+      "cursor_start": [7, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "int main(void) {",
+          "    int n = read_count();",
+          "    if (n < 0) {",
+          "        return 1;",
+          "    }",
+          "",
+          "    while (n--) {",
+          "        step(n);",
+          "        log_step(n);",
+          "    }",
+          "    return 0;",
+          "}"
+        ]
+      },
+      "par_keys": 4,
+      "par_seconds": 6,
+      "hint": "Go to the top, then = to the bottom.",
+      "solution": "gg=G",
+      "teaches": ["gg=G"],
+      "options": {
+        "shiftwidth": 4,
+        "expandtab": true
+      }
+    },
+    {
+      "id": "filters-10",
+      "title": "Tidy the file",
+      "description": "Three jobs: sort the includes, rewrap the long comment to 'textwidth', and reindent the function.",
+      "start_text": [
+        "#include <stdio.h>",
+        "#include <time.h>",
+        "#include <errno.h>",
+        "#include <assert.h>",
+        "",
+        "// Prints the elapsed time, and keeps running when the clock goes backwards, since a retry here would only hide the skew.",
+        "void report(long start) {",
+        "long now = time(NULL);",
+        "      if (now < start) {",
+        "printf(\"skew\");",
+        "  }",
+        "}"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "#include <assert.h>",
+          "#include <errno.h>",
+          "#include <stdio.h>",
+          "#include <time.h>",
+          "",
+          "// Prints the elapsed time, and keeps running when",
+          "// the clock goes backwards, since a retry here",
+          "// would only hide the skew.",
+          "void report(long start) {",
+          "    long now = time(NULL);",
+          "    if (now < start) {",
+          "        printf(\"skew\");",
+          "    }",
+          "}"
+        ]
+      },
+      "par_keys": 15,
+      "par_seconds": 26,
+      "hint": "!, gq and = in turn, each with the shortest motion that reaches its lines.",
+      "solution": "!ipsort<CR>=G}jgqq",
+      "teaches": ["! gq ="],
+      "options": {
+        "textwidth": 50,
+        "shiftwidth": 4,
+        "expandtab": true
+      }
+    }
+  ]
+}
