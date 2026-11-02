@@ -135,6 +135,51 @@
       "hash": "sha256:44af921916642d7e6feadc5937f719ebd68a06ce57b7c541316a4e89fd1fdb75",
       "ranked": true
     },
+    "ex-ranges-01": {
+      "daily": false,
+      "hash": "sha256:2d5dcdd19e2bd7bf23a092d61a1087659c94c39ad36390589553046b2e959507",
+      "ranked": true
+    },
+    "ex-ranges-02": {
+      "daily": false,
+      "hash": "sha256:d6a47180154758479c4e914c099b18798820db6e6b392beccbdc80a137b9fba4",
+      "ranked": true
+    },
+    "ex-ranges-03": {
+      "daily": false,
+      "hash": "sha256:c8f5fac4ee4433189174689682d90fb790d0b73f129729d637c18639eaf666df",
+      "ranked": true
+    },
+    "ex-ranges-04": {
+      "daily": false,
+      "hash": "sha256:6bc45edc1cf2ff5985af5b4ee0a8c186417f51c0b674db473ac237a0cc15ede4",
+      "ranked": true
+    },
+    "ex-ranges-05": {
+      "daily": false,
+      "hash": "sha256:d161206e46c064d678b4a3730446da139fed7d1c7bd893a85441ace540502e4d",
+      "ranked": true
+    },
+    "ex-ranges-06": {
+      "daily": false,
+      "hash": "sha256:4d7d7db058aad731049d5f7a867ad33ebb2f84864c5560ddf11f32a2f297c3ff",
+      "ranked": true
+    },
+    "ex-ranges-07": {
+      "daily": false,
+      "hash": "sha256:d95f1225388680123f29b5f72d061cd74df0d634632f5f06f6c150543fb64d6a",
+      "ranked": true
+    },
+    "ex-ranges-08": {
+      "daily": false,
+      "hash": "sha256:a264951f1dac0d8b136fcccc3bb11a9b0a4a6cf59efecc14dc3bd6ee24c997c4",
+      "ranked": true
+    },
+    "ex-ranges-09": {
+      "daily": false,
+      "hash": "sha256:7768e8bec8d0beaeaf029efa7c297b25c28a4e79249d4433b57a548f12f8efa9",
+      "ranked": true
+    },
     "expr-01": {
       "daily": false,
       "hash": "sha256:acdfba16983299d60d42093f2c4b8534063ca6d6e180e6628a7d88d31ba49f93",
