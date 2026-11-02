@@ -1,0 +1,421 @@
+{
+  "$schema": "./schema.json",
+  "pack": "marks-jumps",
+  "title": "Marks and Jumps",
+  "description": "Stop counting lines: marks you set, the jumps Neovim remembers and the changes it tracks.",
+  "order": 13,
+  "authors": ["navasvarela"],
+  "levels": [
+    {
+      "id": "marks-01",
+      "title": "Bookmarked",
+      "description": "A reviewer left mark r on the sample rate they're asking about. Go right to it.",
+      "start_text": [
+        "[server]",
+        "host = \"0.0.0.0\"",
+        "port = 8080",
+        "workers = 4",
+        "",
+        "[tls]",
+        "enabled = true",
+        "cert = \"/etc/app/cert.pem\"",
+        "key = \"/etc/app/key.pem\"",
+        "",
+        "[database]",
+        "url = \"postgres://db/app\"",
+        "pool_size = 10",
+        "pool_timeout = 30",
+        "statement_timeout = 5000",
+        "",
+        "[cache]",
+        "backend = \"redis\"",
+        "url = \"redis://cache/0\"",
+        "ttl = 300",
+        "",
+        "[logging]",
+        "level = \"info\"",
+        "format = \"json\"",
+        "sample_rate = 0.25",
+        "output = \"/var/log/app.log\"",
+        "",
+        "[metrics]",
+        "enabled = true",
+        "interval = 60"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "cursor_at",
+        "line": 25,
+        "col": 14
+      },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "A backtick and a mark name jumps to that exact line and column. :marks lists them.",
+      "solution": "`r",
+      "teaches": ["`"],
+      "preset": {
+        "marks": {
+          "r": [25, 14]
+        }
+      }
+    },
+    {
+      "id": "marks-02",
+      "title": "Down to the mark",
+      "description": "TLS, the database and the cache moved to another service. Mark e is on the blank line after [cache]. Delete everything from here through that line.",
+      "start_text": [
+        "[server]",
+        "host = \"0.0.0.0\"",
+        "port = 8080",
+        "workers = 4",
+        "",
+        "[tls]",
+        "enabled = true",
+        "cert = \"/etc/app/cert.pem\"",
+        "key = \"/etc/app/key.pem\"",
+        "",
+        "[database]",
+        "url = \"postgres://db/app\"",
+        "pool_size = 10",
+        "pool_timeout = 30",
+        "statement_timeout = 5000",
+        "",
+        "[cache]",
+        "backend = \"redis\"",
+        "url = \"redis://cache/0\"",
+        "ttl = 300",
+        "",
+        "[logging]",
+        "level = \"info\"",
+        "format = \"json\"",
+        "sample_rate = 0.25",
+        "output = \"/var/log/app.log\"",
+        "",
+        "[metrics]",
+        "enabled = true",
+        "interval = 60"
+      ],
+      "cursor_start": [6, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "[server]",
+          "host = \"0.0.0.0\"",
+          "port = 8080",
+          "workers = 4",
+          "",
+          "[logging]",
+          "level = \"info\"",
+          "format = \"json\"",
+          "sample_rate = 0.25",
+          "output = \"/var/log/app.log\"",
+          "",
+          "[metrics]",
+          "enabled = true",
+          "interval = 60"
+        ]
+      },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "A mark is a motion, so operators take it. An apostrophe makes it linewise.",
+      "solution": "d'e",
+      "teaches": ["'", "d'"],
+      "preset": {
+        "marks": {
+          "e": [21, 0]
+        }
+      }
+    },
+    {
+      "id": "marks-03",
+      "title": "Slice to the mark",
+      "description": "Drop the legacy columns, from here up to mark e, which sits on email. The commas have to stay right, so whole lines won't do.",
+      "start_text": [
+        "SELECT id, name, legacy_a,",
+        "  legacy_b, legacy_c,",
+        "  legacy_d, email, created_at",
+        "FROM users",
+        "WHERE active"
+      ],
+      "cursor_start": [1, 17],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["SELECT id, name, email, created_at", "FROM users", "WHERE active"]
+      },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "With a backtick the mark is charwise: it deletes from the cursor up to the mark's exact column.",
+      "solution": "d`e",
+      "teaches": ["d`"],
+      "preset": {
+        "marks": {
+          "e": [3, 12]
+        }
+      }
+    },
+    {
+      "id": "marks-04",
+      "title": "Pin it first",
+      "description": "The sdk artifact needs its checksum from the build log below. Every other TODO waits for another day. Copy the checksum here without losing your place.",
+      "start_text": [
+        "-- Release manifest: every artifact gets a checksum.",
+        "local verify = require(\"release.verify\")",
+        "local size = 4096",
+        "",
+        "verify(\"api.tar\", \"TODO\", size)",
+        "verify(\"web.tar\", \"TODO\", size)",
+        "verify(\"cli.tar\", \"TODO\", size)",
+        "verify(\"docs.tar\", \"TODO\", size)",
+        "verify(\"jobs.tar\", \"TODO\", size)",
+        "verify(\"ui.tar\", \"TODO\", size)",
+        "verify(\"sdk.tar\", \"TODO\", size)",
+        "verify(\"site.tar\", \"TODO\", size)",
+        "verify(\"core.tar\", \"TODO\", size)",
+        "verify(\"auth.tar\", \"TODO\", size)",
+        "",
+        "-- Checksums come from the build log.",
+        "local log = {",
+        "  api = \"1f8ac10f23c5b5bc1167bda84b833e5c057a77d2\",",
+        "  web = \"2c26b46b68ffc68ff99b453c1d30413413422d70\",",
+        "  sdk = \"da39a3ee5e6b4b0d3255bfef95601890afd80709\",",
+        "  cli = \"ee26b0dd4af7e749aa1a8ee3c10ae9923f618980\",",
+        "}",
+        "",
+        "return log"
+      ],
+      "cursor_start": [11, 19],
+      "goal": {
+        "type": "buffer_equals",
+        "value": [
+          "-- Release manifest: every artifact gets a checksum.",
+          "local verify = require(\"release.verify\")",
+          "local size = 4096",
+          "",
+          "verify(\"api.tar\", \"TODO\", size)",
+          "verify(\"web.tar\", \"TODO\", size)",
+          "verify(\"cli.tar\", \"TODO\", size)",
+          "verify(\"docs.tar\", \"TODO\", size)",
+          "verify(\"jobs.tar\", \"TODO\", size)",
+          "verify(\"ui.tar\", \"TODO\", size)",
+          "verify(\"sdk.tar\", \"da39a3ee5e6b4b0d3255bfef95601890afd80709\", size)",
+          "verify(\"site.tar\", \"TODO\", size)",
+          "verify(\"core.tar\", \"TODO\", size)",
+          "verify(\"auth.tar\", \"TODO\", size)",
+          "",
+          "-- Checksums come from the build log.",
+          "local log = {",
+          "  api = \"1f8ac10f23c5b5bc1167bda84b833e5c057a77d2\",",
+          "  web = \"2c26b46b68ffc68ff99b453c1d30413413422d70\",",
+          "  sdk = \"da39a3ee5e6b4b0d3255bfef95601890afd80709\",",
+          "  cli = \"ee26b0dd4af7e749aa1a8ee3c10ae9923f618980\",",
+          "}",
+          "",
+          "return log"
+        ]
+      },
+      "par_keys": 14,
+      "par_seconds": 22,
+      "hint": "ma pins your spot before you leave, and `a brings you back to it. yi\" and vi\" work on a quoted string.",
+      "solution": "ma20Gyi\"`avi\"p",
+      "teaches": ["m"]
+    },
+    {
+      "id": "marks-05",
+      "title": "Two hops back",
+      "description": "You were reading the pool size, then jumped to metrics, then to TLS. Go back to where you started.",
+      "start_text": [
+        "[server]",
+        "host = \"0.0.0.0\"",
+        "port = 8080",
+        "workers = 4",
+        "",
+        "[tls]",
+        "enabled = true",
+        "cert = \"/etc/app/cert.pem\"",
+        "key = \"/etc/app/key.pem\"",
+        "",
+        "[database]",
+        "url = \"postgres://db/app\"",
+        "pool_size = 10",
+        "pool_timeout = 30",
+        "statement_timeout = 5000",
+        "",
+        "[cache]",
+        "backend = \"redis\"",
+        "url = \"redis://cache/0\"",
+        "ttl = 300",
+        "",
+        "[logging]",
+        "level = \"info\"",
+        "format = \"json\"",
+        "sample_rate = 0.25",
+        "output = \"/var/log/app.log\"",
+        "",
+        "[metrics]",
+        "enabled = true",
+        "interval = 60"
+      ],
+      "cursor_start": [6, 0],
+      "goal": {
+        "type": "cursor_at",
+        "line": 13,
+        "col": 12
+      },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "Neovim keeps a list of where you jumped from. Ctrl-O walks back through it, and takes a count.",
+      "solution": "<C-o><C-o>",
+      "teaches": ["<C-o>"],
+      "preset": {
+        "commands": ["keepjumps call cursor(13, 13)", "normal! 28G", "normal! 6G"]
+      }
+    },
+    {
+      "id": "marks-06",
+      "title": "The edit before last",
+      "description": "You changed the sample rate, then the pool size, and then wandered off. Go back to the sample rate edit, keeping both changes.",
+      "start_text": [
+        "[server]",
+        "host = \"0.0.0.0\"",
+        "port = 8080",
+        "workers = 4",
+        "",
+        "[tls]",
+        "enabled = true",
+        "cert = \"/etc/app/cert.pem\"",
+        "key = \"/etc/app/key.pem\"",
+        "",
+        "[database]",
+        "url = \"postgres://db/app\"",
+        "pool_size = 10",
+        "pool_timeout = 30",
+        "statement_timeout = 5000",
+        "",
+        "[cache]",
+        "backend = \"redis\"",
+        "url = \"redis://cache/0\"",
+        "ttl = 300",
+        "",
+        "[logging]",
+        "level = \"info\"",
+        "format = \"json\"",
+        "sample_rate = 0.25",
+        "output = \"/var/log/app.log\"",
+        "",
+        "[metrics]",
+        "enabled = true",
+        "interval = 60"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "all_of",
+        "goals": [
+          {
+            "type": "buffer_equals",
+            "value": [
+              "[server]",
+              "host = \"0.0.0.0\"",
+              "port = 8080",
+              "workers = 4",
+              "",
+              "[tls]",
+              "enabled = true",
+              "cert = \"/etc/app/cert.pem\"",
+              "key = \"/etc/app/key.pem\"",
+              "",
+              "[database]",
+              "url = \"postgres://db/app\"",
+              "pool_size = 25",
+              "pool_timeout = 30",
+              "statement_timeout = 5000",
+              "",
+              "[cache]",
+              "backend = \"redis\"",
+              "url = \"redis://cache/0\"",
+              "ttl = 300",
+              "",
+              "[logging]",
+              "level = \"info\"",
+              "format = \"json\"",
+              "sample_rate = 0.5",
+              "output = \"/var/log/app.log\"",
+              "",
+              "[metrics]",
+              "enabled = true",
+              "interval = 60"
+            ]
+          },
+          {
+            "type": "cursor_at",
+            "line": 25,
+            "col": 16,
+            "allow_edit": true
+          }
+        ]
+      },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "g; walks back through the places you changed text, and takes a count. Undo would lose the changes.",
+      "solution": "2g;",
+      "teaches": ["g;"],
+      "preset": {
+        "commands": [
+          "keepjumps call cursor(25, 17)",
+          "normal! ciw5",
+          "let &undolevels = &undolevels",
+          "keepjumps call cursor(13, 13)",
+          "normal! ciw25",
+          "keepjumps call cursor(1, 1)"
+        ]
+      }
+    },
+    {
+      "id": "marks-07",
+      "title": "A mark in another file",
+      "description": "Mark U is on the retry count in util.lua. Capital marks work across files, so go there from here and set it to 5.",
+      "files": {
+        "main.lua": ["local util = require('util')", "", "print(util.retries)"],
+        "util.lua": [
+          "local M = {}",
+          "",
+          "M.timeout = 30",
+          "M.retries = 3",
+          "M.backoff = 2",
+          "",
+          "return M"
+        ]
+      },
+      "open": "main.lua",
+      "cursor_start": [3, 0],
+      "goal": {
+        "type": "files_equal",
+        "files": {
+          "util.lua": [
+            "local M = {}",
+            "",
+            "M.timeout = 30",
+            "M.retries = 5",
+            "M.backoff = 2",
+            "",
+            "return M"
+          ]
+        }
+      },
+      "par_keys": 4,
+      "par_seconds": 6,
+      "hint": "A capital mark remembers its file too: `U opens the file and lands on the mark.",
+      "solution": "`Ur5",
+      "teaches": ["`A"],
+      "preset": {
+        "commands": [
+          "edit util.lua",
+          "call cursor(4, 13)",
+          "normal! mU",
+          "keepalt edit main.lua",
+          "call cursor(3, 1)",
+          "clearjumps"
+        ]
+      }
+    }
+  ]
+}

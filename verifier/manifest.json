@@ -245,6 +245,41 @@
       "hash": "sha256:2ad4b9646449e2e0fefd40ea014db792c3e5827f2fb7f38f657404306f2bf1ed",
       "ranked": true
     },
+    "marks-01": {
+      "daily": false,
+      "hash": "sha256:b55db44613d5194c2ea47d746844a25701af809e7c97f4031fa2bce78d39d1b3",
+      "ranked": true
+    },
+    "marks-02": {
+      "daily": false,
+      "hash": "sha256:8904fe710a8e7eb66b443b89f2eeaa483a8bc565f90f23d3ed1c1fe008d34a45",
+      "ranked": true
+    },
+    "marks-03": {
+      "daily": false,
+      "hash": "sha256:a6d01a0a5e6d527364802769ff9c61d8269cf4e55631216af45700cc697ee8b2",
+      "ranked": true
+    },
+    "marks-04": {
+      "daily": false,
+      "hash": "sha256:938d974dfe74964b13e9aced0473a71c3304996fca0a21bcf6f8c0cb85639945",
+      "ranked": true
+    },
+    "marks-05": {
+      "daily": false,
+      "hash": "sha256:9383a4c1f00de1ed0976e47d6b094edd616c095ebeaf54058bc95ff27abb08cd",
+      "ranked": true
+    },
+    "marks-06": {
+      "daily": false,
+      "hash": "sha256:f08f2e7b11665b700430385e37247f855972771a01d937f0efae22af8ac39c7d",
+      "ranked": true
+    },
+    "marks-07": {
+      "daily": false,
+      "hash": "sha256:0cb34cb49c18569a3e634d21f7648b7096badb3f8355be85c695292c8cfd2726",
+      "ranked": true
+    },
     "modern-01": {
       "daily": false,
       "hash": "sha256:d6b0ba3734b52dd4ce08fe6ea2aa831e16cc1e8939aa8b9bff0b980d72223197",
