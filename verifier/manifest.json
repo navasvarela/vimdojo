@@ -220,6 +220,56 @@
       "hash": "sha256:2d179c6e2296ddca6fff0683e36f6a0f15384c41904b4bd0a9bc75b89e7ba86a",
       "ranked": true
     },
+    "filters-01": {
+      "daily": false,
+      "hash": "sha256:9810c2171d23bb77bc657cce68f66bb609a2326c3a533ce652c1c5ab887dd5e2",
+      "ranked": true
+    },
+    "filters-02": {
+      "daily": false,
+      "hash": "sha256:e6bc1d689b5596b47724047c21b6d81a115117f91ae6f7078c70255ff39c6888",
+      "ranked": true
+    },
+    "filters-03": {
+      "daily": false,
+      "hash": "sha256:24c954a5a53d3857b8b6fc73f714147107f6bae7f8d550172a62e24ea2b5c9cc",
+      "ranked": true
+    },
+    "filters-04": {
+      "daily": false,
+      "hash": "sha256:1e3a843965b5b550ddb6945f2120de3d6c3167c04037b9ecb4b1d962d547b4c0",
+      "ranked": true
+    },
+    "filters-05": {
+      "daily": false,
+      "hash": "sha256:8a790bc40e487c74cfd54e9d468f71a41ce47431a4014ba10bb16f41c9ea159e",
+      "ranked": true
+    },
+    "filters-06": {
+      "daily": false,
+      "hash": "sha256:6d750978fdb09af4a447b15e4f409a486e2f04a4f6b2d6454036ef5bf2456a45",
+      "ranked": true
+    },
+    "filters-07": {
+      "daily": false,
+      "hash": "sha256:50ce9af29b3d850bd4443e2ceb1bea8241ae8e4f62f8d4e990cef0b809cf4ca4",
+      "ranked": true
+    },
+    "filters-08": {
+      "daily": false,
+      "hash": "sha256:71fcf14534a3fa2a9ac848576a5e1805f738f3c2e1284f6af5b395d27dc8758a",
+      "ranked": true
+    },
+    "filters-09": {
+      "daily": false,
+      "hash": "sha256:169392e1aee9a1d804a09a25d8e7bb3661a8e66f11f100233135663a9279db21",
+      "ranked": true
+    },
+    "filters-10": {
+      "daily": false,
+      "hash": "sha256:597c563d24a8d88f857ad1a077ae58baf49cf3c4d86a2b613cf19b2076b1875a",
+      "ranked": true
+    },
     "find-and-jump-01": {
       "daily": true,
       "hash": "sha256:18ca6e560f9205d6a0ee8f727c8f35cb7ee0bbde370e6644a599107456e27d6b",
