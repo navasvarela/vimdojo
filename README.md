@@ -14,9 +14,10 @@ game.
 **[Try the browser demo](https://vimdojo.org)**, then
 install the plugin for the real thing.
 
-- 109 levels in nineteen packs across three tracks. **Motions** covers basic
+- 135 levels in twenty-two packs across three tracks. **Motions** covers basic
   motions through macros and Ex commands, then regex power, the expression
-  register and boss levels that are whole refactors. **Usage** covers windows and
+  register, boss levels that are whole refactors, marks and jumps, Ex ranges,
+  and filters and formatting. **Usage** covers windows and
   buffers, project-wide edits with the quickfix list, and Neovim's built-in
   defaults. **Setup** teaches writing (and fixing) an `init.lua`: options,
   keymaps, autocommands and user commands, checked by running your config in
