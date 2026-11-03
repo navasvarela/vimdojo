@@ -5,18 +5,20 @@ that's easy to try, and for the first wave of feedback to turn into fixes and
 new levels. Channel rules and sources are in [channels.md](channels.md); the
 drafts are in [posts.md](posts.md) and [article.md](article.md).
 
-The launch has no date yet. It comes after the work below, not on a calendar
-day: streaks and practice mode (v0.9.0), then web runs, then the launch
-preparation in Phase 0. Pick the date once Phase 0 is done, on a Tuesday or
-Wednesday you can spend replying.
+r/neovim's Rule 10 bans day-one plugin announcements: a plugin needs two months of
+continuous development first. vimdojo's first commit was on 2026-10-17, so the
+earliest r/neovim post is **Thursday 2026-12-17**. Keep committing steadily until
+then, since the rule asks for continuous development, not only an old repo. Pick the
+day once Phase 0 is done, on a Tuesday or Wednesday you can spend replying.
 
 The order is:
 
-1. Release streaks and practice mode.
-2. Quiet announcement (Phase 1), any time after that.
-3. Build and release web runs.
+1. Release streaks and practice mode. Done: v0.9.0.
+2. Quiet announcement (Phase 1), now.
+3. Build and release web runs, before 2026-12-17.
 4. Finish Phase 0.
-5. Launch on r/neovim (Phase 2), then go wider a week later (Phase 3).
+5. Launch on r/neovim (Phase 2) on or after 2026-12-17, then go wider a week later
+   (Phase 3).
 6. Long tail (Phase 4).
 
 The awesome-neovim PR
@@ -91,18 +93,20 @@ they show the final product.
    canonical copy for the dev.to and Hashnode cross-posts and the best thing
    to submit to Lobsters.
 
-## Phase 1: quiet announcement (any time after v0.9.0)
+## Phase 1: quiet announcement (now)
 
 For a first few players before the launch, in places where a small post is normal
 and a follow-up isn't a problem.
 
-- **Mastodon and Bluesky** only, with the existing GIF and alt text. Mastodon's
+- **Mastodon and Bluesky**, with the existing GIF and alt text. Mastodon's
   official account is @neovim@hachyderm.io and Bluesky's is @neovim.io. Use hashtags
   rather than @-mentioning them asking for a boost.
 - Lead with the daily, and say how AI was used.
-- Keep r/neovim back: it's the main launch moment, and a post there is hard to repeat.
+- **neovim/neovim Discussions, "Show and tell"**, with the parent/child RPC and sandbox
+  details that interest Neovim developers. Read its rules first.
+- r/neovim isn't an option yet: see Rule 10 above.
 
-## Phase 2: r/neovim (date to be set)
+## Phase 2: r/neovim (on or after Thursday 2026-12-17)
 
 - **r/neovim** with the `Plugin` flair and the clip as native media.
   - Post between 08:00 and 13:00 UTC. In the archive, Tuesday and Wednesday
@@ -113,9 +117,6 @@ and a follow-up isn't a problem.
   - A realistic outcome for a learning tool there is 20 to 70 points.
     Precognition.nvim's roughly 286 is the high end.
 - **Same day:** a Mastodon and Bluesky post with the new clip and alt text.
-- **Next day:** a post in the "Show and tell" category of neovim/neovim
-  GitHub Discussions, with the parent/child RPC and sandbox details that
-  interest Neovim developers.
 - **Spend the first four to six hours replying.** Fix what's quick, and cut a patch
   release within a few days if real bugs show up.
 
@@ -221,9 +222,10 @@ How to handle what comes in:
 - [x] Cloudflare Web Analytics merged and deployed
 - [x] awesome-neovim PR opened
 - [ ] awesome-neovim PR merged
-- [ ] Streaks and practice mode released (v0.9.0)
+- [x] Streaks and practice mode released (v0.9.0)
 - [ ] AI disclosure line decided
 - [ ] Quiet announcement on Mastodon and Bluesky
+- [ ] neovim/neovim Discussions, Show and tell
 - [ ] Web runs released
 - [ ] Fresh-install smoke test passed; demo checked for focus, CPU and mobile
 - [ ] Manual terminal check: kitty, iTerm2, WezTerm, Windows Terminal
@@ -231,9 +233,8 @@ How to handle what comes in:
 - [ ] Second clip recorded (the daily with `y`, plus a Setup level)
 - [ ] Article published on your blog
 - [ ] Launch date picked
-- [ ] r/neovim post
+- [ ] r/neovim post, on or after 2026-12-17 (Rule 10)
 - [ ] Mastodon and Bluesky post with the new clip
-- [ ] neovim/neovim Discussions, Show and tell
 - [ ] Show HN, first comment posted
 - [ ] Console.dev email
 - [ ] dev.to and Hashnode cross-posts with canonical URL
