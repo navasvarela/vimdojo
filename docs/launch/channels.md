@@ -12,10 +12,10 @@ The order and timing are in [plan.md](plan.md), and the drafts are in
 
 | Channel | Fit | When | Main rule to respect |
 |---|---|---|---|
-| r/neovim | Best | Phase 1 | `Plugin` flair, a GIF or video, say how AI was used |
-| awesome-neovim | Best (lasting) | Phase 2, repo ≥ 1 week old | Strict line format, one PR per plugin |
-| neovim/neovim Discussions, "Show and tell" | Good | Phase 1 | Official forum. Be technical. |
-| Mastodon / Bluesky | Good | Phase 1 | Alt text, CamelCase hashtags |
+| r/neovim | Best | Phase 2 | `Plugin` flair, a GIF or video, say how AI was used |
+| awesome-neovim | Best (lasting) | PR open | Strict line format, one PR per plugin |
+| neovim/neovim Discussions, "Show and tell" | Good | Phase 2 | Official forum. Be technical. |
+| Mastodon / Bluesky | Good | Phases 1 and 2 | Alt text, CamelCase hashtags |
 | Show HN | Good, high variance | Phase 3 | Established account, no generated text, be there |
 | Console.dev | Good | Phase 3 | Pre-1.0 developer tools only |
 | dev.to / Hashnode | Medium | Phase 4 | Canonical URL, AI disclosure |

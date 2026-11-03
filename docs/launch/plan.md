@@ -5,10 +5,23 @@ that's easy to try, and for the first wave of feedback to turn into fixes and
 new levels. Channel rules and sources are in [channels.md](channels.md); the
 drafts are in [posts.md](posts.md) and [article.md](article.md).
 
-v0.5.0 shipped on 2026-10-30 with the daily challenge and shareable
-results, and vimdojo.org has served over HTTPS since 2026-10-24. The dates
-below give the rest of Phase 0 until Monday 2026-11-02. If prep takes
-longer, move all the dates together.
+The launch has no date yet. It comes after the work below, not on a calendar
+day: streaks and practice mode (v0.9.0), then web runs, then the launch
+preparation in Phase 0. Pick the date once Phase 0 is done, on a Tuesday or
+Wednesday you can spend replying.
+
+The order is:
+
+1. Release streaks and practice mode.
+2. Quiet announcement (Phase 1), any time after that.
+3. Build and release web runs.
+4. Finish Phase 0.
+5. Launch on r/neovim (Phase 2), then go wider a week later (Phase 3).
+6. Long tail (Phase 4).
+
+The awesome-neovim PR
+([#2587](https://github.com/rockerBOO/awesome-neovim/pull/2587)) is already open
+and doesn't depend on any of this.
 
 ## Principles
 
@@ -39,25 +52,32 @@ longer, move all the dates together.
   boards once as optional. If asked, say that a server replays each run to verify the
   key count, and that offline stays the default.
 
-## Phase 0: prepare (before the first post)
+## Phase 0: prepare (before the r/neovim post)
 
-Do these in order; the first four are quick and visible on every link
-preview.
+Done: a current release on LuaRocks, repo metadata, the social preview
+(`docs/brand/social-preview.png`), HTTPS on vimdojo.org, Discussions with "Levels"
+and "Daily" categories, and Cloudflare Web Analytics. GitHub's Insights → Traffic
+keeps views and referrers for only 14 days, so save a screenshot of it a few days
+after each post.
 
-1. **Ship a current release.** Done: v0.5.0 is tagged, on LuaRocks, with
-   release notes and a changelog that covers the landing refresh and the
-   move to vimdojo.org.
-2. **Fill in the GitHub repo metadata.** Done: the description, website
-   (https://vimdojo.org) and topics (`neovim`, `neovim-plugin`, `vim`,
-   `lua`, `game`, `puzzle-game`, `learning`, `vim-motions`) are set.
-3. **Social preview image.** Done: `docs/brand/social-preview.png`
-   (1280×640, the torii logo, the name and the tagline) is the repo's
-   preview, so Reddit, Mastodon, Bluesky and Slack show it when someone
-   pastes the repo link.
-4. **Give feedback a home.** Done: Discussions are on, with "Levels" (ideas
-   and beaten pars) and "Daily" (daily scores, solutions in spoiler blocks)
-   categories, and linked from the README, the site and the posts.
-5. **Record a second clip that shows what's new.** The README GIF shows two
+Decide the first item before the quiet announcement. Do the rest after web runs, so
+they show the final product.
+
+1. **Decide the AI disclosure line.** See Principles and channels.md.
+2. **Smoke-test the first-run path** on a machine without your config:
+   - lazy.nvim, vim-plug and `:Rocks install vimdojo` installs
+   - `:VimDojo`, one level from each track
+   - kitty, iTerm2, WezTerm and, if you can, Windows Terminal
+
+   On the demo, check:
+   - keyboard focus on load
+   - CPU use while idle
+   - what a phone shows (earlier Vim-trainer threads on HN complained about
+     all three)
+3. **Update the posts and the article.** They're written for v0.5.0 (84 levels, 16
+   packs). Correct the numbers, and add daily boards, streaks, practice mode and web
+   runs. Keep to the leaderboard advice in Principles.
+4. **Record a second clip that shows what's new.** The README GIF shows two
    Basic Motions levels. Make a 20 to 40 second clip, as MP4 for Reddit and
    Bluesky and GIF for the README, that shows:
    - the daily at the top of the menu, solved under par, and `y` copying
@@ -67,27 +87,22 @@ preview.
 
    `docs/demo.tape` (VHS) can be copied for this. Keep it silent with no
    captions over the editor, so the keys stay readable.
-6. **HTTPS on vimdojo.org.** Done: the certificate covers `vimdojo.org`
-   and `www.vimdojo.org`, Enforce HTTPS is on, and both `http://vimdojo.org`
-   and the old github.io address redirect to `https://vimdojo.org/`.
-7. **Smoke-test the first-run path** on a machine without your config:
-   - lazy.nvim, vim-plug and `:Rocks install vimdojo` installs
-   - `:VimDojo`, one level from each track
-   - Windows, if you can
-
-   On the demo, check:
-   - keyboard focus on load
-   - CPU use while idle
-   - what a phone shows (earlier Vim-trainer threads on HN complained about
-     all three)
-8. **Publish the article on your own blog** (or keep it ready). It's the
+5. **Publish the article on your own blog** (or keep it ready). It's the
    canonical copy for the dev.to and Hashnode cross-posts and the best thing
    to submit to Lobsters.
-9. **Measure.** Done for the site: Cloudflare Web Analytics is live on
-   vimdojo.org (cookieless, no banner). GitHub's Insights → Traffic keeps views and referrers for only
-   14 days, so save a screenshot of it a few days after each post.
 
-## Phase 1: soft launch (Tuesday 2026-11-03)
+## Phase 1: quiet announcement (any time after v0.9.0)
+
+For a first few players before the launch, in places where a small post is normal
+and a follow-up isn't a problem.
+
+- **Mastodon and Bluesky** only, with the existing GIF and alt text. Mastodon's
+  official account is @neovim@hachyderm.io and Bluesky's is @neovim.io. Use hashtags
+  rather than @-mentioning them asking for a boost.
+- Lead with the daily, and say how AI was used.
+- Keep r/neovim back: it's the main launch moment, and a post there is hard to repeat.
+
+## Phase 2: r/neovim (date to be set)
 
 - **r/neovim** with the `Plugin` flair and the clip as native media.
   - Post between 08:00 and 13:00 UTC. In the archive, Tuesday and Wednesday
@@ -97,26 +112,22 @@ preview.
     low-karma accounts), message the mods; don't repost.
   - A realistic outcome for a learning tool there is 20 to 70 points.
     Precognition.nvim's roughly 286 is the high end.
-- **Same day:** the Mastodon/Bluesky thread, with alt text on the clip.
-  Mastodon's official account is @neovim@hachyderm.io and Bluesky's is
-  @neovim.io. Use hashtags rather than @-mentioning them asking for a boost.
+- **Same day:** a Mastodon and Bluesky post with the new clip and alt text.
 - **Next day:** a post in the "Show and tell" category of neovim/neovim
   GitHub Discussions, with the parent/child RPC and sandbox details that
   interest Neovim developers.
-- **Spend the first four to six hours replying.** Fix what's quick, and cut
-  v0.5.1 within a few days if real bugs show up.
+- **Spend the first four to six hours replying.** Fix what's quick, and cut a patch
+  release within a few days if real bugs show up.
 
-## Phase 2: awesome lists (any time now)
+## Awesome lists (not tied to a phase)
 
-- **awesome-neovim** PR, under `## Game`. The list wants plugins to be at
-  least a week old, and the repo was created on 2026-10-17, so it qualifies
-  since 2026-10-24, and the repo metadata is in place. This is the highest-value, lowest-risk step, and it doesn't
-  depend on Phase 1. Dotfyle, Neovimcraft and the weekly Track
-  Awesome List digest all pull from it.
+- **awesome-neovim:** [PR open](https://github.com/rockerBOO/awesome-neovim/pull/2587),
+  under `## Game`. Dotfyle, Neovimcraft and the weekly Track Awesome List digest all
+  pull from it. Reply to any review comments.
 - Skip akrawchyk/awesome-vim for now. It hasn't merged anything since June
   2025, and similar PRs are sitting open. vim-galore is dormant.
 
-## Phase 3: wider launch (Tuesday 2026-11-10 or Wednesday 2026-11-11)
+## Phase 3: wider launch (a week after r/neovim)
 
 Wait a week after r/neovim, so the obvious bugs are fixed and you can
 mention what changed.
@@ -135,7 +146,7 @@ mention what changed.
 - **Console.dev:** email hello@console.dev with a two-line pitch and the
   links. They feature pre-1.0 developer tools, which vimdojo is.
 
-## Phase 4: long tail (week of 2026-11-16 onwards)
+## Phase 4: long tail (the week after that, onwards)
 
 - **dev.to** (tags `vim`, `neovim`, `showdev`, `opensource`) and **Hashnode**:
   cross-post the article with the canonical URL set to your blog. Disclose AI
@@ -200,8 +211,7 @@ How to handle what comes in:
 
 ## Checklist
 
-- [x] A current release (v0.5.0) tagged, on LuaRocks, with release notes
-- [x] Changelog covers the landing refresh and vimdojo.org
+- [x] A current release tagged, on LuaRocks, with release notes
 - [x] Repo description, website and topics set
 - [x] vimdojo.org serves over HTTPS (Enforce HTTPS on)
 - [x] Discussions enabled and linked from the README and the site
@@ -209,16 +219,22 @@ How to handle what comes in:
 - [x] Social preview image uploaded (`docs/brand/social-preview.png`)
 - [x] "Levels" and "Daily" discussion categories added
 - [x] Cloudflare Web Analytics merged and deployed
-- [ ] Second clip recorded (the daily with `y`, plus a Setup level)
+- [x] awesome-neovim PR opened
+- [ ] awesome-neovim PR merged
+- [ ] Streaks and practice mode released (v0.9.0)
+- [ ] AI disclosure line decided
+- [ ] Quiet announcement on Mastodon and Bluesky
+- [ ] Web runs released
 - [ ] Fresh-install smoke test passed; demo checked for focus, CPU and mobile
 - [ ] Manual terminal check: kitty, iTerm2, WezTerm, Windows Terminal
-- [ ] AI disclosure line decided
+- [ ] Posts and article updated from v0.5.0
+- [ ] Second clip recorded (the daily with `y`, plus a Setup level)
 - [ ] Article published on your blog
-- [ ] r/neovim post (Tue 2026-11-03)
-- [ ] Mastodon/Bluesky thread
+- [ ] Launch date picked
+- [ ] r/neovim post
+- [ ] Mastodon and Bluesky post with the new clip
 - [ ] neovim/neovim Discussions, Show and tell
-- [ ] awesome-neovim PR (eligible now)
-- [ ] Show HN (2026-11-10 or 11-11), first comment posted
+- [ ] Show HN, first comment posted
 - [ ] Console.dev email
 - [ ] dev.to and Hashnode cross-posts with canonical URL
 - [ ] Lobsters (if invited)
