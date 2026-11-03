@@ -3,7 +3,7 @@ import { nextLevel, type Level, type Pack } from "../challenges"
 import { isMet, registersFor } from "../goals"
 import { dailyDate, dailyPool, dayNumber, pickDaily } from "../daily"
 import { isCountableKeydown, pastedKeyCount } from "../keys"
-import { recordResult, unlockedAll, type Progress } from "../progress"
+import { currentStreak, recordDaily, recordResult, unlockedAll, type Progress } from "../progress"
 import {
   EXPORT_FILE_NAME,
   loadProgress,
@@ -123,6 +123,13 @@ export class Demo {
     return level === undefined ? undefined : { date: dailyDate(day), level }
   }
 
+  /** "3-day streak (best 5)", or undefined with no streak alive. */
+  private streakText(): string | undefined {
+    const current = currentStreak(this.progress, dayNumber(Date.now()))
+    const best = this.progress.daily?.best
+    return current === 0 || best === undefined ? undefined : `${current}-day streak (best ${best})`
+  }
+
   private renderDaily(container: HTMLElement): void {
     const today = this.todaysDaily()
     if (today === undefined) {
@@ -147,8 +154,11 @@ export class Demo {
       ],
     )
     button.addEventListener("click", () => this.startDaily())
+    const streak = this.streakText()
     container.replaceChildren(
-      h("p", { className: "pack-title" }, [`Daily · ${today.date}`]),
+      h("p", { className: "pack-title" }, [
+        `Daily · ${today.date}${streak === undefined ? "" : ` · ${streak}`}`,
+      ]),
       button,
     )
   }
@@ -382,6 +392,10 @@ export class Demo {
     this.renderStatus(play)
     freezeEditor(play.view)
     this.progress = recordResult(this.progress, play.level.id, outcome)
+    // By level, not by how it was opened: the same level is in the list too.
+    if (this.todaysDaily()?.level.id === play.level.id) {
+      this.progress = recordDaily(this.progress, dayNumber(Date.now()))
+    }
     if (!saveProgress(this.storage, this.progress)) {
       this.say("Solved! (Progress could not be saved in this browser.)")
     }
@@ -429,6 +443,8 @@ export class Demo {
             h("dd", {}, [
               `${record.best_keys} keys · ${record.best_seconds.toFixed(1)}s · ${stars(record.stars)}`,
             ]),
+          solutionHidden && h("dt", {}, ["Streak"]),
+          solutionHidden && h("dd", {}, [this.streakText()]),
           h("dt", {}, ["Par"]),
           h("dd", {}, [
             solutionHidden ? SOLUTION_HIDDEN : h("code", {}, [readableKeys(play.level.solution)]),

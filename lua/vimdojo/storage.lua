@@ -22,6 +22,15 @@ local function is_record(record)
     and check.is_integer(record.attempts)
 end
 
+---@param daily any
+---@return boolean
+local function is_daily_streak(daily)
+  return type(daily) == "table"
+    and check.is_integer(daily.streak)
+    and check.is_integer(daily.best)
+    and check.is_integer(daily.last_day)
+end
+
 ---@param data any
 ---@return string|nil err
 local function shape_error(data)
@@ -49,6 +58,10 @@ local function decode(text)
   local err = shape_error(data)
   if err then
     return nil, err
+  end
+  -- Not treated as corruption: a bad streak isn't worth moving every level's record aside.
+  if not is_daily_streak(data.daily) then
+    data.daily = nil
   end
   return data
 end
@@ -86,7 +99,7 @@ end
 local function encode(data)
   -- An empty Lua table encodes as a JSON array; levels must stay an object.
   local levels = next(data.levels) and data.levels or vim.empty_dict()
-  return vim.json.encode({ version = data.version, levels = levels })
+  return vim.json.encode({ version = data.version, levels = levels, daily = data.daily })
 end
 
 --- The text goes to a temporary file that is then renamed over the real one,

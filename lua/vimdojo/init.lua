@@ -48,6 +48,9 @@ local subcommands = {
   daily = function()
     require("vimdojo.app").start_daily()
   end,
+  practice = function(level_id)
+    require("vimdojo.app").start_practice(level_id)
+  end,
   help = function()
     require("vimdojo.help").toggle()
   end,
@@ -87,7 +90,8 @@ function M.subcommands()
   return names
 end
 
---- Subcommands, and `daily` and level ids after `board`. Levels only load if `board` was typed.
+--- Subcommands, `daily` and level ids after `board`, and level ids after `practice`. Levels
+--- only load if one of those was typed.
 ---@param arg_lead string
 ---@param cmd_line string
 ---@return string[]
@@ -99,6 +103,13 @@ function M.complete(arg_lead, cmd_line)
       return level.id
     end, online.ranked_levels())
     table.insert(candidates, 1, online.DAILY_BOARD)
+  elseif cmd_line:match("^%S+%s+practice%s") then
+    candidates = {}
+    for _, pack in ipairs(require("vimdojo.challenges").load_dir(M.config.challenges_dir) or {}) do
+      for _, level in ipairs(pack.levels) do
+        table.insert(candidates, level.id)
+      end
+    end
   end
   return vim.tbl_filter(function(candidate)
     return vim.startswith(candidate, arg_lead)

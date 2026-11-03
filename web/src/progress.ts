@@ -13,13 +13,22 @@ const LevelRecord = z.object({
   attempts: z.number().int().min(0),
 })
 
+const DailyStreak = z.object({
+  streak: z.number().int().min(0),
+  best: z.number().int().min(0),
+  last_day: z.number().int(),
+})
+
 const Progress = z.object({
   version: z.literal(PROGRESS_VERSION),
   levels: z.record(z.string(), LevelRecord),
+  // `catch`: a bad streak isn't worth discarding every level's record.
+  daily: DailyStreak.optional().catch(undefined),
 })
 
 export type LevelRecord = z.infer<typeof LevelRecord>
 export type Progress = z.infer<typeof Progress>
+export type DailyStreak = z.infer<typeof DailyStreak>
 
 export type Result = {
   readonly keys: number
@@ -60,6 +69,25 @@ export function recordResult(progress: Progress, levelId: string, result: Result
     ...progress,
     levels: { ...progress.levels, [levelId]: mergeRecord(progress.levels[levelId], result) },
   }
+}
+
+/** Port of progress.record_daily; tests/fixtures/streak.json pins both. */
+export function recordDaily(progress: Progress, day: number): Progress {
+  const { daily } = progress
+  if (daily !== undefined && daily.last_day >= day) {
+    return progress
+  }
+  const streak = daily?.last_day === day - 1 ? daily.streak + 1 : 1
+  return {
+    ...progress,
+    daily: { streak, best: Math.max(daily?.best ?? 0, streak), last_day: day },
+  }
+}
+
+/** Port of progress.current_streak: alive until a whole day has been missed. */
+export function currentStreak(progress: Progress, today: number): number {
+  const { daily } = progress
+  return daily === undefined || daily.last_day < today - 1 ? 0 : daily.streak
 }
 
 export function isCompleted(progress: Progress, levelId: string): boolean {

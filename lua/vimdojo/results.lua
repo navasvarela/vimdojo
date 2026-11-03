@@ -5,6 +5,10 @@ local ui = require("vimdojo.ui")
 
 local M = {}
 
+---@class vimdojo.StreakView
+---@field current integer
+---@field best integer
+
 ---@class vimdojo.ResultsView
 ---@field level vimdojo.Level
 ---@field daily_date string|nil Set when this was the daily challenge.
@@ -12,6 +16,7 @@ local M = {}
 ---@field typed_keys string[]|nil What the player pressed. Nil when text was pasted.
 ---@field solution_hidden boolean It's today's daily: the board is still open.
 ---@field record vimdojo.LevelRecord Best-so-far, including this attempt.
+---@field streak vimdojo.StreakView|nil Set when this solve was today's daily.
 ---@field has_next boolean
 ---@field can_submit boolean Offer to submit this run to the leaderboards.
 ---@field has_board boolean Offer to show this level's board.
@@ -52,7 +57,7 @@ end
 
 --- What the attempt can teach: the player's keys beside the par route. On today's
 --- daily, showing it would let anyone copy their way up the board until the day ends.
----@param view vimdojo.ResultsView
+---@param view vimdojo.ResultsView|vimdojo.PracticeView
 ---@return string[]
 local function lesson_lines(view)
   local lines = {}
@@ -86,6 +91,16 @@ function M.content(view)
       ui.stars(record.stars)
     ),
   }
+  if view.streak then
+    table.insert(
+      lines,
+      ("  Streak %d %s · best %d"):format(
+        view.streak.current,
+        view.streak.current == 1 and "day" or "days",
+        view.streak.best
+      )
+    )
+  end
   if outcome.hinted then
     table.insert(lines, "  Hint used: capped at 2 stars")
   end
@@ -122,6 +137,58 @@ local function copy_result(view)
     where = "the clipboard"
   end
   vim.notify(("vimdojo: result copied to %s"):format(where), vim.log.levels.INFO)
+end
+
+---@class vimdojo.PracticeView
+---@field level vimdojo.Level
+---@field outcome vimdojo.Outcome
+---@field typed_keys string[]|nil
+---@field solution_hidden boolean
+
+---@class vimdojo.PracticeActions
+---@field retry fun()
+---@field menu fun()
+---@field close fun()
+
+---@param view vimdojo.PracticeView
+---@return string[]
+function M.practice_content(view)
+  local lines = {
+    "",
+    ("  Solved in %d keys · par %d"):format(view.outcome.keys, view.level.par_keys),
+    "  Practice: this attempt wasn't recorded",
+    "",
+  }
+  vim.list_extend(lines, lesson_lines(view))
+  vim.list_extend(lines, { "", "  [r] again   [m] menu   [q] quit" })
+  return lines
+end
+
+---@param view vimdojo.PracticeView
+---@param actions vimdojo.PracticeActions
+---@return vimdojo.Panel
+function M.open_practice(view, actions)
+  local panel = ui.open_panel({
+    title = " " .. view.level.title .. ": practice ",
+    lines = M.practice_content(view),
+    footer = " ? help ",
+  })
+  vim.wo[panel.win].cursorline = false
+  local function run(action)
+    return function()
+      panel.close()
+      action()
+    end
+  end
+  ui.map(panel.buf, {
+    r = run(actions.retry),
+    ["<CR>"] = run(actions.retry),
+    m = run(actions.menu),
+    q = run(actions.close),
+    ["<Esc>"] = run(actions.close),
+    ["?"] = help.toggle,
+  })
+  return panel
 end
 
 ---@param view vimdojo.ResultsView

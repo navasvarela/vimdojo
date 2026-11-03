@@ -15,6 +15,7 @@ local KEY_WIDTH = 16
 local GAME_COMMANDS = {
   { ":VimDojo", "Open the level menu (or :VimDojo menu)" },
   { ":VimDojo daily", "Play today's daily challenge" },
+  { ":VimDojo practice", "Play a level without recording it. Takes a level" },
   { ":VimDojo help", "Open or close this help" },
   { ":VimDojo hint", "Show the current level's hint" },
   { ":VimDojo reset", "Restart the current level" },
@@ -34,6 +35,7 @@ local ONLINE_COMMANDS = {
 ---@type vimdojo.HelpEntry[]
 local MENU_KEYS = {
   { "<CR>", "Play the level under the cursor" },
+  { "p", "Practice it: nothing is recorded" },
   { "q", "Close the menu" },
 }
 

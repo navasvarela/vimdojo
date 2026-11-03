@@ -12,6 +12,30 @@ local function siblings(path)
 end
 
 describe("storage", function()
+  it("round-trips the daily streak", function()
+    local path = helpers.temp_dir() .. "/progress.json"
+    local data = progress.empty()
+    data.daily = { streak = 3, best = 5, last_day = 100 }
+    assert.is_true(storage.save(path, data))
+    assert.are.same(data.daily, storage.load(path).daily)
+  end)
+
+  it("drops a malformed streak and keeps the levels", function()
+    local path = helpers.temp_dir() .. "/progress.json"
+    local record = { best_keys = 1, best_seconds = 1, stars = 1, attempts = 1 }
+    vim.fn.writefile({
+      vim.json.encode({
+        version = progress.VERSION,
+        levels = { one = record },
+        daily = { streak = "many" },
+      }),
+    }, path)
+    local data, warning = storage.load(path)
+    assert.is_nil(warning)
+    assert.is_nil(data.daily)
+    assert.are.same(record, data.levels.one)
+  end)
+
   local path
 
   before_each(function()
