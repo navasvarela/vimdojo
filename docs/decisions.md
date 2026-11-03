@@ -906,3 +906,22 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   accepted:** those PRs spend a runner for a minute or so.
 - **Neovim nightly can't block a merge.** Its failures still show on the PR, but they're
   usually Neovim's, not the PR's. **Downside accepted:** nobody is forced to look at them.
+
+## Streaks and practice
+
+- **Streaks live in the progress file, not on the server.** They work offline and with no
+  account, and they travel in the site's export. **Downside accepted:** changing the clock
+  can fake one. Nothing ranks them, so nobody gains from it. Verified streaks can come with
+  boards if players want them.
+- **A streak survives until a whole day is missed.** It still shows the day after the last
+  solve, so a player sees what they'd lose rather than a zero before today's daily.
+- **A daily solved from the level list counts,** because the level is what counts, as with
+  hiding the par route. Hints don't break a streak: it rewards showing up.
+- **A malformed streak is dropped, not treated as corruption.** Corruption moves the whole
+  file aside, which is too high a price for a counter.
+- **Practice is plugin-only for now.** The site saves nothing to a server and has no key
+  log, so the pressure practice removes is mostly in Neovim. Add it with web runs if
+  browser players want it.
+- **Practice respects locks, except today's daily.** It's for going back over what you've
+  reached, not for skipping ahead; `unlock_all` does that.
+- **Practice hides today's par route too.** The same level is on that day's board.

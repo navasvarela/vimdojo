@@ -24,6 +24,7 @@ install the plugin for the real thing.
   a sandboxed Neovim.
 - A live timer and key counter, with stars and points against par
 - Hints, instant reset, and progress saved across sessions
+- A daily challenge with streaks, and a practice mode that records nothing
 - Every level runs in a clean, isolated Neovim (or with your own config, if
   you prefer)
 - No dependencies, and near-zero startup cost (only the command is defined

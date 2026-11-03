@@ -87,6 +87,16 @@ https://vimdojo.org, picked from the date (UTC) with no network access. It
 sits at the top of the menu, or run `:VimDojo daily`. It ignores pack locks,
 and solving it counts toward that level's progress too.
 
+Solving the daily on consecutive UTC days builds a streak, shown on the menu and
+on the results card. It's kept in your progress file, so it works offline. Hints
+don't break a streak, and practice doesn't extend one.
+
+                                                           *vimdojo-practice*
+Practice plays a level with nothing recorded: no progress, stars, streak, key
+log or submission, and hints cost nothing. Press `p` on a level in the menu, or
+run `:VimDojo practice {level}`. It only opens levels you've unlocked, and the
+daily. On today's daily the par route stays hidden in practice too.
+
                                                                *vimdojo-setup*
 Setup levels hand you an `init.lua` to fix or extend instead of plain text.
 Whenever you pause in Normal mode, the config is loaded in a separate,
@@ -137,6 +147,9 @@ type `:q` inside a level, the level closes.
 
     menu    Open the level menu.
     daily   Play today's daily challenge (see |vimdojo-daily|).
+    practice {level}
+            Play an unlocked level with nothing recorded (see
+            |vimdojo-practice|).
     help    Open or close the help panel (see |vimdojo-help|).
     hint    Show the current level's hint (same as <leader>h).
     reset   Restart the current level (same as <leader>r).
@@ -270,7 +283,8 @@ Progress is stored as JSON in `stdpath("data")/vimdojo/progress.json`: >json
         "basic-motions-01": {
           "best_keys": 5, "best_seconds": 7.4, "stars": 3, "attempts": 4
         }
-      }
+      },
+      "daily": { "streak": 3, "best": 5, "last_day": 20759 }
     }
 <
 The file is written atomically. If it cannot be read, it is renamed to

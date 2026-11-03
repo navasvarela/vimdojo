@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Daily streaks.** Solving the daily on consecutive UTC days builds a streak, shown on
+  the menu and the results card, in Neovim and on the site. It's kept with your progress,
+  so it needs no account.
+- **Practice mode.** `p` on a level in the menu, or `:VimDojo practice {level}`, plays it
+  with nothing recorded: no progress, stars, streak, key log or submission, and hints
+  cost nothing.
+
 ## v0.8.0 (2026-11-02)
 
 ### Added

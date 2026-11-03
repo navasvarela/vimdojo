@@ -14,6 +14,7 @@ local TITLE_WIDTH = 28
 ---@field unlocked table<string, true>
 ---@field supports vimdojo.Supports Whether this Neovim can run a level.
 ---@field daily vimdojo.Daily|nil Today's daily challenge.
+---@field streak vimdojo.StreakView|nil
 
 ---@class vimdojo.MenuRows
 ---@field lines string[]
@@ -69,7 +70,10 @@ local function add_daily(rows, model)
   if not today then
     return
   end
-  add(rows, ("  DAILY · %s"):format(today.date), "VimDojoMuted")
+  local streak = model.streak
+      and (" · %d-day streak (best %d)"):format(model.streak.current, model.streak.best)
+    or ""
+  add(rows, ("  DAILY · %s%s"):format(today.date, streak), "VimDojoMuted")
   local record = model.progress.levels[today.level.id]
   add_open_level(rows, record and record.stars or 0, ui.pad(today.level.title, TITLE_WIDTH), record)
   rows.daily_line = #rows.lines
@@ -128,6 +132,7 @@ end
 ---@class vimdojo.MenuActions
 ---@field level fun(level_id: string)
 ---@field daily fun()
+---@field practice fun(level_id: string)
 
 ---@param model vimdojo.MenuModel
 ---@param on_select vimdojo.MenuActions
@@ -138,18 +143,20 @@ function M.open(model, on_select)
     title = " vimdojo ",
     lines = rows.lines,
     highlights = rows.highlights,
-    footer = " <CR> play · ? help · q close ",
+    footer = " <CR> play · p practice · ? help · q close ",
   })
   local start_line = rows.first_open or rows.first_level or 1
   vim.api.nvim_win_set_cursor(panel.win, { start_line, 4 })
 
-  local function select()
-    local line = vim.api.nvim_win_get_cursor(panel.win)[1]
-    if line == rows.daily_line then
-      panel.close()
-      on_select.daily()
-      return
-    end
+  ---@return integer
+  local function cursor_line()
+    return vim.api.nvim_win_get_cursor(panel.win)[1]
+  end
+
+  --- Runs `action` on the level at `line`, or says why it can't be played.
+  ---@param line integer
+  ---@param action fun(level_id: string)
+  local function open_row(line, action)
     local level_id = rows.level_at[line]
     local level = level_id and challenges.find(model.packs, level_id)
     if not level then
@@ -165,12 +172,33 @@ function M.open(model, on_select)
       vim.notify("vimdojo: finish the previous level to unlock this one", vim.log.levels.INFO)
     else
       panel.close()
-      on_select.level(level_id)
+      action(level_id)
+    end
+  end
+
+  local function select()
+    local line = cursor_line()
+    if line == rows.daily_line then
+      panel.close()
+      on_select.daily()
+    else
+      open_row(line, on_select.level)
+    end
+  end
+
+  local function practice()
+    local line = cursor_line()
+    if line == rows.daily_line then
+      panel.close()
+      on_select.practice(model.daily.level.id)
+    else
+      open_row(line, on_select.practice)
     end
   end
 
   ui.map(panel.buf, {
     ["<CR>"] = select,
+    p = practice,
     ["?"] = help.toggle,
     q = panel.close,
     ["<Esc>"] = panel.close,

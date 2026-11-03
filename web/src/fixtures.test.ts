@@ -4,8 +4,10 @@ import dailyFixture from "../../tests/fixtures/daily.json"
 import goalsFixture from "../../tests/fixtures/goals.json"
 import scoringFixture from "../../tests/fixtures/scoring.json"
 import shareFixture from "../../tests/fixtures/share.json"
+import streakFixture from "../../tests/fixtures/streak.json"
 import { dailyDate, pickDaily } from "./daily"
 import { isMet } from "./goals"
+import { currentStreak, emptyProgress, recordDaily } from "./progress"
 import { score } from "./scoring"
 import { shareText } from "./share"
 import { LayoutNodeSchema, parsePacks } from "./challenges"
@@ -129,5 +131,20 @@ describe("share.shareText (shared fixtures)", () => {
         outcome: view.outcome,
       }),
     ).toBe(expected)
+  })
+})
+
+const Streak = z.object({ streak: z.number(), best: z.number(), last_day: z.number() }).nullable()
+
+describe("daily streak fixtures", () => {
+  it.each(streakFixture.record)("$name", (raw) => {
+    const before = Streak.parse(raw.before) ?? undefined
+    const progress = { ...emptyProgress(), daily: before }
+    expect(recordDaily(progress, raw.day).daily).toEqual(raw.after)
+  })
+
+  it.each(streakFixture.current)("$name", (raw) => {
+    const daily = Streak.parse(raw.daily) ?? undefined
+    expect(currentStreak({ ...emptyProgress(), daily }, raw.today)).toBe(raw.current)
   })
 })

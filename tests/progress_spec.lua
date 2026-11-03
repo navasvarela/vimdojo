@@ -115,3 +115,24 @@ describe("progress.unlocked_all", function()
     )
   end)
 end)
+
+describe("daily streaks", function()
+  local fixture = require("helpers").fixture("streak")
+
+  for _, case in ipairs(fixture.record) do
+    it(case.name, function()
+      local data = progress.empty()
+      data.daily = case.before
+      progress.record_daily(data, case.day)
+      assert.are.same(case.after, data.daily)
+    end)
+  end
+
+  for _, case in ipairs(fixture.current) do
+    it(case.name, function()
+      local data = progress.empty()
+      data.daily = case.daily
+      assert.are.equal(case.current, progress.current_streak(data, case.today))
+    end)
+  end
+end)

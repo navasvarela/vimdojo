@@ -27,6 +27,7 @@ local STATUS_REFRESH_MS = 100
 ---@class vimdojo.Play
 ---@field level vimdojo.Level
 ---@field daily_date string|nil Set when this is the daily challenge.
+---@field practice boolean Nothing about this attempt is recorded.
 ---@field session vimdojo.Session
 ---@field layout vimdojo.Layout
 ---@field room vimdojo.Room
@@ -96,6 +97,9 @@ end
 ---@return string
 local function status_text(play)
   local session = play.session
+  if play.practice then
+    return (" practice · keys %d · par %d keys"):format(session.keys, play.level.par_keys)
+  end
   local text = (" time %.1fs · keys %d · par %d keys / %gs"):format(
     session:elapsed(),
     session.keys,
@@ -197,6 +201,45 @@ local function record_key_log(play, outcome)
   end
 end
 
+---@param level_id string
+---@return boolean
+local function is_todays_daily(level_id)
+  return daily.pick(daily.pool(state.packs), daily.day_number(os.time())) == level_id
+end
+
+---@return vimdojo.StreakView|nil
+local function streak_view()
+  local current = progress.current_streak(state.progress, daily.day_number(os.time()))
+  if current > 0 then
+    return { current = current, best = state.progress.daily.best }
+  end
+end
+
+--- Practice stays off every record: no progress, streak, key log or submission.
+---@param play vimdojo.Play
+local function complete_practice(play)
+  local outcome = play.session:finish()
+  release_input(play)
+  play.layout:set_status(status_text(play))
+  local level_id = play.level.id
+  local key_log = play.session:key_log()
+  state.results = results.open_practice({
+    level = play.level,
+    outcome = outcome,
+    typed_keys = key_log and key_log.keys,
+    solution_hidden = is_todays_daily(level_id),
+  }, {
+    retry = function()
+      M.start_practice(level_id)
+    end,
+    menu = function()
+      M.quit()
+      M.open_menu()
+    end,
+    close = M.quit,
+  })
+end
+
 ---@param play vimdojo.Play
 local function complete(play)
   local outcome = play.session:finish()
@@ -204,6 +247,11 @@ local function complete(play)
   play.layout:set_status(status_text(play))
 
   progress.record(state.progress, play.level.id, outcome)
+  -- By level, not by how it was opened: the same level is in the menu too.
+  local solved_todays_daily = is_todays_daily(play.level.id)
+  if solved_todays_daily then
+    progress.record_daily(state.progress, daily.day_number(os.time()))
+  end
   local ok, err = storage.save(progress_path(), state.progress)
   if not ok then
     notify("could not save progress: " .. tostring(err), vim.log.levels.ERROR)
@@ -223,9 +271,9 @@ local function complete(play)
     daily_date = play.daily_date,
     outcome = outcome,
     typed_keys = key_log and key_log.keys,
-    -- By level, not by how it was opened: the same level is in the menu too.
-    solution_hidden = daily.pick(daily.pool(state.packs), daily.day_number(os.time())) == level_id,
+    solution_hidden = solved_todays_daily,
     record = state.progress.levels[level_id],
+    streak = solved_todays_daily and streak_view() or nil,
     has_next = next_level ~= nil,
     has_board = online ~= nil and #goals.probes(play.level.goal) == 0,
     can_submit = online ~= nil and config().online.submit == "ask" and online.can_submit(
@@ -341,7 +389,12 @@ local function room_handlers(play)
       end
     end,
     on_solved = function()
-      if state.play == play then
+      if state.play ~= play then
+        return
+      end
+      if play.practice then
+        complete_practice(play)
+      else
         complete(play)
       end
     end,
@@ -402,13 +455,15 @@ local function check_supported(level)
 end
 
 ---@param level vimdojo.Level
----@param daily_date string|nil
-local function open_level(level, daily_date)
+---@param mode { daily_date: string|nil, practice: boolean|nil }|nil
+local function open_level(level, mode)
   M.quit()
   ui.close_panels()
+  mode = mode or {}
   local play = {
     level = level,
-    daily_date = daily_date,
+    daily_date = mode.daily_date,
+    practice = mode.practice == true,
     session = game.new(level, clock),
     layout = ui.open_level(level, { window = config().window, controls = config().keymaps }),
     ready = false,
@@ -471,8 +526,34 @@ function M.start_daily()
     return
   end
   if check_supported(today.level) then
-    open_level(today.level, today.date)
+    open_level(today.level, { daily_date = today.date })
   end
+end
+
+--- Plays a level with nothing recorded. Today's daily ignores locks here too, since it
+--- can be played from the menu whatever the player has unlocked.
+---@param level_id string|nil
+function M.start_practice(level_id)
+  if not level_id then
+    notify("name a level, or press p on one in the menu")
+    return
+  end
+  if not ensure_loaded() then
+    return
+  end
+  local level = challenges.find(state.packs, level_id)
+  if not level then
+    notify(("unknown level %q"):format(level_id), vim.log.levels.ERROR)
+    return
+  end
+  if not check_supported(level) then
+    return
+  end
+  if not unlocked_levels()[level_id] and not is_todays_daily(level_id) then
+    notify("that level is still locked", vim.log.levels.WARN)
+    return
+  end
+  open_level(level, { practice = true })
 end
 
 --- Restarts the current level in place. A hint already seen stays counted.
@@ -511,7 +592,8 @@ function M.open_menu()
     unlocked = unlocked_levels(),
     supports = supports,
     daily = todays_daily(),
-  }, { level = M.start, daily = M.start_daily })
+    streak = streak_view(),
+  }, { level = M.start, daily = M.start_daily, practice = M.start_practice })
 end
 
 --- Drops cached packs and progress so the next command reloads them from disk.

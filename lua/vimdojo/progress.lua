@@ -10,9 +10,15 @@ M.VERSION = 1
 ---@field stars integer
 ---@field attempts integer
 
+---@class vimdojo.DailyStreak
+---@field streak integer Consecutive UTC days ending at `last_day`.
+---@field best integer
+---@field last_day integer Days since 1970-01-01 UTC.
+
 ---@class vimdojo.Progress
 ---@field version integer
 ---@field levels table<string, vimdojo.LevelRecord>
+---@field daily vimdojo.DailyStreak|nil Absent until the first daily is solved.
 
 ---@class vimdojo.Result
 ---@field keys integer
@@ -22,6 +28,37 @@ M.VERSION = 1
 ---@return vimdojo.Progress
 function M.empty()
   return { version = M.VERSION, levels = {} }
+end
+
+--- Counts today's daily once, however many times it's solved. A clock set back doesn't
+--- rewrite the streak: the day is ignored, and the streak resumes when the date catches up.
+--- web/src/progress.ts does the same, and tests/fixtures/streak.json pins both.
+---@param progress vimdojo.Progress
+---@param day integer
+function M.record_daily(progress, day)
+  local daily = progress.daily
+  if daily and daily.last_day >= day then
+    return
+  end
+  local streak = daily and daily.last_day == day - 1 and daily.streak + 1 or 1
+  progress.daily = {
+    streak = streak,
+    best = math.max(daily and daily.best or 0, streak),
+    last_day = day,
+  }
+end
+
+--- The streak is still alive the day after the last solve, so a player sees what they
+--- stand to lose instead of a zero before today's daily.
+---@param progress vimdojo.Progress
+---@param today integer
+---@return integer
+function M.current_streak(progress, today)
+  local daily = progress.daily
+  if not daily or daily.last_day < today - 1 then
+    return 0
+  end
+  return daily.streak
 end
 
 --- Each best is tracked independently, so best_keys and best_seconds may come

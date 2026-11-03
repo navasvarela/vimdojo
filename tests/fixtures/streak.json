@@ -1,0 +1,122 @@
+{
+  "record": [
+    {
+      "name": "the first solve starts a streak",
+      "before": null,
+      "day": 100,
+      "after": {
+        "streak": 1,
+        "best": 1,
+        "last_day": 100
+      }
+    },
+    {
+      "name": "the next day extends it",
+      "before": {
+        "streak": 3,
+        "best": 5,
+        "last_day": 99
+      },
+      "day": 100,
+      "after": {
+        "streak": 4,
+        "best": 5,
+        "last_day": 100
+      }
+    },
+    {
+      "name": "passing the best raises it",
+      "before": {
+        "streak": 5,
+        "best": 5,
+        "last_day": 99
+      },
+      "day": 100,
+      "after": {
+        "streak": 6,
+        "best": 6,
+        "last_day": 100
+      }
+    },
+    {
+      "name": "a missed day restarts it and keeps the best",
+      "before": {
+        "streak": 5,
+        "best": 5,
+        "last_day": 98
+      },
+      "day": 100,
+      "after": {
+        "streak": 1,
+        "best": 5,
+        "last_day": 100
+      }
+    },
+    {
+      "name": "solving twice in a day counts once",
+      "before": {
+        "streak": 3,
+        "best": 5,
+        "last_day": 100
+      },
+      "day": 100,
+      "after": {
+        "streak": 3,
+        "best": 5,
+        "last_day": 100
+      }
+    },
+    {
+      "name": "a clock set back changes nothing",
+      "before": {
+        "streak": 3,
+        "best": 5,
+        "last_day": 105
+      },
+      "day": 100,
+      "after": {
+        "streak": 3,
+        "best": 5,
+        "last_day": 105
+      }
+    }
+  ],
+  "current": [
+    {
+      "name": "nothing solved yet",
+      "daily": null,
+      "today": 100,
+      "current": 0
+    },
+    {
+      "name": "solved today",
+      "daily": {
+        "streak": 3,
+        "best": 5,
+        "last_day": 100
+      },
+      "today": 100,
+      "current": 3
+    },
+    {
+      "name": "solved yesterday, still alive",
+      "daily": {
+        "streak": 3,
+        "best": 5,
+        "last_day": 99
+      },
+      "today": 100,
+      "current": 3
+    },
+    {
+      "name": "missed a day, gone",
+      "daily": {
+        "streak": 3,
+        "best": 5,
+        "last_day": 98
+      },
+      "today": 100,
+      "current": 0
+    }
+  ]
+}

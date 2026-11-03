@@ -180,6 +180,110 @@ describe("playing a level", function()
       assert.is_truthy(card:find("Learn  j, l", 1, true))
     end)
 
+    describe("daily streaks", function()
+      local FIX_CLOCK_ON_DAILY = [[
+        local daily = require("vimdojo.daily")
+        local challenges = require("vimdojo.challenges")
+        local pool = daily.pool(challenges.load_dir(challenges.default_dir()))
+        local day = 0
+        while daily.pick(pool, day) ~= "basic-motions-01" do
+          day = day + 1
+        end
+        os.time = function()
+          return day * 86400
+        end
+      ]]
+      local TEXT = "return table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), '\\n')"
+      local FINISHED = CURRENT .. ".session:is_finished()"
+
+      before_each(function()
+        player:lua(FIX_CLOCK_ON_DAILY)
+      end)
+
+      it("starts on today's daily, shows on the card and menu, and is saved", function()
+        player:lua("require('vimdojo.app').start_daily()")
+        assert.is_truthy(player:wait_for("(" .. CURRENT .. " or {}).ready"))
+        player:type("jjjll")
+        assert.is_true(player:wait_for(FINISHED))
+        assert.is_truthy(player:lua(TEXT):find("Streak 1 day · best 1", 1, true))
+        local saved = vim.json.decode(table.concat(vim.fn.readfile(player.progress_path), "\n"))
+        assert.are.equal(1, saved.daily.streak)
+
+        player:input("m")
+        assert.is_truthy(player:wait_for("not " .. CURRENT))
+        assert.is_truthy(player:poll(function()
+          return player:lua(TEXT):find("1-day streak (best 1)", 1, true)
+        end))
+      end)
+
+      it("doesn't start on any other level", function()
+        -- The next day's daily is a different level: a level never repeats two days running.
+        player:lua("local today = os.time(); os.time = function() return today + 86400 end")
+        assert.is_true(player:start("basic-motions-01"))
+        player:type("jjjll")
+        assert.is_truthy(player:wait_for_record("basic-motions-01"))
+        assert.is_nil(player:lua("return require('vimdojo.app').progress().daily"))
+      end)
+
+      it("isn't extended by practising the daily", function()
+        player:lua("vim.cmd('VimDojo practice basic-motions-01')")
+        assert.is_truthy(player:wait_for("(" .. CURRENT .. " or {}).ready"))
+        player:type("jjjll")
+        assert.is_true(player:wait_for(FINISHED))
+        assert.is_nil(player:lua("return require('vimdojo.app').progress().daily"))
+      end)
+    end)
+
+    describe("practice", function()
+      local FINISHED = CURRENT .. ".session:is_finished()"
+      local TEXT = "return table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), '\\n')"
+
+      local function solve_in_practice()
+        player:lua("vim.cmd('VimDojo practice basic-motions-01')")
+        assert.is_truthy(player:wait_for("(" .. CURRENT .. " or {}).ready"))
+        player:type("jjjll")
+        assert.is_true(player:wait_for(FINISHED))
+      end
+
+      it("records nothing: no progress, file or key log", function()
+        solve_in_practice()
+        assert.are.same(
+          {},
+          player:lua("return vim.tbl_keys(require('vimdojo.app').progress().levels)")
+        )
+        assert.are.equal(0, vim.fn.filereadable(player.progress_path))
+        assert.are.same({}, vim.fn.readdir(player.keylog_dir))
+        local text = player:lua(TEXT)
+        assert.is_truthy(text:find("Solved in 5 keys · par 5", 1, true))
+        assert.is_truthy(text:find("wasn't recorded", 1, true))
+      end)
+
+      it("goes again with r, still as practice", function()
+        solve_in_practice()
+        player:input("r")
+        assert.is_truthy(
+          player:wait_for("(" .. CURRENT .. " or {}).ready == true and not " .. FINISHED)
+        )
+        assert.is_true(player:lua("return " .. CURRENT .. ".practice"))
+      end)
+
+      it("opens from the menu with p", function()
+        player:lua("vim.cmd('VimDojo')")
+        player:input("p")
+        assert.is_truthy(player:wait_for("(" .. CURRENT .. " or {}).practice"))
+      end)
+
+      it("won't open a locked level", function()
+        player:lua("vim.cmd('VimDojo practice regex-01')")
+        assert.is_nil(player:lua("return " .. CURRENT))
+      end)
+
+      it("says how to use it without a level", function()
+        player:lua("vim.cmd('VimDojo practice')")
+        assert.is_nil(player:lua("return " .. CURRENT))
+      end)
+    end)
+
     it("keeps the par route back on today's daily", function()
       -- Fixes the clock on a day whose daily is a level with a known solution.
       player:lua([[

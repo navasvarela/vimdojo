@@ -163,6 +163,25 @@ local SCREENS = {
       run(player, "board " .. LEVEL)
     end,
   },
+  {
+    name = "practice",
+    open = function(player)
+      run(player, "practice " .. LEVEL)
+      assert.is_true(player:wait_for("(require('vimdojo.app').current() or {}).ready"))
+    end,
+  },
+  {
+    name = "the practice results",
+    open = function(player)
+      run(player, "practice " .. LEVEL)
+      assert.is_true(player:wait_for("(require('vimdojo.app').current() or {}).ready"))
+      player:type(SOLUTION)
+      assert.is_true(
+        player:wait_for("require('vimdojo.app').current().session:is_finished()"),
+        "the level never finished"
+      )
+    end,
+  },
   { name = "the results card", open = solve },
   {
     name = "help over the results card",
@@ -183,6 +202,8 @@ local SCREENS = {
 local COMMANDS = {
   "menu",
   "daily",
+  "practice " .. LEVEL,
+  "practice",
   "help",
   "reset",
   "hint",
