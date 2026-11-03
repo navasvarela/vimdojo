@@ -4,10 +4,12 @@ import dailyFixture from "../../tests/fixtures/daily.json"
 import goalsFixture from "../../tests/fixtures/goals.json"
 import scoringFixture from "../../tests/fixtures/scoring.json"
 import shareFixture from "../../tests/fixtures/share.json"
+import keyNotationFixture from "../../tests/fixtures/key_notation.json"
 import streakFixture from "../../tests/fixtures/streak.json"
 import { dailyDate, pickDaily } from "./daily"
 import { isMet } from "./goals"
 import { currentStreak, emptyProgress, recordDaily } from "./progress"
+import { keyNotation } from "./key-notation"
 import { score } from "./scoring"
 import { shareText } from "./share"
 import { LayoutNodeSchema, parsePacks } from "./challenges"
@@ -146,5 +148,11 @@ describe("daily streak fixtures", () => {
   it.each(streakFixture.current)("$name", (raw) => {
     const daily = Streak.parse(raw.daily) ?? undefined
     expect(currentStreak({ ...emptyProgress(), daily }, raw.today)).toBe(raw.current)
+  })
+})
+
+describe("key notation fixtures", () => {
+  it.each(keyNotationFixture.cases)("$press.key → $notation", ({ press, notation }) => {
+    expect(keyNotation(press)).toBe(notation ?? undefined)
   })
 })

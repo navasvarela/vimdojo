@@ -564,6 +564,25 @@ h2::before {
   cursor: pointer;
 }
 
+.results-online {
+  margin-top: 12px;
+}
+
+.results-online button {
+  padding: 6px 12px;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.results-online button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .results-actions .primary {
   border-color: var(--accent);
   background: var(--accent);

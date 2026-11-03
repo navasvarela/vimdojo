@@ -4,7 +4,8 @@ import fixtureMotions from "../../tests/fixtures/packs/01-v2-motions.json"
 import { loadPacks, type Level, type Pack, parsePacks } from "./challenges"
 import { createEditor, isNormalMode, snapshot } from "./game/editor"
 import { isMet, needsNeovim, registersFor } from "./goals"
-import { splitNotation } from "./keys"
+import { keyNotation } from "./key-notation"
+import { isCountableKeydown, splitNotation } from "./keys"
 
 // Runs every level's reference solution through the CodeMirror Vim emulation
 // in real Chromium, pressing real keys (Playwright keyboard events), so the
@@ -34,10 +35,23 @@ function toKeyboard(key: string): string {
   return key === "{" || key === "[" ? key + key : key
 }
 
-async function solveInEmulation(level: Level): Promise<boolean> {
+type Attempt = { readonly solved: boolean; readonly recorded: ReadonlyArray<string | undefined> }
+
+async function playInEmulation(level: Level): Promise<Attempt> {
   const parent = document.createElement("div")
   document.body.append(parent)
   const view = createEditor(parent, level, { onChange: () => undefined })
+  // What the demo records for each counted key (demo.ts, onKeydown).
+  const recorded: Array<string | undefined> = []
+  view.dom.addEventListener(
+    "keydown",
+    (event) => {
+      if (!event.metaKey && isCountableKeydown(event)) {
+        recorded.push(keyNotation(event))
+      }
+    },
+    { capture: true },
+  )
   try {
     view.focus()
     const names = registersFor(level.goal)
@@ -45,15 +59,19 @@ async function solveInEmulation(level: Level): Promise<boolean> {
     for (const key of splitNotation(level.solution)) {
       await userEvent.keyboard(toKeyboard(key))
     }
-    return (
+    const solved =
       unsolvedAtStart &&
       isNormalMode(view) &&
       isMet(level.goal, snapshot(view, names), level.start_text)
-    )
+    return { solved, recorded }
   } finally {
     view.destroy()
     parent.remove()
   }
+}
+
+async function solveInEmulation(level: Level): Promise<boolean> {
+  return (await playInEmulation(level)).solved
 }
 
 // Setup levels check a Neovim config, which the emulation can't run.
@@ -91,6 +109,20 @@ describe("CodeMirror Vim emulation", () => {
   )("fixture %s solves in the emulation", async (_id, level) => {
     expect(await solveInEmulation(level)).toBe(true)
   })
+
+  // A web run is replayed in Neovim from these names, so each solution must record
+  // as one name per key. The names are logged for checking a replay by hand
+  // (verifier/src/cli.ts).
+  it.each(levels.filter((l) => l.web_demo === true).map((l) => [l.id, l] as const))(
+    "%s records a name for every key",
+    async (id, level) => {
+      const { solved, recorded } = await playInEmulation(level)
+      expect(solved).toBe(true)
+      expect(recorded).toHaveLength(splitNotation(level.solution).length)
+      expect(recorded).not.toContain(undefined)
+      console.info(`WEB_KEYLOG ${JSON.stringify({ level_id: id, keys: recorded })}`)
+    },
+  )
 
   it("reports which levels the emulation can solve", async () => {
     const report: string[] = []

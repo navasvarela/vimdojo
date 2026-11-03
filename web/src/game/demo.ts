@@ -2,7 +2,10 @@ import type { EditorView } from "@codemirror/view"
 import { nextLevel, type Level, type Pack } from "../challenges"
 import { isMet, registersFor } from "../goals"
 import { dailyDate, dailyPool, dayNumber, pickDaily } from "../daily"
+import { BoardsApi } from "../boards/api"
+import { keyNotation } from "../key-notation"
 import { isCountableKeydown, pastedKeyCount } from "../keys"
+import { levelHash } from "../level-hash"
 import { currentStreak, recordDaily, recordResult, unlockedAll, type Progress } from "../progress"
 import {
   EXPORT_FILE_NAME,
@@ -16,7 +19,18 @@ import { h, stars } from "../ui/dom"
 import { createEditor, freezeEditor, isNormalMode, resetEditor, snapshot, vimMode } from "./editor"
 import { presentGoal, type GoalPresentation } from "./goal-view"
 import { readableKeys, SOLUTION_HIDDEN } from "./lesson"
-import { Session, type Outcome } from "./session"
+import { RunError, RunsApi, type Run, VERIFY_POLL_MS, VERIFY_POLL_TRIES, verdictText } from "./runs"
+import { Session, type Outcome, type UnloggedReason } from "./session"
+
+const UNLOGGED_TEXT: Readonly<Record<UnloggedReason, string>> = {
+  pasted: "This attempt included pasted text, so it can't go on the leaderboards.",
+  unnamed_key: "This attempt used a key the demo can't record, so it can't go on the leaderboards.",
+}
+const STILL_VERIFYING = "Still verifying. Your place will show on the leaderboards once it's done."
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => window.setTimeout(resolve, ms))
+}
 
 // 100 ms keeps the timer readable to a tenth of a second.
 const STATUS_REFRESH_MS = 100
@@ -51,6 +65,8 @@ const clock = (): number => performance.now() / 1000
 
 export class Demo {
   private progress: Progress
+  private readonly runs = new RunsApi()
+  private readonly boards = new BoardsApi()
   private play: Play | undefined
   private readonly elements: DemoElements
 
@@ -306,13 +322,13 @@ export class Demo {
     if (event.metaKey || !isCountableKeydown(event)) {
       return
     }
-    play.session.countKeys(1)
+    play.session.press(keyNotation(event))
   }
 
   private onInsertedText(play: Play, data: DataTransfer | null): void {
     const text = data?.getData("text/plain") ?? ""
     if (text !== "") {
-      play.session.countKeys(pastedKeyCount(text))
+      play.session.paste(pastedKeyCount(text))
     }
   }
 
@@ -420,6 +436,8 @@ export class Demo {
       dailyDate: play.dailyDate,
       outcome,
     })
+    const online = h("div", { className: "results-online" })
+    void this.offerSubmit(play, outcome, online)
     const card = h(
       "section",
       {
@@ -454,6 +472,7 @@ export class Demo {
         ]),
         outcome.hinted && h("p", { className: "results-note" }, ["Hint used: capped at 2 stars."]),
         h("div", { className: "results-actions" }, [nextButton, retryButton, copyButton]),
+        online,
       ],
     )
     nextButton?.addEventListener("click", () => this.startNext(play.level.id))
@@ -463,6 +482,12 @@ export class Demo {
       if (event.key === "r" || event.key === "R") {
         event.preventDefault()
         this.retry(play)
+      } else if (event.key === "s" || event.key === "S") {
+        const submit = online.querySelector("button")
+        if (submit !== null && !submit.disabled) {
+          event.preventDefault()
+          submit.click()
+        }
       } else if (event.key === "c" || event.key === "C") {
         event.preventDefault()
         void this.copyResult(share)
@@ -473,6 +498,94 @@ export class Demo {
     })
     this.elements.stage.append(card)
     ;(nextButton ?? retryButton).focus()
+  }
+
+  /** The leaderboard part of the results card. It asks the server only after a solve. */
+  private async offerSubmit(play: Play, outcome: Outcome, container: HTMLElement): Promise<void> {
+    const reason = play.session.unloggedReason
+    if (reason !== undefined) {
+      container.replaceChildren(h("p", { className: "results-note" }, [UNLOGGED_TEXT[reason]]))
+      return
+    }
+    const signedIn = await this.runs.signedIn()
+    if (!container.isConnected || signedIn === undefined) {
+      return
+    }
+    if (!signedIn) {
+      container.replaceChildren(
+        h("p", { className: "results-note" }, [
+          h("a", { attrs: { href: `${import.meta.env.BASE_URL}account/` } }, ["Sign in"]),
+          " to put your runs on the leaderboards.",
+        ]),
+      )
+      return
+    }
+    const button = h("button", { attrs: { type: "button" } }, ["Submit to the leaderboards (S)"])
+    const note = h("p", { className: "results-note", attrs: { "aria-live": "polite" } })
+    button.addEventListener("click", () => void this.submit(play, outcome, button, note))
+    container.replaceChildren(button, note)
+  }
+
+  private async submit(
+    play: Play,
+    outcome: Outcome,
+    button: HTMLButtonElement,
+    note: HTMLElement,
+  ): Promise<void> {
+    const log = play.session.keyLog()
+    if (log === undefined) {
+      return
+    }
+    button.disabled = true
+    note.textContent = "Sending your keys to be replayed in Neovim…"
+    try {
+      const submitted = await this.runs.submit({
+        level_id: play.level.id,
+        level_hash: await levelHash(play.level),
+        log,
+        claimed: { keys: outcome.keys, seconds: outcome.seconds, hinted: outcome.hinted },
+      })
+      const verdict = await this.awaitVerdict(submitted.id, note)
+      if (verdict !== undefined) {
+        note.textContent = await this.verdictWithPlace(play.level.id, verdict)
+      }
+    } catch (error) {
+      note.textContent = error instanceof RunError ? error.message : "Something went wrong."
+      button.disabled = false
+    }
+  }
+
+  /** @returns undefined if the card was closed, or the replay took too long. */
+  private async awaitVerdict(runId: string, note: HTMLElement): Promise<Run | undefined> {
+    for (let tries = 0; tries < VERIFY_POLL_TRIES; tries++) {
+      const run = await this.runs.run(runId)
+      if (run.status !== "pending") {
+        return run
+      }
+      note.textContent = "Verifying in Neovim…"
+      await wait(VERIFY_POLL_MS)
+      if (!note.isConnected) {
+        return undefined
+      }
+    }
+    note.textContent = STILL_VERIFYING
+    return undefined
+  }
+
+  /** On today's daily the place that matters is today's, as in the plugin. */
+  private async verdictWithPlace(levelId: string, run: Run): Promise<string> {
+    const text = verdictText(run) ?? STILL_VERIFYING
+    if (run.status !== "verified" && run.status !== "mismatch") {
+      return text
+    }
+    const isDaily = this.todaysDaily()?.level.id === levelId
+    const mine = await (isDaily ? this.boards.ownDailyRank() : this.boards.ownRank(levelId)).catch(
+      () => undefined,
+    )
+    if (mine?.rank == null) {
+      return text
+    }
+    return `${text} You're #${mine.rank}${isDaily ? " today" : ""}.`
   }
 
   private async copyResult(text: string): Promise<void> {

@@ -1,0 +1,354 @@
+{
+  "cases": [
+    {
+      "press": {
+        "key": "j",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "j"
+    },
+    {
+      "press": {
+        "key": "J",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": true
+      },
+      "notation": "J"
+    },
+    {
+      "press": {
+        "key": "$",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": true
+      },
+      "notation": "$"
+    },
+    {
+      "press": {
+        "key": " ",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<Space>"
+    },
+    {
+      "press": {
+        "key": "<",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": true
+      },
+      "notation": "<lt>"
+    },
+    {
+      "press": {
+        "key": "|",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": true
+      },
+      "notation": "|"
+    },
+    {
+      "press": {
+        "key": "\\",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "\\"
+    },
+    {
+      "press": {
+        "key": "é",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "é"
+    },
+    {
+      "press": {
+        "key": "Escape",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<Esc>"
+    },
+    {
+      "press": {
+        "key": "Enter",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<CR>"
+    },
+    {
+      "press": {
+        "key": "Backspace",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<BS>"
+    },
+    {
+      "press": {
+        "key": "Tab",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<Tab>"
+    },
+    {
+      "press": {
+        "key": "Tab",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": true
+      },
+      "notation": "<S-Tab>"
+    },
+    {
+      "press": {
+        "key": "Delete",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<Del>"
+    },
+    {
+      "press": {
+        "key": "ArrowLeft",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<Left>"
+    },
+    {
+      "press": {
+        "key": "ArrowUp",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": true
+      },
+      "notation": "<S-Up>"
+    },
+    {
+      "press": {
+        "key": "Home",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<Home>"
+    },
+    {
+      "press": {
+        "key": "PageDown",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<PageDown>"
+    },
+    {
+      "press": {
+        "key": "F1",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<F1>"
+    },
+    {
+      "press": {
+        "key": "r",
+        "ctrlKey": true,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<C-R>"
+    },
+    {
+      "press": {
+        "key": "R",
+        "ctrlKey": true,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": true
+      },
+      "notation": "<C-R>"
+    },
+    {
+      "press": {
+        "key": "v",
+        "ctrlKey": true,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<C-V>"
+    },
+    {
+      "press": {
+        "key": "o",
+        "ctrlKey": true,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<C-O>"
+    },
+    {
+      "press": {
+        "key": "a",
+        "ctrlKey": true,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<C-A>"
+    },
+    {
+      "press": {
+        "key": "i",
+        "ctrlKey": true,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<Tab>"
+    },
+    {
+      "press": {
+        "key": "m",
+        "ctrlKey": true,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<CR>"
+    },
+    {
+      "press": {
+        "key": "j",
+        "ctrlKey": true,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<NL>"
+    },
+    {
+      "press": {
+        "key": "[",
+        "ctrlKey": true,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<Esc>"
+    },
+    {
+      "press": {
+        "key": "]",
+        "ctrlKey": true,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": "<C-]>"
+    },
+    {
+      "press": {
+        "key": "^",
+        "ctrlKey": true,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": true
+      },
+      "notation": "<C-^>"
+    },
+    {
+      "press": {
+        "key": "h",
+        "ctrlKey": false,
+        "altKey": true,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": null
+    },
+    {
+      "press": {
+        "key": "v",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": true,
+        "shiftKey": false
+      },
+      "notation": null
+    },
+    {
+      "press": {
+        "key": "Escape",
+        "ctrlKey": true,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": null
+    },
+    {
+      "press": {
+        "key": "1",
+        "ctrlKey": true,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": null
+    },
+    {
+      "press": {
+        "key": "AudioVolumeUp",
+        "ctrlKey": false,
+        "altKey": false,
+        "metaKey": false,
+        "shiftKey": false
+      },
+      "notation": null
+    }
+  ]
+}
