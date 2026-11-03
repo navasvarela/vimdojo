@@ -925,3 +925,25 @@ PLAN-v3.md records the full table. The two departures from the proposal:
 - **Practice respects locks, except today's daily.** It's for going back over what you've
   reached, not for skipping ahead; `unlock_all` does that.
 - **Practice hides today's par route too.** The same level is on that day's board.
+
+## Web runs
+
+- **Replayed in Neovim, on the same boards** (proposal L4). The demo's CodeMirror Vim
+  emulation never decides a score. A run that only works in the emulation comes back
+  `rejected`, and the card says the emulation may differ.
+- **The browser names keys as the plugin's key logs do,** in keytrans() spelling. The
+  server caches verdicts by key log, so the same keys must log the same from either
+  client. `tests/key_notation_spec.lua` checks every name the browser can produce against
+  keytrans() in Neovim.
+- **Proof:** every web_demo solution, typed in real Chromium and recorded as the demo
+  records it, replays in Neovim through the verifier to the same key count (19 of 19).
+- **Keys the browser can't name stay counted, and the run can't be submitted.** Dropping
+  them would make the count disagree with the replay. Pasted text is the same.
+- **Alt chords are the demo's controls and Cmd chords are the browser's,** so neither is
+  counted or logged, as before.
+- **The demo asks whether you're signed in only after a solve.** A visitor who never
+  finishes a level never contacts the API. **Downside accepted:** the submit button shows
+  a moment after the card.
+- **No API change.** A web run is an ordinary run whose `nvim` field says `web`.
+- **Not in this change:** global totals and time plausibility flags (proposal phase 2).
+

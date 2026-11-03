@@ -117,7 +117,9 @@ network either way.
 Boards rank by verified keys, then by who got there first, and show handles and
 counts only, because your keys are that level's solution. Setup levels aren't ranked.
 They're also at [vimdojo.org/boards](https://vimdojo.org/boards/), and
-[here's what's stored](https://vimdojo.org/privacy/).
+[here's what's stored](https://vimdojo.org/privacy/). You can submit runs from the browser
+demo too, once you've signed in on the site: they're replayed in real Neovim, so both
+share one board.
 
 ## Community
 

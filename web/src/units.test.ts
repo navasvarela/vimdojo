@@ -218,6 +218,31 @@ describe("session", () => {
     session.countKeys(5)
     expect(session.keys).toBe(1)
   })
+
+  it("logs typed keys with gaps from rounded absolute times", () => {
+    const { clock, advance } = fakeClock()
+    const session = new Session(level, clock)
+    session.press("j")
+    advance(0.1234)
+    session.press("<C-R>")
+    advance(0.1004)
+    session.press("w")
+    expect(session.keys).toBe(3)
+    expect(session.keyLog()).toEqual({ keys: ["j", "<C-R>", "w"], deltas_ms: [0, 123, 101] })
+  })
+
+  it.each([
+    ["pasted", (session: Session) => session.paste(4)],
+    ["unnamed_key", (session: Session) => session.press(undefined)],
+  ] as const)("can't log an attempt with a key it couldn't record (%s)", (reason, spoil) => {
+    const { clock } = fakeClock()
+    const session = new Session(level, clock)
+    session.press("j")
+    spoil(session)
+    expect(session.keyLog()).toBeUndefined()
+    expect(session.unloggedReason).toBe(reason)
+    expect(session.keys).toBeGreaterThan(1)
+  })
 })
 
 describe("daily", () => {

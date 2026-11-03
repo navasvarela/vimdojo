@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Web runs.** Sign in on the site, solve a level in the browser demo, and submit it from
+  the results card (`S`). The server replays your keys in real Neovim, so web and plugin
+  players share one board, and today's daily ranks the same way. A run with pasted text,
+  or with a key the demo can't record, can't be submitted.
+
 ## v0.9.0 (2026-11-03)
 
 ### Added
