@@ -14,6 +14,7 @@ local progress = require("vimdojo.progress")
 local results = require("vimdojo.results")
 local room = require("vimdojo.room")
 local storage = require("vimdojo.storage")
+local tips = require("vimdojo.tips")
 local tmaps = require("vimdojo.tmaps")
 local ui = require("vimdojo.ui")
 
@@ -215,6 +216,17 @@ local function streak_view()
   end
 end
 
+--- Only an attempt over par gets a tip: at or under par, there's nothing to shorten.
+---@param play vimdojo.Play
+---@param outcome vimdojo.Outcome
+---@return string|nil
+local function tip_for(play, outcome)
+  local key_log = play.session:key_log()
+  if key_log and outcome.keys > play.level.par_keys then
+    return tips.tip(key_log.keys)
+  end
+end
+
 --- Practice stays off every record: no progress, streak, key log or submission.
 ---@param play vimdojo.Play
 local function complete_practice(play)
@@ -228,6 +240,7 @@ local function complete_practice(play)
     outcome = outcome,
     typed_keys = key_log and key_log.keys,
     solution_hidden = is_todays_daily(level_id),
+    tip = tip_for(play, outcome),
   }, {
     retry = function()
       M.start_practice(level_id)
@@ -274,6 +287,7 @@ local function complete(play)
     solution_hidden = solved_todays_daily,
     record = state.progress.levels[level_id],
     streak = solved_todays_daily and streak_view() or nil,
+    tip = tip_for(play, outcome),
     has_next = next_level ~= nil,
     has_board = online ~= nil and #goals.probes(play.level.goal) == 0,
     can_submit = online ~= nil and config().online.submit == "ask" and online.can_submit(

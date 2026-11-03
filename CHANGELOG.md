@@ -4,6 +4,9 @@
 
 ### Added
 
+- **Tips.** When you solve a level over par, the results card suggests one shorter way to
+  type what you typed, from your own keys: a count instead of `jjjj`, `cw` instead of `dwi`,
+  `A` instead of `$a`. In Neovim and on the site, offline.
 - **Web runs.** Sign in on the site, solve a level in the browser demo, and submit it from
   the results card (`S`). The server replays your keys in real Neovim, so web and plugin
   players share one board, and today's daily ranks the same way. A run with pasted text,

@@ -6,9 +6,11 @@ import scoringFixture from "../../tests/fixtures/scoring.json"
 import shareFixture from "../../tests/fixtures/share.json"
 import keyNotationFixture from "../../tests/fixtures/key_notation.json"
 import streakFixture from "../../tests/fixtures/streak.json"
+import tipsFixture from "../../tests/fixtures/tips.json"
 import { dailyDate, pickDaily } from "./daily"
 import { isMet } from "./goals"
 import { currentStreak, emptyProgress, recordDaily } from "./progress"
+import { tip } from "./game/tips"
 import { keyNotation } from "./key-notation"
 import { score } from "./scoring"
 import { shareText } from "./share"
@@ -154,5 +156,11 @@ describe("daily streak fixtures", () => {
 describe("key notation fixtures", () => {
   it.each(keyNotationFixture.cases)("$press.key → $notation", ({ press, notation }) => {
     expect(keyNotation(press)).toBe(notation ?? undefined)
+  })
+})
+
+describe("tip fixtures", () => {
+  it.each(tipsFixture.cases)("$name", ({ keys, tip: expected }) => {
+    expect(tip(keys)).toBe(expected ?? undefined)
   })
 })
