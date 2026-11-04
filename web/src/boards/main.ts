@@ -1,6 +1,6 @@
 import "../style.css"
 import { BoardsApi } from "./api"
-import { boardUrl, showBoard, showDaily } from "./pages"
+import { boardUrl, showBoard, showDaily, showOverall } from "./pages"
 
 const root = document.querySelector<HTMLElement>("#board")
 const picker = document.querySelector<HTMLSelectElement>("#level")
@@ -16,6 +16,11 @@ if (root !== null && picker !== null) {
     void showBoard(root, api, picker.value)
   })
   void showBoard(root, api, picker.value)
+
+  const overallRoot = document.querySelector<HTMLElement>("#overall")
+  if (overallRoot !== null) {
+    void showOverall(overallRoot, api)
+  }
 
   const dailyRoot = document.querySelector<HTMLElement>("#daily")
   if (dailyRoot !== null) {

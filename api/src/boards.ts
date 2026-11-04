@@ -3,8 +3,8 @@
 // and nothing checks that it's plausible yet.
 import { type Daily, dailyForDate, todaysDaily } from "./daily"
 import { ApiError, Status } from "./http"
-import { type ManifestEntry, manifestEntry } from "./manifest"
-import type { RunStore } from "./run-store"
+import { CURRENT_PARS, type ManifestEntry, manifestEntry } from "./manifest"
+import type { OverallRow, RunStore } from "./run-store"
 
 const BOARD_SIZE = 50
 
@@ -76,6 +76,25 @@ export async function ownRank(store: RunStore, userId: string, levelId: string) 
   return { level_id: levelId, rank: mine?.rank ?? null, keys: mine?.keys ?? null }
 }
 
+function overallEntry(row: OverallRow) {
+  return { rank: row.rank, handle: row.handle, solved: row.solved, over_par: row.over_par }
+}
+
+/** Every ranked level at once: the most levels verified, then the fewest keys over par. */
+export async function publicOverall(store: RunStore) {
+  const rows = await store.overall(CURRENT_PARS, BOARD_SIZE)
+  return { entries: rows.map(overallEntry) }
+}
+
+export async function ownOverall(store: RunStore, userId: string) {
+  const mine = await store.overallOf(CURRENT_PARS, userId)
+  return {
+    rank: mine?.rank ?? null,
+    solved: mine?.solved ?? null,
+    over_par: mine?.over_par ?? null,
+  }
+}
+
 /** The player's own bests with their places, on levels' current versions. */
 export async function ownScores(store: RunStore, userId: string) {
   const rows = await store.scores(userId)
@@ -104,9 +123,11 @@ export async function publicProfile(store: RunStore, handle: string) {
   const current = profile.bests.filter(
     (best) => manifestEntry(best.level_id)?.hash === best.level_hash,
   )
+  const overall = await store.overallOf(CURRENT_PARS, profile.id)
   return {
     handle,
     joined: new Date(profile.joined).toISOString().slice(0, 7),
+    overall: overall === undefined ? null : overallEntry(overall),
     bests: current.map((best) => ({
       level_id: best.level_id,
       keys: best.keys,

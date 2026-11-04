@@ -66,6 +66,40 @@ export type BoardRow = {
   readonly first_at: number
 }
 
+/** A player's totals on the overall board. */
+export type OverallRow = {
+  readonly handle: string
+  readonly solved: number
+  /** Keys over par summed across levels; negative when they beat par overall. */
+  readonly over_par: number
+  readonly rank: number
+}
+
+/**
+ * The overall board, as SQL shared by the board and a player's own place.
+ * Levels solved, most first; then fewest keys over par in total; then whoever got there
+ * first. Only bests on a level's current version count, measured against its par, so
+ * ?1 is CURRENT_PARS from manifest.ts.
+ */
+const OVERALL = `
+  WITH current AS (
+    SELECT json_extract(value, '$[0]') AS level_hash, json_extract(value, '$[1]') AS par
+    FROM json_each(?1)
+  ),
+  totals AS (
+    SELECT b.user_id, u.handle, count(*) AS solved, sum(b.keys - c.par) AS over_par,
+           max(b.first_at) AS reached_at
+    FROM bests b
+    JOIN current c ON c.level_hash = b.level_hash
+    JOIN users u ON u.id = b.user_id
+    WHERE u.handle IS NOT NULL
+    GROUP BY b.user_id
+  ),
+  ranked AS (
+    SELECT *, row_number() OVER (ORDER BY solved DESC, over_par, reached_at) AS rank
+    FROM totals
+  )`
+
 /** One of a player's bests, as their public profile shows it. */
 export type ProfileBest = {
   readonly level_id: string
@@ -305,10 +339,29 @@ export class RunStore {
     return results
   }
 
+  async overall(currentPars: string, limit: number): Promise<readonly OverallRow[]> {
+    const { results } = await this.db
+      .prepare(
+        `${OVERALL} SELECT handle, solved, over_par, rank FROM ranked ORDER BY rank LIMIT ?2`,
+      )
+      .bind(currentPars, limit)
+      .all<OverallRow>()
+    return results
+  }
+
+  /** @returns undefined when the player has no verified best, or no handle yet. */
+  async overallOf(currentPars: string, userId: string): Promise<OverallRow | undefined> {
+    const row = await this.db
+      .prepare(`${OVERALL} SELECT handle, solved, over_par, rank FROM ranked WHERE user_id = ?2`)
+      .bind(currentPars, userId)
+      .first<OverallRow>()
+    return row ?? undefined
+  }
+
   /** @returns undefined when no player has that handle. */
   async profile(
     handle: string,
-  ): Promise<{ joined: number; bests: readonly ProfileBest[] } | undefined> {
+  ): Promise<{ id: string; joined: number; bests: readonly ProfileBest[] } | undefined> {
     const user = await this.db
       .prepare("SELECT id, created_at FROM users WHERE handle = ?")
       .bind(handle)
@@ -323,7 +376,7 @@ export class RunStore {
       )
       .bind(user.id)
       .all<ProfileBest>()
-    return { joined: user.created_at, bests: results }
+    return { id: user.id, joined: user.created_at, bests: results }
   }
 
   /** Counts an earlier run for today's daily, replaying it first if it never was. */

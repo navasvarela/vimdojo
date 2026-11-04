@@ -28,9 +28,28 @@ export type DailyBoard = z.infer<typeof DailyBoard>
 const OwnRank = z.object({ rank: z.number().nullable(), keys: z.number().nullable() })
 export type OwnRank = z.infer<typeof OwnRank>
 
+const OverallEntry = z.object({
+  rank: z.number(),
+  handle: z.string(),
+  solved: z.number(),
+  over_par: z.number(),
+})
+export type OverallEntry = z.infer<typeof OverallEntry>
+
+const Overall = z.object({ entries: z.array(OverallEntry) })
+
+const OwnOverall = z.object({
+  rank: z.number().nullable(),
+  solved: z.number().nullable(),
+  over_par: z.number().nullable(),
+})
+export type OwnOverall = z.infer<typeof OwnOverall>
+
 const Player = z.object({
   handle: z.string(),
   joined: z.string(),
+  // Older API versions don't send it.
+  overall: OverallEntry.nullable().default(null),
   bests: z.array(
     z.object({ level_id: z.string(), keys: z.number(), hinted: z.boolean(), since: z.string() }),
   ),
@@ -82,6 +101,22 @@ export class BoardsApi {
       credentials: "include",
     })
     return response.ok ? OwnRank.parse(await response.json()) : undefined
+  }
+
+  async overall(): Promise<readonly OverallEntry[]> {
+    const response = await this.fetcher(`${apiOrigin()}/api/v1/overall`)
+    if (!response.ok) {
+      throw new Error(`the overall board answered ${response.status}`)
+    }
+    return Overall.parse(await response.json()).entries
+  }
+
+  /** @returns undefined when signed out: that's normal here, not a failure. */
+  async ownOverall(): Promise<OwnOverall | undefined> {
+    const response = await this.fetcher(`${apiOrigin()}/api/v1/overall/me`, {
+      credentials: "include",
+    })
+    return response.ok ? OwnOverall.parse(await response.json()) : undefined
   }
 
   /** @returns undefined when no player has that handle. */

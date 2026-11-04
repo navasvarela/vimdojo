@@ -5,6 +5,7 @@ import manifest from "../../verifier/manifest.json"
 export type ManifestEntry = {
   readonly daily: boolean
   readonly hash: string
+  readonly par_keys: number
   readonly ranked: boolean
 }
 
@@ -19,3 +20,11 @@ export const DAILY_POOL: readonly string[] = [...LEVELS]
   .filter(([, entry]) => entry.daily)
   .map(([id]) => id)
   .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+
+/**
+ * Each ranked level's current version and par, as JSON for SQL's json_each: the overall
+ * board counts only bests on a level's current version, measured against its par.
+ */
+export const CURRENT_PARS: string = JSON.stringify(
+  [...LEVELS.values()].filter((entry) => entry.ranked).map((entry) => [entry.hash, entry.par_keys]),
+)

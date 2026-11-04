@@ -1,5 +1,6 @@
--- Writes verifier/manifest.json: every shipped level's hash, whether it can be
--- ranked, and whether it's in the daily challenge's pool (the demo levels). The API and the verifier read levels' identities from it, and
+-- Writes verifier/manifest.json: every shipped level's hash, its par in keys,
+-- whether it can be ranked, and whether it's in the daily challenge's pool (the
+-- demo levels). The overall board measures players against par. The API and the verifier read levels' identities from it, and
 -- because it is committed, a pull request that would reset a level's board
 -- shows that in its diff.
 --
@@ -18,10 +19,11 @@ for _, pack in ipairs(assert(challenges.load_dir(root .. "/challenges"))) do
   for _, level in ipairs(pack.levels) do
     table.insert(
       entries,
-      ('    "%s": {\n      "daily": %s,\n      "hash": "%s",\n      "ranked": %s\n    }'):format(
+      ('    "%s": {\n      "daily": %s,\n      "hash": "%s",\n      "par_keys": %d,\n      "ranked": %s\n    }'):format(
         level.id,
         tostring(level.web_demo == true),
         level_hash.of(level),
+        level.par_keys,
         tostring(pack.track ~= UNRANKED_TRACK)
       )
     )

@@ -4,6 +4,9 @@
 
 ### Added
 
+- **The overall board.** [vimdojo.org/boards](https://vimdojo.org/boards/) ranks players
+  across every ranked level: the most levels verified, then the fewest keys over par in
+  total. Profiles show each player's place, levels and keys over par.
 - **Step-by-step par routes for Regex Power and Boss Levels.** After you solve one of these
   levels, the results card breaks the par route into steps and says what each one does.
   It's hidden on today's daily, like the route. Levels can carry an `explain` list, and
