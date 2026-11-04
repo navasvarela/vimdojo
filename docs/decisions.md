@@ -1005,3 +1005,19 @@ PLAN-v3.md records the full table. The two departures from the proposal:
 - **No time plausibility flags.** The proposal planned them to hide implausible times, but
   boards never show time, only key counts, so there's nothing for them to protect.
 
+## Explaining hard levels
+
+- **Steps of the par route, after a solve, not tutorial pages.** They arrive right after
+  the player tried, on the card that already shows the route, and they travel with the
+  level's data. Before a solve they'd give the level away; on today's daily they're hidden
+  with the route.
+- **The steps must add up to the solution exactly.** Validation (`make validate`, and the
+  plugin on load) fails otherwise, so a par change can't leave an explanation describing
+  a route that's gone.
+- **Only where the route is hard to read:** Regex Power and Boss Levels first. Easier
+  packs have short routes, a hint and tips.
+- **Not in the level hash,** like `hint` and `teaches`: rewording an explanation doesn't
+  reset a board.
+- **Pack introductions are left for later.** Showing one at the right moment means a
+  panel over a level, where this week's focus bugs were, so it deserves its own change.
+

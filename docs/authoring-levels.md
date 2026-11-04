@@ -33,6 +33,7 @@ is written exactly once.
 | `hint` | Shown on request. It caps the attempt at 2 stars. |
 | `solution` | A reference solution in key notation (`ciwfoo<Esc>`). Tests run it. Players never see it. |
 | `teaches` | The keys this level introduces. Used for the par rule and the curriculum listing. |
+| `explain` | Optional. The solution split into steps, each `{ "keys": ..., "text": ... }`, shown on the results card after a solve. The steps' keys must add up to the solution exactly, so validation fails if a par change forgets them. Worth it for levels whose route is hard to read. |
 | `web_demo` | Include the level in the browser demo. Only set it when the emulation test passes. |
 | `requires` | Optional. `{ "nvim": "0.11" }` for levels that need newer defaults or APIs. Older Neovims show the level as unavailable and skip it. |
 | `options` | Optional. Options set like `:set` before the level starts, e.g. `{ "shiftwidth": 2, "wrapscan": false }`. |

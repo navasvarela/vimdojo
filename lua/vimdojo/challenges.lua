@@ -40,6 +40,7 @@ end
 ---@field hint string
 ---@field solution string
 ---@field teaches string[]
+---@field explain vimdojo.ExplainStep[]|nil The solution in steps, shown after a solve.
 ---@field authors string[]|nil GitHub handles; replaces the pack's.
 ---@field web_demo boolean|nil
 ---@field requires { nvim: string }|nil Minimum Neovim version, e.g. "0.11".
@@ -252,6 +253,38 @@ local function authors_error(authors)
 end
 
 ---@param level table
+---@class vimdojo.ExplainStep
+---@field keys string Part of the solution, in key notation.
+---@field text string What it does.
+
+--- An explanation is a reading of the solution, so it must be exactly the solution: a
+--- par change that forgets the explanation fails validation instead of misleading.
+---@param level table
+---@return string|nil
+local function explain_error(level)
+  local explain = level.explain
+  if explain == nil then
+    return nil
+  end
+  if type(explain) ~= "table" or #explain == 0 then
+    return "explain must be a non-empty array of steps"
+  end
+  local keys = {}
+  for index, step in ipairs(explain) do
+    if
+      type(step) ~= "table"
+      or not check.is_non_empty_string(step.keys)
+      or not check.is_non_empty_string(step.text)
+    then
+      return ("explain step %d needs non-empty keys and text"):format(index)
+    end
+    table.insert(keys, step.keys)
+  end
+  if table.concat(keys) ~= level.solution then
+    return "explain's steps must add up to the solution exactly"
+  end
+end
+
 ---@return string[]
 local function level_errors(level)
   local errors = {}
@@ -267,6 +300,8 @@ local function level_errors(level)
   local text_err = text_error(level)
   expect(text_err == nil, text_err)
   expect(check.is_string_list(level.teaches), "teaches must be a non-empty array of strings")
+  local explain_err = explain_error(level)
+  expect(explain_err == nil, explain_err)
   expect(check.is_integer(level.par_keys) and level.par_keys >= 1, "par_keys must be >= 1")
   expect(
     type(level.par_seconds) == "number" and level.par_seconds > 0,

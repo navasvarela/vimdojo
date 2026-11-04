@@ -34,7 +34,33 @@
       "par_seconds": 60,
       "hint": "After \\v, ( ) + and friends need no backslash. Capture each argument with (\\S*), and bring them back as \\2 and \\1.",
       "solution": ":%s/\\vq.(\\S*), *(\\S*)\\)/q(\\2, \\1)/g<CR>",
-      "teaches": ["\\v", "\\1"]
+      "teaches": ["\\v", "\\1"],
+      "explain": [
+        {
+          "keys": ":%s/",
+          "text": "On every line."
+        },
+        {
+          "keys": "\\v",
+          "text": "Very magic: from here, ( ) and | need no backslash."
+        },
+        {
+          "keys": "q.",
+          "text": "Start at the q of assert_eq and the ( after it, so other calls like round( are left alone."
+        },
+        {
+          "keys": "(\\S*), *(\\S*)\\)",
+          "text": "Capture both arguments, whatever spacing follows the comma, up to the closing )."
+        },
+        {
+          "keys": "/q(\\2, \\1)/g",
+          "text": "Write them back swapped, with one space, for every call on the line."
+        },
+        {
+          "keys": "<CR>",
+          "text": "Run it."
+        }
+      ]
     },
     {
       "id": "regex-02",
@@ -58,7 +84,25 @@
       "par_seconds": 35,
       "hint": "& in the replacement stands for the whole match, so no group is needed. \\u is any capital, so one capital followed by more of [A-Z_] skips the word A.",
       "solution": ":%s/\\u[A-Z_]\\+/`&`/g<CR>",
-      "teaches": ["&"]
+      "teaches": ["&"],
+      "explain": [
+        {
+          "keys": ":%s/",
+          "text": "On every line."
+        },
+        {
+          "keys": "\\u[A-Z_]\\+",
+          "text": "A capital, then one or more capitals or underscores: every constant, but not the single word A."
+        },
+        {
+          "keys": "/`&`/g",
+          "text": "& is the whole match, so wrap it in backticks, every time on the line."
+        },
+        {
+          "keys": "<CR>",
+          "text": "Run it."
+        }
+      ]
     },
     {
       "id": "regex-03",
@@ -84,7 +128,29 @@
       "par_seconds": 35,
       "hint": "A backreference works inside the pattern too: (\\w+) \\1 is a word, then itself. In very magic mode, < and > mark word edges.",
       "solution": ":%s/\\v<lt>(\\w+) \\1>/\\1/g<CR>",
-      "teaches": ["\\1 in the pattern", "\\v<>"]
+      "teaches": ["\\1 in the pattern", "\\v<>"],
+      "explain": [
+        {
+          "keys": ":%s/\\v",
+          "text": "On every line, in very magic mode."
+        },
+        {
+          "keys": "<lt>(\\w+)",
+          "text": "From the start of a word, capture the word."
+        },
+        {
+          "keys": " \\1>",
+          "text": "Then a space and the same word again, ending at a word edge, so 'this is' doesn't match."
+        },
+        {
+          "keys": "/\\1/g",
+          "text": "Keep one copy."
+        },
+        {
+          "keys": "<CR>",
+          "text": "Run it."
+        }
+      ]
     },
     {
       "id": "regex-04",
@@ -110,7 +176,25 @@
       "par_seconds": 40,
       "hint": "In very magic mode, (a|b) matches either one. Word edges keep outlet and letter safe.",
       "solution": ":%s/\\v<lt>(let|var)>/const/g<CR>",
-      "teaches": ["\\v(a|b)"]
+      "teaches": ["\\v(a|b)"],
+      "explain": [
+        {
+          "keys": ":%s/\\v",
+          "text": "On every line, in very magic mode."
+        },
+        {
+          "keys": "<lt>(let|var)>",
+          "text": "Either word, but only whole: outlet and letter don't match."
+        },
+        {
+          "keys": "/const/g",
+          "text": "Replace each one."
+        },
+        {
+          "keys": "<CR>",
+          "text": "Run it."
+        }
+      ]
     },
     {
       "id": "regex-05",
@@ -140,7 +224,25 @@
       "par_seconds": 30,
       "hint": "\\u in the replacement capitalizes the next character. :g picks the heading lines, and \\< finds the start of each word.",
       "solution": ":g/#/s/\\<lt>./\\u&/g<CR>",
-      "teaches": ["\\u"]
+      "teaches": ["\\u"],
+      "explain": [
+        {
+          "keys": ":g/#/",
+          "text": "Only on the headings: the lines with a #."
+        },
+        {
+          "keys": "s/\\<lt>./",
+          "text": "Match the first character of each word: \\< is the start of a word."
+        },
+        {
+          "keys": "\\u&/g",
+          "text": "Replace it with itself, capitalized."
+        },
+        {
+          "keys": "<CR>",
+          "text": "Run it."
+        }
+      ]
     },
     {
       "id": "regex-06",
@@ -168,7 +270,25 @@
       "par_seconds": 24,
       "hint": "\\zs says where the match really starts. Everything before it must still match, but isn't replaced, and .* is greedy.",
       "solution": ":%s/.*\\zs,/ and<CR>",
-      "teaches": ["\\zs"]
+      "teaches": ["\\zs"],
+      "explain": [
+        {
+          "keys": ":%s/",
+          "text": "On every line."
+        },
+        {
+          "keys": ".*\\zs,",
+          "text": ".* is greedy, so it runs on to the last comma, and \\zs starts the match at that comma."
+        },
+        {
+          "keys": "/ and",
+          "text": "Replace just that comma. With no flags, the closing / is optional."
+        },
+        {
+          "keys": "<CR>",
+          "text": "Run it."
+        }
+      ]
     },
     {
       "id": "regex-07",
@@ -194,7 +314,29 @@
       "par_seconds": 40,
       "hint": "\\ze says where the match really ends. Match one digit that has groups of three digits between it and the end of the number, and replace it with itself plus a comma.",
       "solution": ":%s/\\v\\d\\ze(\\d{3})+>/&,/g<CR>",
-      "teaches": ["\\ze"]
+      "teaches": ["\\ze"],
+      "explain": [
+        {
+          "keys": ":%s/\\v",
+          "text": "On every line, in very magic mode."
+        },
+        {
+          "keys": "\\d",
+          "text": "One digit…"
+        },
+        {
+          "keys": "\\ze(\\d{3})+>",
+          "text": "…with whole groups of three digits after it, to the end of the number. \\ze ends the match after that one digit."
+        },
+        {
+          "keys": "/&,/g",
+          "text": "Put a comma after every such digit."
+        },
+        {
+          "keys": "<CR>",
+          "text": "Run it."
+        }
+      ]
     },
     {
       "id": "regex-08",
@@ -220,7 +362,33 @@
       "par_seconds": 30,
       "hint": ".\\{-} is .* that takes as little as it can. Any character can delimit :s, so :s#a/b#c# saves escaping the slashes.",
       "solution": ":%s# /\\*.\\{-}\\*/##g<CR>",
-      "teaches": ["\\{-}", ":s#"]
+      "teaches": ["\\{-}", ":s#"],
+      "explain": [
+        {
+          "keys": ":%s#",
+          "text": "# is the delimiter, so the slashes in the comments need no escaping."
+        },
+        {
+          "keys": " /\\*",
+          "text": "A space, then the comment's /*."
+        },
+        {
+          "keys": ".\\{-}",
+          "text": "As little as possible, so each comment ends at its own */."
+        },
+        {
+          "keys": "\\*/",
+          "text": "The closing */."
+        },
+        {
+          "keys": "##g",
+          "text": "Replace it with nothing, every comment on the line."
+        },
+        {
+          "keys": "<CR>",
+          "text": "Run it."
+        }
+      ]
     },
     {
       "id": "regex-09",
@@ -250,7 +418,29 @@
       "par_seconds": 45,
       "hint": "X@! in very magic mode means 'not followed by X', and it consumes nothing. The lines mix URLs, so :g can't sort them out.",
       "solution": ":%s/\\vttp:(..l\\w*h)@!/ttps:/g<CR>",
-      "teaches": ["\\@!"]
+      "teaches": ["\\@!"],
+      "explain": [
+        {
+          "keys": ":%s/\\v",
+          "text": "On every line, in very magic mode."
+        },
+        {
+          "keys": "ttp:",
+          "text": "The ttp: of http:. An https: URL never matches, because an s comes first."
+        },
+        {
+          "keys": "(..l\\w*h)@!",
+          "text": "Unless what follows is //l, some letters, then h: localhost. @! checks without consuming anything."
+        },
+        {
+          "keys": "/ttps:/g",
+          "text": "Add the s, to every URL on the line."
+        },
+        {
+          "keys": "<CR>",
+          "text": "Run it."
+        }
+      ]
     },
     {
       "id": "regex-10",
@@ -276,7 +466,25 @@
       "par_seconds": 35,
       "hint": "X\\@<! means 'not preceded by X', and it consumes nothing. \\zs can't do this: it can only ask for what is there.",
       "solution": ":%s/\\.\\@<!print/log/g<CR>",
-      "teaches": ["\\@<!"]
+      "teaches": ["\\@<!"],
+      "explain": [
+        {
+          "keys": ":%s/",
+          "text": "On every line."
+        },
+        {
+          "keys": "\\.\\@<!print",
+          "text": "print, unless a dot comes before it, so method calls like self.print stay. \\@<! looks back without consuming."
+        },
+        {
+          "keys": "/log/g",
+          "text": "Replace each one."
+        },
+        {
+          "keys": "<CR>",
+          "text": "Run it."
+        }
+      ]
     }
   ]
 }

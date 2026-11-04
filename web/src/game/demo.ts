@@ -469,6 +469,7 @@ export class Demo {
     // Not on today's daily: the route would give the day's board away.
     const parRoute = solutionHidden ? undefined : parPlayer(play.level)
     const watchButton = parRoute && h("button", { attrs: { type: "button" } }, ["Watch par (W)"])
+    const explain = play.level.explain
     const share = shareText({
       levelId: play.level.id,
       levelTitle: play.level.title,
@@ -513,6 +514,18 @@ export class Demo {
           ]),
           !solutionHidden && h("dt", {}, ["Learn"]),
           !solutionHidden && h("dd", {}, [play.level.teaches.join(", ")]),
+          !solutionHidden && explain !== undefined && h("dt", {}, ["Steps"]),
+          !solutionHidden &&
+            explain !== undefined &&
+            h("dd", {}, [
+              h(
+                "ol",
+                { className: "steps" },
+                explain.map((step) =>
+                  h("li", {}, [h("code", {}, [readableKeys(step.keys)]), ` ${step.text}`]),
+                ),
+              ),
+            ]),
           challenge !== undefined && h("dt", {}, ["Challenge"]),
           challenge !== undefined && h("dd", {}, [challengeResult(challenge, outcome.keys)]),
           advice !== undefined && h("dt", {}, ["Tip"]),
