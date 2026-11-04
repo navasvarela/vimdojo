@@ -7,18 +7,30 @@
         "level_title": "Again and again",
         "par_keys": 7,
         "daily_date": "2026-10-30",
-        "outcome": { "keys": 7, "seconds": 4.25, "stars": 3, "hinted": false }
+        "outcome": {
+          "keys": 7,
+          "seconds": 4.25,
+          "stars": 3,
+          "hinted": false
+        },
+        "level_id": "macros-01"
       },
-      "expected": "vimdojo daily 2026-10-30 ★★★ 7 keys (par 7) 4.3s\nhttps://vimdojo.org"
+      "expected": "vimdojo daily 2026-10-30 ★★★ 7 keys (par 7) 4.3s\nBeat it: https://vimdojo.org/?play=macros-01&beat=7"
     },
     {
       "name": "level with a hint",
       "view": {
         "level_title": "Again and again",
         "par_keys": 7,
-        "outcome": { "keys": 9, "seconds": 12, "stars": 2, "hinted": true }
+        "outcome": {
+          "keys": 9,
+          "seconds": 12,
+          "stars": 2,
+          "hinted": true
+        },
+        "level_id": "macros-01"
       },
-      "expected": "vimdojo \"Again and again\" ★★☆ 9 keys (par 7) 12.0s · hint\nhttps://vimdojo.org"
+      "expected": "vimdojo \"Again and again\" ★★☆ 9 keys (par 7) 12.0s · hint\nBeat it: https://vimdojo.org/?play=macros-01&beat=9"
     }
   ]
 }

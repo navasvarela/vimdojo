@@ -8,6 +8,7 @@ local M = {}
 M.SITE_URL = "https://vimdojo.org"
 
 ---@class vimdojo.ShareView
+---@field level_id string
 ---@field level_title string
 ---@field par_keys integer
 ---@field daily_date string|nil
@@ -34,7 +35,9 @@ function M.text(view)
     tenths(outcome.seconds)
   )
   local hint = outcome.hinted and " · hint" or ""
-  return ("vimdojo %s %s%s\n%s"):format(name, score, hint, M.SITE_URL)
+  -- The link names the level and the count, never the keys, so it stays spoiler-free.
+  local link = ("%s/?play=%s&beat=%d"):format(M.SITE_URL, view.level_id, outcome.keys)
+  return ("vimdojo %s %s%s\nBeat it: %s"):format(name, score, hint, link)
 end
 
 return M
