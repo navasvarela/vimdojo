@@ -35,7 +35,25 @@
       "par_seconds": 74,
       "hint": "Sort first, while the data is simple: :sor n sorts by the first number on each line, and a line with no number stays on top. Then two :s commands build the table.",
       "solution": ":sor n<CR>:%s/,/ | /g<CR>:%s/.*/| & |<CR>ggo|---|---|---|<Esc>",
-      "teaches": ["CSV to table"]
+      "teaches": ["CSV to table"],
+      "explain": [
+        {
+          "keys": ":sor n<CR>",
+          "text": "Sort by the first number on each line, while the data is still plain CSV. The header has no number, so it stays on top."
+        },
+        {
+          "keys": ":%s/,/ | /g<CR>",
+          "text": "Commas become column separators."
+        },
+        {
+          "keys": ":%s/.*/| & |<CR>",
+          "text": "Wrap each whole line in a leading and a trailing pipe."
+        },
+        {
+          "keys": "ggo|---|---|---|<Esc>",
+          "text": "Under the header, add the separator row a Markdown table needs."
+        }
+      ]
     },
     {
       "id": "boss-02",
@@ -61,7 +79,29 @@
       "par_seconds": 87,
       "hint": "A block insert does the first step. Then copy the fields, and turn the copies into getters with :s on a line range. & already holds #name;",
       "solution": "jw<C-v>2jI#<Esc>3yy2jpO<Esc>:6,8s/\\v#(.*);/get \\1() { return this.& }<CR>",
-      "teaches": ["fields to getters"]
+      "teaches": ["fields to getters"],
+      "explain": [
+        {
+          "keys": "jw",
+          "text": "Go to the first field's name."
+        },
+        {
+          "keys": "<C-v>2jI#<Esc>",
+          "text": "Block-insert # before all three fields at once."
+        },
+        {
+          "keys": "3yy2jp",
+          "text": "Copy the three fields and paste them after the last one."
+        },
+        {
+          "keys": "O<Esc>",
+          "text": "Open an empty line between the fields and the copies."
+        },
+        {
+          "keys": ":6,8s/\\v#(.*);/get \\1() { return this.& }<CR>",
+          "text": "Turn each copy into a getter: \\1 is the bare name, and & is the whole match, such as #name;."
+        }
+      ]
     },
     {
       "id": "boss-03",
@@ -93,7 +133,21 @@
       "par_seconds": 93,
       "hint": "A range keeps :sort away from the rest of the file. Then capture the two names with \\v groups, and leave out what you don't need.",
       "solution": ":1,5sor<CR>:%s/\\v\\w+ (\\w*).*(\".*\")./import \\1 from \\2<CR>Gcf=export<Esc>",
-      "teaches": ["require to import"]
+      "teaches": ["require to import"],
+      "explain": [
+        {
+          "keys": ":1,5sor<CR>",
+          "text": "Sort only the five requires, so the code below stays put."
+        },
+        {
+          "keys": ":%s/\\v\\w+ (\\w*).*(\".*\")./import \\1 from \\2<CR>",
+          "text": "Rewrite each require: capture the name and the quoted module, and leave out the rest, including the closing )."
+        },
+        {
+          "keys": "Gcf=export<Esc>",
+          "text": "On the last line, change everything up to its = into export."
+        }
+      ]
     },
     {
       "id": "boss-04",
@@ -136,7 +190,21 @@
       "par_seconds": 84,
       "hint": "Nothing clever about the constants: type them. The calls are one :%s, and the numbers in timeout= must survive it.",
       "solution": "joHOST = \"db.internal\"<CR>PORT = 5432<CR><Esc>:%s/\".*2/HOST, PORT<CR>",
-      "teaches": ["extract constants"]
+      "teaches": ["extract constants"],
+      "explain": [
+        {
+          "keys": "jo",
+          "text": "Open a line under the import."
+        },
+        {
+          "keys": "HOST = \"db.internal\"<CR>PORT = 5432<CR><Esc>",
+          "text": "Type the two constants: there's no shorter way to write them."
+        },
+        {
+          "keys": ":%s/\".*2/HOST, PORT<CR>",
+          "text": "On every line with the pair, replace from the opening quote to the 2 that ends 5432."
+        }
+      ]
     },
     {
       "id": "boss-05",
@@ -172,7 +240,33 @@
       "par_seconds": 76,
       "hint": "Copy the whole function first. Then each copy needs only a small change: S replaces a line and keeps its indent, and d with a count removes the loop.",
       "solution": "yapPwcwsum<Esc>5jSreturn total<Esc>jo<Esc>2j4dd$bcwsum(orders)<Esc>",
-      "teaches": ["extract function"]
+      "teaches": ["extract function"],
+      "explain": [
+        {
+          "keys": "yapP",
+          "text": "Copy the whole function and paste the copy above it."
+        },
+        {
+          "keys": "wcwsum<Esc>",
+          "text": "Rename the copy: report becomes sum."
+        },
+        {
+          "keys": "5jSreturn total<Esc>",
+          "text": "Replace its console.log line with return total. S keeps the indent."
+        },
+        {
+          "keys": "jo<Esc>",
+          "text": "Leave a blank line between the two functions."
+        },
+        {
+          "keys": "2j4dd",
+          "text": "In the original, delete the lines that sum now does."
+        },
+        {
+          "keys": "$bcwsum(orders)<Esc>",
+          "text": "At the end of the log line, change total into sum(orders)."
+        }
+      ]
     },
     {
       "id": "boss-06",
@@ -205,7 +299,33 @@
       "par_seconds": 93,
       "hint": "Do it in order: :g deletes the chores and moves the fixes to the end, then add the headings, then one lazy :%s strips the prefixes.",
       "solution": ":g/e:/d<CR>:g/x:/m$<CR>?x:<CR>O<CR>## Fixes<Esc>ggO## Features<Esc>:%s/.\\{-}: /- <CR>",
-      "teaches": ["git log to release notes"]
+      "teaches": ["git log to release notes"],
+      "explain": [
+        {
+          "keys": ":g/e:/d<CR>",
+          "text": "Delete the chores: chore: is the only type that ends in e:."
+        },
+        {
+          "keys": ":g/x:/m$<CR>",
+          "text": "Move each fix: to the end, keeping their order."
+        },
+        {
+          "keys": "?x:<CR>",
+          "text": "Search back to the first fix."
+        },
+        {
+          "keys": "O<CR>## Fixes<Esc>",
+          "text": "Above it, leave a blank line and add the Fixes heading."
+        },
+        {
+          "keys": "ggO## Features<Esc>",
+          "text": "What's left at the top is features: give them their heading."
+        },
+        {
+          "keys": ":%s/.\\{-}: /- <CR>",
+          "text": "Replace each hash and type with a dash. .\\{-} stops at the first colon, so daily: in a message survives."
+        }
+      ]
     },
     {
       "id": "boss-07",
@@ -227,7 +347,41 @@
       "par_seconds": 92,
       "hint": "Add the first line while you're up there. The rows are all the same shape, so record one, and let a macro beat the regex. The last line needs its own ending.",
       "solution": "OINSERT INTO users VALUES<Esc>jqaI  ('<Esc>f,cl', <Esc>;a '<Esc>A'),<Esc>jq3@a$r;",
-      "teaches": ["rows to SQL"]
+      "teaches": ["rows to SQL"],
+      "explain": [
+        {
+          "keys": "OINSERT INTO users VALUES<Esc>",
+          "text": "Add the statement's first line above the rows."
+        },
+        {
+          "keys": "jqa",
+          "text": "Go to the first row and start recording into a."
+        },
+        {
+          "keys": "I  ('<Esc>",
+          "text": "Indent the row and open its tuple."
+        },
+        {
+          "keys": "f,cl', <Esc>",
+          "text": "At the first comma, close the name's quote."
+        },
+        {
+          "keys": ";a '<Esc>",
+          "text": "; repeats the f, search: after the second comma, open the role's quote."
+        },
+        {
+          "keys": "A'),<Esc>j",
+          "text": "Close the tuple and go to the next row."
+        },
+        {
+          "keys": "q3@a",
+          "text": "Stop recording, and replay it on the other three rows."
+        },
+        {
+          "keys": "$r;",
+          "text": "The last row ends the statement, so its comma becomes ;."
+        }
+      ]
     }
   ]
 }

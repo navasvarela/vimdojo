@@ -4,6 +4,10 @@
 
 ### Added
 
+- **Step-by-step par routes for Regex Power and Boss Levels.** After you solve one of these
+  levels, the results card breaks the par route into steps and says what each one does.
+  It's hidden on today's daily, like the route. Levels can carry an `explain` list, and
+  validation checks its steps add up to the solution exactly.
 - **"Beat my keys" links.** The result you copy with `y` (or Copy result on the site) now
   ends with a link to that level and your count, such as
   `https://vimdojo.org/?play=macros-01&beat=7`. It opens the level in the browser demo

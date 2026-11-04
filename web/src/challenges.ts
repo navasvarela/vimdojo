@@ -132,6 +132,11 @@ const LevelData = z.object({
   hint: z.string().min(1),
   solution: z.string().min(1),
   teaches: z.array(z.string()).min(1),
+  /** The solution in steps, shown after a solve. Validated in Lua (challenges.lua). */
+  explain: z
+    .array(z.object({ keys: z.string().min(1), text: z.string().min(1) }))
+    .min(1)
+    .optional(),
   /** GitHub handles; replaces the pack's. */
   authors: Authors.optional(),
   web_demo: z.boolean().optional(),

@@ -84,11 +84,25 @@
         "par_seconds": { "type": "number", "exclusiveMinimum": 0 },
         "hint": { "type": "string", "minLength": 1 },
         "solution": {
-          "description": "Reference solution in Vim key notation (e.g. \"ffdw\", \"ciwfoo<Esc>\"). Used only by tests, never shown to players.",
+          "description": "Reference solution in Vim key notation (e.g. \"ffdw\", \"ciwfoo<Esc>\"). Tests type it to prove the level, and the results card shows it as the par route (except on today's daily).",
           "type": "string",
           "minLength": 1
         },
         "authors": { "$ref": "#/$defs/authors" },
+        "explain": {
+          "description": "The solution in steps, each with what it does, shown after a solve. The steps' keys must add up to the solution exactly.",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["keys", "text"],
+            "properties": {
+              "keys": { "type": "string", "minLength": 1 },
+              "text": { "type": "string", "minLength": 1 }
+            }
+          }
+        },
         "teaches": {
           "type": "array",
           "minItems": 1,
