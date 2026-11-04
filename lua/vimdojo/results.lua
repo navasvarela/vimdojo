@@ -153,6 +153,7 @@ end
 ---@param view vimdojo.ResultsView
 local function copy_result(view)
   local text = share.text({
+    level_id = view.level.id,
     level_title = view.level.title,
     par_keys = view.level.par_keys,
     daily_date = view.daily_date,

@@ -959,3 +959,19 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   Neovim and the site give the same advice for the same keys.
 - **Tips don't reveal the par route,** so they show on today's daily too.
 
+## "Beat my keys" links
+
+- **The shared result carries the link,** so every result someone posts is also an
+  invitation to play that level. The link has the level and the count, never the keys,
+  so it's as spoiler-free as the result line.
+- **A query string, checked at the edge.** `challenge-link.ts` accepts only a level id
+  of lowercase letters, digits and dashes, and a count from 1 to 9999. Anything else is
+  ignored, so the link can't inject text into the page.
+- **A challenge link opens the demo at once** rather than waiting for the visitor to
+  scroll to it, because opening the link is asking to play. It ignores locks, like the
+  daily.
+- **A level that's only in the plugin gets a pointer to the plugin,** in the panel where
+  the level would be, rather than an error.
+- **Nothing is sent anywhere.** The comparison is with the count in the link, which the
+  player can edit. It's a friendly challenge, not a board.
+

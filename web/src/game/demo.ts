@@ -3,6 +3,7 @@ import { nextLevel, type Level, type Pack } from "../challenges"
 import { isMet, registersFor } from "../goals"
 import { dailyDate, dailyPool, dayNumber, pickDaily } from "../daily"
 import { BoardsApi } from "../boards/api"
+import { type Challenge, challengeResult } from "../challenge-link"
 import { keyNotation } from "../key-notation"
 import { isCountableKeydown, pastedKeyCount } from "../keys"
 import { levelHash } from "../level-hash"
@@ -64,17 +65,22 @@ type DemoElements = {
 
 const clock = (): number => performance.now() / 1000
 
+/** A "beat my keys" link, with the level's title when any pack has it. */
+export type ChallengeOffer = { readonly challenge: Challenge; readonly title: string | undefined }
+
 export class Demo {
   private progress: Progress
   private readonly runs = new RunsApi()
   private readonly boards = new BoardsApi()
   private play: Play | undefined
+  private challenge: Challenge | undefined
   private readonly elements: DemoElements
 
   constructor(
     private readonly root: HTMLElement,
     private readonly packs: readonly Pack[],
     private readonly storage: Storage | undefined,
+    offer?: ChallengeOffer,
   ) {
     const loaded = loadProgress(storage)
     this.progress = loaded.progress
@@ -83,6 +89,25 @@ export class Demo {
       this.say("Progress can't be saved in this browser (storage is disabled).")
     } else if (loaded.status === "corrupt") {
       this.say("Saved progress was unreadable, so the demo started fresh.")
+    }
+    if (offer !== undefined) {
+      this.acceptChallenge(offer)
+    }
+  }
+
+  /** Challenges ignore locks, like the daily: the link is for one level. */
+  private acceptChallenge({ challenge, title }: ChallengeOffer): void {
+    const inDemo = this.packs.some((pack) => pack.levels.some((l) => l.id === challenge.levelId))
+    if (inDemo) {
+      this.challenge = challenge
+      this.start(challenge.levelId)
+    } else {
+      // In the stage, where a level would be: that's where the visitor is looking.
+      const text =
+        title === undefined
+          ? "That challenge link names a level this site doesn't have."
+          : `"${title}" is a level in the Neovim plugin, not the demo. Install the plugin below, then beat ${challenge.keys} keys there.`
+      this.elements.stage.replaceChildren(h("p", { className: "challenge" }, [text]))
     }
   }
 
@@ -251,8 +276,16 @@ export class Demo {
       h("kbd", {}, ["H"]),
       " shows a hint (caps the attempt at 2 stars)",
     ])
+    const challenge = this.challenge?.levelId === level.id ? this.challenge : undefined
     this.elements.stage.replaceChildren(
       h("h3", { className: "level-title" }, [level.title]),
+      ...(challenge === undefined
+        ? []
+        : [
+            h("p", { className: "challenge" }, [
+              `Challenge: someone solved this in ${challenge.keys} keys. Can you beat it?`,
+            ]),
+          ]),
       h("p", { className: "level-description" }, [level.description]),
       goal.element,
       h("p", { className: "par" }, [`Par: ${level.par_keys} keys · ${level.par_seconds}s`]),
@@ -431,7 +464,9 @@ export class Demo {
       : undefined
     const retryButton = h("button", { attrs: { type: "button" } }, ["Retry (R)"])
     const copyButton = h("button", { attrs: { type: "button" } }, ["Copy result (C)"])
+    const challenge = this.challenge?.levelId === play.level.id ? this.challenge : undefined
     const share = shareText({
+      levelId: play.level.id,
       levelTitle: play.level.title,
       parKeys: play.level.par_keys,
       dailyDate: play.dailyDate,
@@ -474,6 +509,8 @@ export class Demo {
           ]),
           !solutionHidden && h("dt", {}, ["Learn"]),
           !solutionHidden && h("dd", {}, [play.level.teaches.join(", ")]),
+          challenge !== undefined && h("dt", {}, ["Challenge"]),
+          challenge !== undefined && h("dd", {}, [challengeResult(challenge, outcome.keys)]),
           advice !== undefined && h("dt", {}, ["Tip"]),
           advice !== undefined && h("dd", {}, [advice]),
         ]),

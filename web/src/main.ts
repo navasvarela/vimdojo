@@ -1,4 +1,5 @@
 import "./style.css"
+import { type Challenge, parseChallenge } from "./challenge-link"
 import { mountCopyButtons } from "./landing/copy-buttons"
 import { mountHeroDemo } from "./landing/hero-demo"
 
@@ -6,13 +7,21 @@ import { mountHeroDemo } from "./landing/hero-demo"
 // only when its section approaches the viewport. The landing page stays light.
 const PRELOAD_MARGIN = "400px"
 
-async function mountDemo(root: HTMLElement): Promise<void> {
+async function mountDemo(root: HTMLElement, challenge: Challenge | undefined): Promise<void> {
   const [{ demoPacks, loadPacks }, { Demo }, { browserStorage }] = await Promise.all([
     import("./challenges"),
     import("./game/demo"),
     import("./storage"),
   ])
-  new Demo(root, demoPacks(loadPacks()), browserStorage())
+  const packs = loadPacks()
+  // Looked up in every pack: a challenge can name a level that's only in the plugin.
+  const title = packs.flatMap((pack) => pack.levels).find((l) => l.id === challenge?.levelId)?.title
+  new Demo(
+    root,
+    demoPacks(packs),
+    browserStorage(),
+    challenge === undefined ? undefined : { challenge, title },
+  )
 }
 
 function whenNearViewport(element: HTMLElement, callback: () => void): void {
@@ -42,10 +51,18 @@ mountCopyButtons(document)
 const demo = document.querySelector<HTMLElement>("#demo")
 if (demo !== null) {
   demo.textContent = "Loading the demo…"
-  whenNearViewport(demo, () => {
-    mountDemo(demo).catch((error: unknown) => {
+  const challenge = parseChallenge(window.location.search)
+  const load = (): void => {
+    mountDemo(demo, challenge).catch((error: unknown) => {
       demo.textContent = "The demo failed to load. Try reloading the page."
       console.error(error)
     })
-  })
+  }
+  // A challenge link is someone asking to play: open the demo straight away.
+  if (challenge === undefined) {
+    whenNearViewport(demo, load)
+  } else {
+    document.querySelector("#play")?.scrollIntoView()
+    load()
+  }
 }

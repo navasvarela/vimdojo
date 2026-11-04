@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **"Beat my keys" links.** The result you copy with `y` (or Copy result on the site) now
+  ends with a link to that level and your count, such as
+  `https://vimdojo.org/?play=macros-01&beat=7`. It opens the level in the browser demo
+  with your count to beat, and says whether the new player beat it. Still spoiler-free:
+  it never includes your keys. For a level that's only in the plugin, the site says so.
+
 ## v0.10.0 (2026-11-04)
 
 ### Added
