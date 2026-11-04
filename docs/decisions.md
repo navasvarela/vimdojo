@@ -975,3 +975,16 @@ PLAN-v3.md records the full table. The two departures from the proposal:
 - **Nothing is sent anywhere.** The comparison is with the count in the link, which the
   player can edit. It's a friendly challenge, not a board.
 
+## Watch par
+
+- **Site only, for now.** In Neovim the route would have to play in a second room, with
+  its own Neovim. The site can play it in a second emulated editor at little cost.
+- **Played from code, not from fake key events.** Browsers ignore synthetic key events,
+  so each key goes to the emulation's `handleKey`, and the text it leaves to the browser
+  (Insert mode, Replace mode, the `/` and `:` prompt) is inserted by `replay.ts`. A browser
+  test plays every web_demo route this way and checks it reaches the goal (19 of 19).
+- **Hidden on today's daily,** like the par route itself.
+- **Accepted:** the emulation keeps registers and the last search globally, so watching a
+  route can leave them changed for the next level. Goal registers are cleared when a level
+  opens, and a run's score is decided by a replay in Neovim, so this can't help a score.
+
