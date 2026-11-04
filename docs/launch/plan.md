@@ -15,15 +15,15 @@ The order is:
 
 1. Release streaks and practice mode. Done: v0.9.0.
 2. Quiet announcement (Phase 1), now.
-3. Build and release web runs, before 2026-12-17.
+3. Build and release web runs, before 2026-12-17. Done: v0.10.0, and since then
+   tips, Watch par, challenge links, explanations and the overall board (v0.11.0).
 4. Finish Phase 0.
 5. Launch on r/neovim (Phase 2) on or after 2026-12-17, then go wider a week later
    (Phase 3).
 6. Long tail (Phase 4).
 
-The awesome-neovim PR
-([#2587](https://github.com/rockerBOO/awesome-neovim/pull/2587)) is already open
-and doesn't depend on any of this.
+vimdojo is already on awesome-neovim
+([#2587](https://github.com/rockerBOO/awesome-neovim/pull/2587), merged).
 
 ## Principles
 
@@ -76,9 +76,10 @@ they show the final product.
    - CPU use while idle
    - what a phone shows (earlier Vim-trainer threads on HN complained about
      all three)
-3. **Update the posts and the article.** They're written for v0.5.0 (84 levels, 16
-   packs). Correct the numbers, and add daily boards, streaks, practice mode and web
-   runs. Keep to the leaderboard advice in Principles.
+3. **Rewrite the posts and the article in your own voice.** The outlines in posts.md and
+   article.md are current for v0.11.0 (135 levels, 22 packs), with the features since
+   v0.5.0 added. Keep to the leaderboard advice in Principles, and check the numbers
+   against the release you link.
 4. **Record a second clip that shows what's new.** The README GIF shows two
    Basic Motions levels. Make a 20 to 40 second clip, as MP4 for Reddit and
    Bluesky and GIF for the README, that shows:
@@ -221,15 +222,15 @@ How to handle what comes in:
 - [x] "Levels" and "Daily" discussion categories added
 - [x] Cloudflare Web Analytics merged and deployed
 - [x] awesome-neovim PR opened
-- [ ] awesome-neovim PR merged
+- [x] awesome-neovim PR merged
 - [x] Streaks and practice mode released (v0.9.0)
 - [ ] AI disclosure line decided
 - [ ] Quiet announcement on Mastodon and Bluesky
 - [ ] neovim/neovim Discussions, Show and tell
-- [ ] Web runs released
+- [x] Web runs released (v0.10.0)
 - [ ] Fresh-install smoke test passed; demo checked for focus, CPU and mobile
 - [ ] Manual terminal check: kitty, iTerm2, WezTerm, Windows Terminal
-- [ ] Posts and article updated from v0.5.0
+- [x] Posts and article updated to v0.11.0 (still to rewrite in your own voice)
 - [ ] Second clip recorded (the daily with `y`, plus a Setup level)
 - [ ] Article published on your blog
 - [ ] Launch date picked

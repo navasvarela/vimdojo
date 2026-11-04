@@ -1,6 +1,6 @@
 # Article draft
 
-For dev.to, Hashnode or a personal blog. About 1,300 words of prose. Post
+For dev.to, Hashnode or a personal blog. About 1,800 words of prose. Post
 it on your own blog first if you have one, then cross-post with a
 `canonical_url` pointing at it (see [channels.md](channels.md)).
 
@@ -11,8 +11,8 @@ Cover image: `docs/brand/social-preview.png` (1280×640), or the first frame
 of `docs/demo.gif`. Put the GIF in the body right after the first section.
 
 Before publishing, check the numbers against the release you're linking
-(they are correct for v0.5.0: 84 levels, 16 packs, 19 in the browser demo,
-and a daily challenge picked from those 19).
+(they are correct for v0.11.0: 135 levels in 22 packs, 117 of them ranked, 19 in
+the browser demo, and a daily challenge picked from those 19).
 
 This draft is AI-assisted. Rewrite it in your own voice. dev.to and Medium
 require AI assistance to be disclosed if any of it remains, and readers on
@@ -64,10 +64,12 @@ already know Vim, `Gw` does it in two. Beginners can always reach three stars
 with what they've been shown, and anyone who knows more can beat par. That
 second part is where most of the fun is.
 
-There are 84 levels in 16 packs, across three tracks:
+There are 135 levels in 22 packs, across three tracks:
 
 - **Motions:** from `hjkl` and `w` through `f`/`t`, operators, visual block
-  mode, search, text objects, `<C-a>`, registers, macros and Ex commands.
+  mode, search, text objects, `<C-a>`, registers, macros and Ex commands, then
+  regex with `\v`, `\zs` and lookaround, the expression register, marks, Ex
+  ranges and filters, and boss levels that are whole refactors.
 - **Usage:** working in Neovim rather than in a single buffer: splits, the
   alternate file, `gf`, `:find`, `:vimgrep` with `:cdo`, and built-ins like
   `gc` and `]d`.
@@ -144,26 +146,57 @@ A few things I learned on the way:
 This is isolation, not a security sandbox: it's your own code on your own
 machine. The point is that it never touches your real config or data.
 
+## Learning from the results card
+
+A score on its own doesn't teach much, so the results card shows your keys
+beside the par route, and what the level teaches. When you went over par, it
+reads your keys as commands and suggests one shorter way to type what you
+typed: `jjjj` could be `4j`, `dw` then `i` is `cw`. On the hardest levels it
+breaks the par route into steps and says what each one does, and validation
+fails if those steps ever stop adding up to the route. On the site, `W` plays
+the par route on the level's own text, one key at a time.
+
 ## A puzzle a day
 
 Every day there's one daily level, the same for everyone. It's at the top of
-the plugin's menu (`:VimDojo daily`) and on the site. There's no server
-behind it: both clients pick the level from the date, using the same seeded
-shuffle, written once in Lua and once in TypeScript and pinned by a shared
-test fixture. Each cycle plays every demo level once, and the same level
-never comes up two days running.
+the plugin's menu (`:VimDojo daily`) and on the site. No server picks it: both
+clients choose the level from the date, using the same seeded shuffle, written
+once in Lua and once in TypeScript and pinned by a shared test fixture. Each
+cycle plays every demo level once, and the same level never comes up two days
+running. Solve it on consecutive days and you build a streak.
 
-When you solve it, `y` on the results card copies a line like
-`vimdojo daily 2026-11-03 ★★★ 7 keys (par 7) 4.3s`. It gives your score but
-not your keys, so you can post it without spoiling the solution for anyone
-else.
+When you solve it, `y` on the results card copies something like:
+
+```
+vimdojo daily 2026-11-03 ★★★ 7 keys (par 7) 4.3s
+Beat it: https://vimdojo.org/?play=macros-01&beat=7
+```
+
+It gives your score but not your keys, so you can post it without spoiling
+the solution for anyone else, and the link opens that level with your count to
+beat.
+
+## Scores you can trust
+
+There are optional leaderboards: for each level, for each day's daily, and
+overall. They're off by default, and the game works without an account. The
+interesting part is that the server doesn't believe the client. The plugin
+keeps a log of the keys you pressed, and when you submit a run, the server
+replays it in a fresh Neovim inside a microVM with no network and recounts the
+keys. A board only shows what that replay reproduces. Runs from the browser
+demo are replayed in real Neovim too, so the emulation never decides a score,
+and web and plugin players share one board.
+
+Your keys are that level's solution, so they stay private: boards show handles
+and key counts only.
 
 ## Try it
 
 There's a [browser demo](https://vimdojo.org) with 19 levels and the daily, using
 CodeMirror's Vim emulation. Every demo level's solution is checked against
-the emulation in real Chromium, but browser key counts can differ from
-Neovim's in edge cases, so treat web scores as indicative.
+the emulation in real Chromium. Browser key counts can differ from Neovim's in
+edge cases, which is why a submitted web run is replayed in Neovim before it
+counts.
 
 For the real thing, install the plugin (Neovim 0.10+, no dependencies). With
 lazy.nvim:
@@ -173,7 +206,8 @@ lazy.nvim:
 ```
 
 It also works with packer, vim-plug, and `:Rocks install vimdojo`. Then run
-`:VimDojo`. Your progress is saved between sessions.
+`:VimDojo`. Your progress is saved between sessions. For the leaderboards, set
+`online = { enabled = true }` and run `:VimDojo login`.
 
 ## Contribute a level
 
