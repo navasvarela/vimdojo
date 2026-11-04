@@ -1,8 +1,10 @@
+import { EditorView } from "@codemirror/view"
 import { describe, expect, it } from "vitest"
 import { userEvent } from "vitest/browser"
 import fixtureMotions from "../../tests/fixtures/packs/01-v2-motions.json"
 import { loadPacks, type Level, type Pack, parsePacks } from "./challenges"
 import { createEditor, isNormalMode, snapshot } from "./game/editor"
+import { playKeys } from "./game/replay"
 import { isMet, needsNeovim, registersFor } from "./goals"
 import { keyNotation } from "./key-notation"
 import { isCountableKeydown, splitNotation } from "./keys"
@@ -121,6 +123,32 @@ describe("CodeMirror Vim emulation", () => {
       expect(recorded).toHaveLength(splitNotation(level.solution).length)
       expect(recorded).not.toContain(undefined)
       console.info(`WEB_KEYLOG ${JSON.stringify({ level_id: id, keys: recorded })}`)
+    },
+  )
+
+  // "Watch par" plays the route from code, not from real key presses, so each demo
+  // level's solution must still solve it that way.
+  it.each(levels.filter((l) => l.web_demo === true).map((l) => [l.id, l] as const))(
+    "%s plays its par route from code",
+    (_id, level) => {
+      const parent = document.createElement("div")
+      document.body.append(parent)
+      // As par-player.ts builds it: not editable by the keyboard.
+      const view = createEditor(
+        parent,
+        level,
+        { onChange: () => undefined },
+        { extensions: EditorView.editable.of(false) },
+      )
+      try {
+        playKeys(view, level.solution)
+        const names = registersFor(level.goal)
+        expect(isNormalMode(view)).toBe(true)
+        expect(isMet(level.goal, snapshot(view, names), level.start_text)).toBe(true)
+      } finally {
+        view.destroy()
+        parent.remove()
+      }
     },
   )
 

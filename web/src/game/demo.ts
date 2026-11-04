@@ -21,6 +21,7 @@ import { presentGoal, type GoalPresentation } from "./goal-view"
 import { readableKeys, SOLUTION_HIDDEN } from "./lesson"
 import { RunError, RunsApi, type Run, VERIFY_POLL_MS, VERIFY_POLL_TRIES, verdictText } from "./runs"
 import { Session, type Outcome, type UnloggedReason } from "./session"
+import { parPlayer } from "./par-player"
 import { tip } from "./tips"
 
 const UNLOGGED_TEXT: Readonly<Record<UnloggedReason, string>> = {
@@ -431,6 +432,9 @@ export class Demo {
       : undefined
     const retryButton = h("button", { attrs: { type: "button" } }, ["Retry (R)"])
     const copyButton = h("button", { attrs: { type: "button" } }, ["Copy result (C)"])
+    // Not on today's daily: the route would give the day's board away.
+    const parRoute = solutionHidden ? undefined : parPlayer(play.level)
+    const watchButton = parRoute && h("button", { attrs: { type: "button" } }, ["Watch par (W)"])
     const share = shareText({
       levelTitle: play.level.title,
       parKeys: play.level.par_keys,
@@ -478,17 +482,32 @@ export class Demo {
           advice !== undefined && h("dd", {}, [advice]),
         ]),
         outcome.hinted && h("p", { className: "results-note" }, ["Hint used: capped at 2 stars."]),
-        h("div", { className: "results-actions" }, [nextButton, retryButton, copyButton]),
+        h("div", { className: "results-actions" }, [
+          nextButton,
+          retryButton,
+          copyButton,
+          watchButton,
+        ]),
         online,
       ],
     )
     nextButton?.addEventListener("click", () => this.startNext(play.level.id))
     retryButton.addEventListener("click", () => this.retry(play))
     copyButton.addEventListener("click", () => void this.copyResult(share))
+    const watchPar = (): void => {
+      if (parRoute !== undefined) {
+        card.append(parRoute.element)
+        parRoute.play()
+      }
+    }
+    watchButton?.addEventListener("click", watchPar)
     card.addEventListener("keydown", (event) => {
       if (event.key === "r" || event.key === "R") {
         event.preventDefault()
         this.retry(play)
+      } else if ((event.key === "w" || event.key === "W") && parRoute !== undefined) {
+        event.preventDefault()
+        watchPar()
       } else if (event.key === "s" || event.key === "S") {
         const submit = online.querySelector("button")
         if (submit !== null && !submit.disabled) {

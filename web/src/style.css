@@ -564,6 +564,23 @@ h2::before {
   cursor: pointer;
 }
 
+.par-player {
+  margin-top: 12px;
+}
+
+.par-keys {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+}
+
+.par-typed {
+  color: var(--accent);
+}
+
+.par-rest {
+  color: var(--muted);
+}
+
 .results-online {
   margin-top: 12px;
 }
