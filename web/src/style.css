@@ -581,6 +581,15 @@ h2::before {
   color: var(--muted);
 }
 
+.steps {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.steps li {
+  margin-bottom: 4px;
+}
+
 .results-online {
   margin-top: 12px;
 }

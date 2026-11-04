@@ -4,6 +4,10 @@
 
 ### Added
 
+- **Step-by-step par routes for Regex Power and Boss Levels.** After you solve one of these
+  levels, the results card breaks the par route into steps and says what each one does.
+  It's hidden on today's daily, like the route. Levels can carry an `explain` list, and
+  validation checks its steps add up to the solution exactly.
 - **Watch par on the site.** `W` on the results card plays the level's par route on its
   own text, one key at a time, with the keys typed so far shown underneath. It's hidden
   on today's daily, like the route itself.

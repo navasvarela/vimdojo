@@ -33,11 +33,12 @@ local M = {}
 -- Cut so that a long, wandering attempt doesn't stretch the card past the screen.
 local MAX_TYPED_WIDTH = 60
 
---- Key notation spells a typed "<" as "<lt>", which reads as a command to a player.
+--- Key notation spells a typed "<" as "<lt>" and a space as "<Space>", which read as
+--- commands to a player. Key logs use both (keys.lua), so "You" lines need this too.
 ---@param keys string
 ---@return string
 local function readable(keys)
-  return (keys:gsub("<lt>", "<"))
+  return (keys:gsub("<lt>", "<"):gsub("<Space>", " "))
 end
 
 ---@param keys string[]
@@ -64,11 +65,13 @@ local LABEL_INDENT = "         "
 
 --- Wraps at spaces, so a tip doesn't widen the card past an 80-column screen.
 ---@param text string
+---@param width integer|nil
 ---@return string[]
-local function wrap(text)
+local function wrap(text, width)
+  width = width or TIP_WIDTH
   local lines, line = {}, ""
   for word in text:gmatch("%S+") do
-    if line ~= "" and vim.fn.strdisplaywidth(line .. " " .. word) > TIP_WIDTH then
+    if line ~= "" and vim.fn.strdisplaywidth(line .. " " .. word) > width then
       table.insert(lines, line)
       line = word
     else
@@ -76,6 +79,26 @@ local function wrap(text)
     end
   end
   table.insert(lines, line)
+  return lines
+end
+
+-- Each step's text sits under its keys, indented past the label column.
+local STEP_TEXT_INDENT = LABEL_INDENT .. "  "
+
+--- The par route in steps, each with what it does (the level's `explain`).
+---@param explain vimdojo.ExplainStep[]|nil
+---@return string[]
+local function step_lines(explain)
+  if not explain then
+    return {}
+  end
+  local lines = { "" }
+  for index, step in ipairs(explain) do
+    table.insert(lines, (index == 1 and "  Steps  " or LABEL_INDENT) .. readable(step.keys))
+    for _, line in ipairs(wrap(step.text, TIP_WIDTH - 2)) do
+      table.insert(lines, STEP_TEXT_INDENT .. line)
+    end
+  end
   return lines
 end
 
@@ -97,6 +120,7 @@ local function lesson_lines(view)
   end
   table.insert(lines, "  Par    " .. readable(view.level.solution))
   table.insert(lines, "  Learn  " .. table.concat(view.level.teaches, ", "))
+  vim.list_extend(lines, step_lines(view.level.explain))
   return lines
 end
 

@@ -102,6 +102,13 @@ describe("challenges.validate_pack", function()
     { "an author with a double hyphen", { authors = { "a--b" } }, "is not a GitHub handle" },
     { "an author with an @", { authors = { "@ana" } }, "is not a GitHub handle" },
     { "an author listed twice", { authors = { "ana", "ana" } }, "listed twice" },
+    { "an empty explanation", { explain = {} }, "explain must be a non-empty array" },
+    { "a step without text", { explain = { { keys = "w", text = "" } } }, "explain step 1 needs" },
+    {
+      "steps that don't add up to the solution",
+      { solution = "ww", par_keys = 2, explain = { { keys = "w", text = "a word" } } },
+      "must add up to the solution",
+    },
   }
   for _, case in ipairs(invalid) do
     local name, overrides, expected = case[1], case[2], case[3]
@@ -111,6 +118,15 @@ describe("challenges.validate_pack", function()
       assert.is_truthy(all:find(expected, 1, true), all)
     end)
   end
+
+  it("accepts an explanation that adds up to the solution", function()
+    local pack = pack_with({
+      solution = "ww",
+      par_keys = 2,
+      explain = { { keys = "w", text = "one word" }, { keys = "w", text = "and another" } },
+    })
+    assert.are.same({}, challenges.validate_pack(pack))
+  end)
 
   it("accepts level and pack authors", function()
     local pack = pack_with({ authors = { "ana-b", "x1" } })
