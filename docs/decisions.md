@@ -972,3 +972,20 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   route can leave them changed for the next level. Goal registers are cleared when a level
   opens, and a run's score is decided by a replay in Neovim, so this can't help a score.
 
+## The overall board
+
+- **Most levels verified first, then fewest keys over par in total, then first there.**
+  Levels solved rewards breadth, which is what the game teaches. Keys over par (not total
+  keys) makes levels with long pars count the same as short ones.
+- **Only bests on a level's current version count, measured against its par,** which the
+  manifest now carries. A par change moves players' totals without resetting any board,
+  because the level hash doesn't cover par.
+- **Computed by the query, not stored.** One `GROUP BY` over `bests` with a window for the
+  rank is cheap at this size and can never drift from the per-level boards. **Downside
+  accepted:** it reads every best on each request, so it may need a stored table, or the
+  CDN cache it already has, as players grow.
+- **Hinted bests count.** Per-level boards rank them too and mark them, so the overall board
+  follows them.
+- **No time plausibility flags.** The proposal planned them to hide implausible times, but
+  boards never show time, only key counts, so there's nothing for them to protect.
+

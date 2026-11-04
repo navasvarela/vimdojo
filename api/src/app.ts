@@ -12,7 +12,16 @@ import {
   TOKEN_TOUCH_INTERVAL_MS,
 } from "./config"
 import { newToken, pkceChallenge, randomUrlSafe, sha256Hex } from "./crypto"
-import { ownDailyRank, ownRank, ownScores, publicBoard, publicDaily, publicProfile } from "./boards"
+import {
+  ownDailyRank,
+  ownOverall,
+  ownRank,
+  ownScores,
+  publicBoard,
+  publicDaily,
+  publicOverall,
+  publicProfile,
+} from "./boards"
 import type { GitHub } from "./github"
 import { HANDLE_RULES, handleProblem } from "./handles"
 import {
@@ -465,6 +474,13 @@ const getOwnScores: Handler = async (request, app) => {
   return json(await ownScores(app.runs, token.user_id))
 }
 
+const getOverall: Handler = async (_request, app) => json(await publicOverall(app.runs))
+
+const getOwnOverall: Handler = async (request, app) => {
+  const { token } = await authenticate(request, app)
+  return json(await ownOverall(app.runs, token.user_id))
+}
+
 const getPlayer: Handler = async (_request, app, [handle]) =>
   json(await publicProfile(app.runs, handle ?? ""))
 
@@ -481,6 +497,7 @@ const getOwnDaily: Handler = async (request, app) => {
 const PUBLIC_ROUTES: ReadonlyArray<readonly [RegExp, Handler]> = [
   [/^\/api\/v1\/levels\/([\w-]+)\/board$/, getBoard],
   [/^\/api\/v1\/players\/([\w-]+)$/, getPlayer],
+  [/^\/api\/v1\/overall$/, getOverall],
   [/^\/api\/v1\/daily(?:\/(\d{4}-\d{2}-\d{2}))?$/, getDaily],
 ]
 
@@ -493,6 +510,7 @@ const ROUTES: ReadonlyArray<readonly [string, RegExp, Handler]> = [
   ["GET", /^\/api\/v1\/levels\/([\w-]+)\/board\/me$/, getOwnRank],
   ["GET", /^\/api\/v1\/me\/scores$/, getOwnScores],
   ["GET", /^\/api\/v1\/daily\/me$/, getOwnDaily],
+  ["GET", /^\/api\/v1\/overall\/me$/, getOwnOverall],
   ["GET", /^\/api\/v1\/auth\/github\/start$/, githubStart],
   ["GET", /^\/api\/v1\/auth\/github\/callback$/, githubCallback],
   ["POST", /^\/api\/v1\/auth\/device$/, deviceStart],

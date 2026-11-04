@@ -868,6 +868,83 @@ describe("runs", () => {
       })
     })
 
+    describe("the overall board", () => {
+      const OTHER = "basic-motions-02"
+      const parOf = (level: string): number => manifestEntry(level)?.par_keys ?? Number.NaN
+
+      /** A verified run on another level, for a player who already has a handle. */
+      async function alsoSolves(token: string, keys: number, level = OTHER): Promise<void> {
+        await submit(
+          token,
+          runBody(
+            Array.from({ length: keys }, (_, i) => `o${i}`),
+            keys,
+            level,
+          ),
+        )
+        await verify()
+        now += 1000
+      }
+
+      type Overall = {
+        entries: Array<{ rank: number; handle: string; solved: number; over_par: number }>
+      }
+      const overall = async (): Promise<Overall> => (await publicGet("/api/v1/overall")).json()
+
+      it("ranks by levels solved, then by keys over par", async () => {
+        const par = parOf(LEVEL)
+        const both = await ranked(1, "both", par + 3)
+        await alsoSolves(both, parOf(OTHER) + 3)
+        await ranked(2, "near", par + 1)
+        await ranked(3, "at-par", par)
+        expect((await overall()).entries).toEqual([
+          { rank: 1, handle: "both", solved: 2, over_par: 6 },
+          { rank: 2, handle: "at-par", solved: 1, over_par: 0 },
+          { rank: 3, handle: "near", solved: 1, over_par: 1 },
+        ])
+      })
+
+      it("breaks a tie by who got there first", async () => {
+        const par = parOf(LEVEL)
+        await ranked(1, "first", par)
+        await ranked(2, "second", par)
+        expect((await overall()).entries.map((e) => e.handle)).toEqual(["first", "second"])
+      })
+
+      it("counts only bests on a level's current version", async () => {
+        await ranked(1, "ana", parOf(LEVEL))
+        await db.prepare("UPDATE bests SET level_hash = 'sha256:old'").run()
+        expect((await overall()).entries).toEqual([])
+      })
+
+      it("tells a player their own place", async () => {
+        await ranked(1, "ahead", parOf(LEVEL))
+        const mine = await ranked(2, "behind", parOf(LEVEL) + 2)
+        const response = await call("GET", "/api/v1/overall/me", mine)
+        expect(await response.json()).toEqual({ rank: 2, solved: 1, over_par: 2 })
+      })
+
+      it("has no place for a player with no verified best", async () => {
+        const token = await player(9)
+        const response = await call("GET", "/api/v1/overall/me", token)
+        expect(await response.json()).toEqual({ rank: null, solved: null, over_par: null })
+      })
+
+      it("shows on the public profile", async () => {
+        await ranked(1, "ana", parOf(LEVEL) + 1)
+        const profile = (await (await publicGet("/api/v1/players/ana")).json()) as {
+          overall: unknown
+        }
+        expect(profile.overall).toEqual({ rank: 1, handle: "ana", solved: 1, over_par: 1 })
+      })
+
+      it("is public and cacheable", async () => {
+        const response = await publicGet("/api/v1/overall")
+        expect(response.status).toBe(200)
+        expect(response.headers.get("cache-control")).toContain("public")
+      })
+    })
+
     describe("public profiles", () => {
       it("shows the handle, the join month and verified bests", async () => {
         await ranked(1, "ana", 3)

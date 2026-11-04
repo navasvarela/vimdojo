@@ -2,7 +2,15 @@
 // ever added as text, and only go into a URL encoded.
 import { dailyDate, dayNumber } from "../daily"
 import { h } from "../ui/dom"
-import type { BoardEntry, BoardsApi, DailyBoard, OwnRank, Player } from "./api"
+import type {
+  BoardEntry,
+  BoardsApi,
+  DailyBoard,
+  OverallEntry,
+  OwnOverall,
+  OwnRank,
+  Player,
+} from "./api"
 
 const HINT_NOTE = "* used the hint, which doesn't change the rank."
 const LOAD_FAILED = "Couldn't load this. Check your connection and try again."
@@ -71,6 +79,50 @@ export async function showBoard(root: HTMLElement, api: BoardsApi, levelId: stri
         entries.map((entry) => boardRow(entry, mine)),
       ),
       entries.some((entry) => entry.hinted) ? h("p", { className: "aside" }, [HINT_NOTE]) : "",
+    )
+  } catch {
+    root.replaceChildren(failure())
+  }
+}
+
+/** "+3", "0" or "−2": keys over par, which beating par makes negative. */
+export function overParText(overPar: number): string {
+  if (overPar > 0) {
+    return `+${overPar}`
+  }
+  return overPar < 0 ? `−${-overPar}` : "0"
+}
+
+function overallRow(entry: OverallEntry, mine: OwnOverall | undefined): HTMLElement {
+  return h("tr", mine?.rank === entry.rank ? { className: "board-mine" } : {}, [
+    h("td", {}, [String(entry.rank)]),
+    h("td", {}, [h("a", { attrs: { href: playerUrl(entry.handle) } }, [entry.handle])]),
+    h("td", {}, [String(entry.solved)]),
+    h("td", {}, [overParText(entry.over_par)]),
+  ])
+}
+
+export async function showOverall(root: HTMLElement, api: BoardsApi): Promise<void> {
+  try {
+    // The player's place is extra: failing to get it shouldn't lose the board.
+    const [entries, mine] = await Promise.all([
+      api.overall(),
+      api.ownOverall().catch(() => undefined),
+    ])
+    const place =
+      mine?.rank != null && mine.solved !== null && mine.over_par !== null
+        ? h("p", { className: "account-status" }, [
+            `You're #${mine.rank}, with ${mine.solved} levels at ${overParText(mine.over_par)} keys over par.`,
+          ])
+        : ""
+    root.replaceChildren(
+      place,
+      entries.length === 0
+        ? h("p", {}, ["No verified runs yet. Yours could be the first."])
+        : table(
+            ["#", "Player", "Levels", "Keys over par"],
+            entries.map((entry) => overallRow(entry, mine)),
+          ),
     )
   } catch {
     root.replaceChildren(failure())
@@ -179,8 +231,14 @@ export async function showPlayer(
       return
     }
     heading.textContent = player.handle
+    const overall = player.overall
     root.replaceChildren(
       h("p", { className: "aside" }, [`Playing since ${player.joined}.`]),
+      overall === null
+        ? ""
+        : h("p", { className: "account-status" }, [
+            `#${overall.rank} overall: ${overall.solved} levels at ${overParText(overall.over_par)} keys over par.`,
+          ]),
       player.bests.length === 0
         ? h("p", {}, ["No verified scores yet."])
         : table(

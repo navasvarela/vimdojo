@@ -4,6 +4,9 @@
 
 ### Added
 
+- **The overall board.** [vimdojo.org/boards](https://vimdojo.org/boards/) ranks players
+  across every ranked level: the most levels verified, then the fewest keys over par in
+  total. Profiles show each player's place, levels and keys over par.
 - **Watch par on the site.** `W` on the results card plays the level's par route on its
   own text, one key at a time, with the keys typed so far shown underneath. It's hidden
   on today's daily, like the route itself.

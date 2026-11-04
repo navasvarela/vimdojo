@@ -2,7 +2,16 @@ import { beforeEach, describe, expect, it } from "vitest"
 import { renderLevelOptions } from "../../build/board-levels"
 import { parsePacks } from "../challenges"
 import { BoardsApi } from "./api"
-import { boardUrl, dailyUrl, playerUrl, showBoard, showDaily, showPlayer } from "./pages"
+import {
+  boardUrl,
+  dailyUrl,
+  overParText,
+  playerUrl,
+  showBoard,
+  showDaily,
+  showOverall,
+  showPlayer,
+} from "./pages"
 
 type Route = { readonly status: number; readonly body?: unknown }
 
@@ -103,6 +112,46 @@ describe("the board page", () => {
     expect(root.textContent).toContain(hostile)
     expect(root.querySelector("tbody a")?.getAttribute("href")).toBe(playerUrl(hostile))
     expect(playerUrl(hostile)).not.toContain("<")
+  })
+})
+
+describe("the overall board", () => {
+  const OVERALL = { rank: 1, handle: "ana", solved: 12, over_par: 3 }
+
+  it("lists players with their levels and keys over par", async () => {
+    const root = document.createElement("div")
+    const { api } = apiWith({
+      "/overall": { status: 200, body: { entries: [OVERALL] } },
+      "/overall/me": { status: 401 },
+    })
+    await showOverall(root, api)
+    expect(root.querySelector("tbody")?.textContent).toBe("1ana12+3")
+    expect(root.textContent).not.toContain("You're")
+  })
+
+  it("says your place when you're signed in", async () => {
+    const root = document.createElement("div")
+    const { api } = apiWith({
+      "/overall": { status: 200, body: { entries: [OVERALL] } },
+      "/overall/me": { status: 200, body: { rank: 1, solved: 12, over_par: 3 } },
+    })
+    await showOverall(root, api)
+    expect(root.querySelector(".board-mine")?.textContent).toContain("ana")
+    expect(root.textContent).toContain("You're #1, with 12 levels at +3 keys over par.")
+  })
+
+  it("says so when it can't load", async () => {
+    const root = document.createElement("div")
+    await showOverall(root, apiWith({}).api)
+    expect(root.textContent).toContain("Couldn't load this")
+  })
+
+  it.each([
+    [3, "+3"],
+    [0, "0"],
+    [-2, "−2"],
+  ])("writes %i keys over par as %s", (overPar, text) => {
+    expect(overParText(overPar)).toBe(text)
   })
 })
 
@@ -215,6 +264,22 @@ describe("the profile page", () => {
     expect(root.textContent).toContain("Level title")
     expect(root.textContent).toContain("Playing since 2026-10")
     expect(root.querySelector("tbody a")?.getAttribute("href")).toBe(boardUrl("l"))
+  })
+
+  it("shows the player's overall place", async () => {
+    const { api } = apiWith({
+      "/players/ana": {
+        status: 200,
+        body: {
+          handle: "ana",
+          joined: "2026-10",
+          overall: { rank: 3, handle: "ana", solved: 12, over_par: -1 },
+          bests: [],
+        },
+      },
+    })
+    await showPlayer(root, heading, api, "ana", NAMES)
+    expect(root.textContent).toContain("#3 overall: 12 levels at −1 keys over par.")
   })
 
   it.each([
