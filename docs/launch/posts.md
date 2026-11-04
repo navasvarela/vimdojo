@@ -6,9 +6,11 @@ channel's rules first, and [plan.md](plan.md) for the order.
 **Rewrite these in your own voice before posting.** Several channels ask for
 it outright: Hacker News says "Please don't put generated text in HN posts"
 (this covers your first comment), and dev.to and Medium require AI-assisted
-posts to say so. Treat the text below as a fact-checked outline. The numbers
-are correct for v0.5.0: 84 levels, 16 packs, three tracks, 19 levels in the
-browser demo, and a daily challenge picked from those 19.
+posts to say so, and r/neovim's Rule 11 asks for AI involvement to be disclosed.
+Treat the text below as a fact-checked outline. The numbers are correct for
+v0.11.0: 135 levels in 22 packs across three tracks (104 Motions, 13 Usage, 18
+Setup), 117 of them ranked, 19 in the browser demo, and a daily challenge picked
+from those 19.
 
 Links used throughout:
 
@@ -16,10 +18,14 @@ Links used throughout:
 - Browser demo and today's daily: https://vimdojo.org
 - Discussions: https://github.com/navasvarela/vimdojo/discussions
 - GIF: https://raw.githubusercontent.com/navasvarela/vimdojo/main/docs/demo.gif
+- Leaderboards: https://vimdojo.org/boards/
 
 ---
 
 ## r/neovim
+
+**Not before Thursday 2026-12-17.** Rule 10 bans day-one plugin announcements:
+two months of active development first, with commit history to show it.
 
 **Flair:** `Plugin`
 
@@ -44,15 +50,24 @@ link instead, put the GIF first in the body.
 > it.
 >
 > There's a **daily challenge**: one level a day, the same for everyone, at
-> the top of the menu (`:VimDojo daily`) and in the browser. `y` on the
-> results card copies a spoiler-free line like
-> `vimdojo daily 2026-11-03 ★★★ 7 keys (par 7) 4.3s`, so post yours below.
+> the top of the menu (`:VimDojo daily`) and in the browser, with a board of
+> its own and a streak if you come back. `y` on the results card copies a
+> spoiler-free result with a link that challenges others to beat your count,
+> so post yours below.
 >
-> - 84 levels in three tracks: **Motions** (hjkl through text objects,
->   registers, macros, `:g` and `:s`), **Usage** (splits, `gf`, `:find`,
->   `:vimgrep` + `:cdo`, `gc`, `]d`) and **Setup** (write or fix an
->   `init.lua`; behavior probes run your config in a sandboxed headless
->   Neovim and check what it does).
+> - 135 levels in three tracks: **Motions** (hjkl through text objects,
+>   registers, macros, `:g`, regex with `\v` and lookaround, the expression
+>   register, marks, Ex ranges, and boss levels that are whole refactors),
+>   **Usage** (splits, `gf`, `:find`, `:vimgrep` + `:cdo`, `gc`, `]d`) and
+>   **Setup** (write or fix an `init.lua`; behavior probes run your config in a
+>   sandboxed headless Neovim and check what it does).
+> - After a solve, the results card shows your keys beside the par route, a
+>   tip from your own keys (`jjjj` could be `4j`), and on the hardest levels
+>   the route broken into steps. Practice mode replays a level with nothing
+>   recorded.
+> - Optional leaderboards: a server replays every submitted run in a clean
+>   Neovim and recounts the keys, so the boards only show what it can
+>   reproduce. Off by default, no account needed to play.
 > - Every level runs in its own `nvim --clean` in a terminal window, so your
 >   registers, mappings and plugins are never touched, and plugins can't skew
 >   par. `config = "mine"` plays with your config instead.
@@ -64,7 +79,8 @@ link instead, put the GIF first in the body.
 >
 > There's also a [browser demo](https://vimdojo.org) with 19 levels and
 > today's daily on CodeMirror's Vim emulation, if you want to try it before
-> installing.
+> installing. Runs from the browser go on the same boards: they're replayed
+> in real Neovim too.
 >
 > Levels are plain JSON with a reference solution, so new ones are easy to
 > add and CI tells you if the par is wrong. I'd love level ideas, and
@@ -74,9 +90,9 @@ link instead, put the GIF first in the body.
 >
 > Repo: https://github.com/navasvarela/vimdojo
 >
-> [One or two sentences, in your words, on how you built it and the role AI
-> played, if any. r/neovim readers ask, and saying it first goes much better
-> than being asked.]
+> [Required by Rule 11: one or two sentences, in your words, on how you built
+> it and the role AI played. Saying it up front goes much better than being
+> asked.]
 
 Alternative format, recommended by the hardtime.nvim author: keep the post
 body to the first two paragraphs and the links, and put the bullet list in
@@ -104,9 +120,9 @@ against par (browser demo + Neovim plugin)
 > (CodeMirror's Vim emulation, so key counts can differ slightly from real
 > Vim).
 >
-> The full game (84 levels) is a Neovim plugin: it needs Neovim 0.10+, and
+> The full game (135 levels) is a Neovim plugin: it needs Neovim 0.10+, and
 > each level runs in a clean `nvim --clean`. The Motions track (hjkl through
-> text objects, registers, macros and Ex commands) applies to Vim as-is.
+> text objects, registers, macros, regex and Ex commands) applies to Vim as-is.
 >
 > Feedback on the level design welcome: https://github.com/navasvarela/vimdojo
 
@@ -133,9 +149,9 @@ what's different, in your words, so use these as notes:
 > can always get three stars and people who know more Vim can beat it.
 >
 > The browser demo is 19 levels on CodeMirror's Vim emulation, with a daily
-> puzzle picked from the date, so everyone gets the same one with no server.
-> The real game is a Neovim plugin with 84 levels, and a few things there
-> were fun to build:
+> puzzle picked from the date, so everyone gets the same one without asking a
+> server. The real game is a Neovim plugin with 135 levels, and a few things
+> there were fun to build:
 >
 > - Each level runs in a child `nvim --clean` inside a terminal window. The
 >   parent counts keys with `vim.on_key`; the child checks the goal itself
@@ -151,9 +167,14 @@ what's different, in your words, so use these as notes:
 >   behavior (press `<Space>w`, write a file and read it back). Infinite
 >   loops get SIGKILLed after 3 s, because Neovim handles SIGTERM on its event
 >   loop.
+> - The optional leaderboards don't trust the client: each submitted key log
+>   is replayed in a fresh Neovim inside a network-less microVM, and the
+>   server recounts the keys. Browser runs are replayed in real Neovim too, so
+>   the demo's emulation never decides a score.
 >
-> It's MIT, no dependencies, no accounts. I'd like feedback on level design,
-> and on any par you beat with only the taught motions.
+> It's MIT, no dependencies, and accounts are only for the leaderboards. I'd
+> like feedback on level design, and on any par you beat with only the taught
+> motions.
 >
 > [How you built it, including the role AI played, if any.]
 
@@ -196,6 +217,7 @@ screen readers read them correctly.
 > I made vimdojo, a game of tiny Vim puzzles inside Neovim. Each level is a
 > few lines of text and one goal, scored on keystrokes against a par. Par only
 > uses motions you've been taught so far, so knowing more Vim beats it.
+> [Your AI line.]
 >
 > https://github.com/navasvarela/vimdojo #Neovim #Vim
 
@@ -205,9 +227,9 @@ then the next level starts."
 
 **2/4**
 
-> 84 levels in three tracks: Motions (hjkl to macros and :s), Usage (splits,
-> gf, :vimgrep with :cdo) and Setup, where you fix an init.lua and probes run
-> it in a sandboxed headless Neovim to check what it does.
+> 135 levels in three tracks: Motions (hjkl to regex and boss refactors),
+> Usage (splits, gf, :vimgrep with :cdo) and Setup, where you fix an init.lua
+> and probes run it in a sandboxed headless Neovim to check what it does.
 
 **3/4**
 
@@ -218,53 +240,17 @@ then the next level starts."
 **4/4**
 
 > No install needed: 19 levels and today's daily puzzle in the browser.
-> Everyone gets the same daily, and you can copy a spoiler-free score to
-> reply with. https://vimdojo.org #OpenSource #NeovimPlugin
+> Everyone gets the same daily, with its own board, and you can copy a
+> spoiler-free score that challenges others to beat it.
+> https://vimdojo.org #OpenSource #NeovimPlugin
 
 ---
 
-## awesome-neovim PR
+## awesome-neovim
 
-Eligible from **2026-10-24** (the list wants plugins at least a week old;
-the repo was created 2026-10-17).
-
-**PR title:** ``Add `navasvarela/vimdojo` ``
-
-**Section:** `## Game`, appended at the end of the list.
-
-**Line:**
-
-```markdown
-- [navasvarela/vimdojo](https://github.com/navasvarela/vimdojo) - Learn Vim motions, workflows and Lua configuration through tiny puzzles scored on keystrokes against par.
-```
-
-Shorter alternative:
-
-```markdown
-- [navasvarela/vimdojo](https://github.com/navasvarela/vimdojo) - Learn Vim through tiny puzzles scored on keystrokes against par.
-```
-
-**PR body:** keep the template exactly; fill in the repo URL and tick the
-boxes:
-
-```markdown
-### Repo URL:
-
-https://github.com/navasvarela/vimdojo
-
-### Checklist:
-
-- [x] The plugin is specifically built for Neovim.
-- [x] The plugin is licensed.
-- [x] The lines end with a `.`. This is to conform to `awesome-list` linting and requirements.
-- [x] The title of the pull request is ```Add/Update/Remove `username/repo` ``` (notice the backticks around ``` `username/repo` ```) when adding a new plugin.
-- [x] The description doesn't mention that it's a Neovim plugin, it's obvious from the rest of the document. No mentions of the word `plugin` unless it's related to something else. No `.. for Neovim`.
-- [x] The description doesn't contain emojis.
-- [x] Neovim is spelled as `Neovim` (not `nvim`, `NeoVim` or `neovim`), Vim is spelled as `Vim` (capitalized), Lua is spelled as `Lua` (capitalized), Tree-sitter is spelled as `Tree-sitter`.
-- [x] Acronyms (`LSP`, `TS`, `YAML`, etc.) are fully capitalized.
-```
-
-Run `./scripts/readme-check.sh` in your fork before opening it.
+Done: listed under `## Game` since
+[rockerBOO/awesome-neovim#2587](https://github.com/rockerBOO/awesome-neovim/pull/2587)
+merged. Dotfyle, Neovimcraft and the weekly Track Awesome List digest pull from it.
 
 ---
 
@@ -280,4 +266,8 @@ notifications), and that the Setup sandbox found a real-world gotcha
 (`vim.system`'s timeout sends SIGTERM, which a busy-looping config never
 handles). The daily challenge is picked from the date with a seeded
 shuffle (MINSTD, exact in both Lua and JavaScript), so the plugin and the
-site agree with no server.
+site agree without asking a server. The leaderboard verifier replays key logs
+through `nvim --embed` as an RPC client that refuses every request from the
+replayed Neovim, so a hostile log can't run code in the harness.
+
+Post it in Phase 1 (the quiet announcement), before r/neovim.
