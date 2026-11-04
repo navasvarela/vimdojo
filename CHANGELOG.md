@@ -7,6 +7,11 @@
 - **The overall board.** [vimdojo.org/boards](https://vimdojo.org/boards/) ranks players
   across every ranked level: the most levels verified, then the fewest keys over par in
   total. Profiles show each player's place, levels and keys over par.
+- **"Beat my keys" links.** The result you copy with `y` (or Copy result on the site) now
+  ends with a link to that level and your count, such as
+  `https://vimdojo.org/?play=macros-01&beat=7`. It opens the level in the browser demo
+  with your count to beat, and says whether the new player beat it. Still spoiler-free:
+  it never includes your keys. For a level that's only in the plugin, the site says so.
 - **Watch par on the site.** `W` on the results card plays the level's par route on its
   own text, one key at a time, with the keys typed so far shown underneath. It's hidden
   on today's daily, like the route itself.

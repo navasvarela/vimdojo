@@ -5,6 +5,7 @@ import { stars } from "./ui/dom"
 export const SITE_URL = "https://vimdojo.org"
 
 export type ShareView = {
+  readonly levelId: string
   readonly levelTitle: string
   readonly parKeys: number
   readonly dailyDate: string | undefined
@@ -26,5 +27,7 @@ export function shareText(view: ShareView): string {
   const { outcome } = view
   const score = `${stars(outcome.stars)} ${outcome.keys} keys (par ${view.parKeys}) ${tenths(outcome.seconds)}s`
   const hint = outcome.hinted ? " · hint" : ""
-  return `vimdojo ${name} ${score}${hint}\n${SITE_URL}`
+  // The link names the level and the count, never the keys, so it stays spoiler-free.
+  const link = `${SITE_URL}/?play=${view.levelId}&beat=${outcome.keys}`
+  return `vimdojo ${name} ${score}${hint}\nBeat it: ${link}`
 }

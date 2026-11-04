@@ -111,6 +111,7 @@ describe("daily.pickDaily (shared fixtures)", () => {
 const ShareCase = z.object({
   name: z.string(),
   view: z.object({
+    level_id: z.string(),
     level_title: z.string(),
     par_keys: z.number(),
     daily_date: z.string().optional(),
@@ -129,6 +130,7 @@ describe("share.shareText (shared fixtures)", () => {
   it.each(cases.map((c) => [c.name, c] as const))("%s", (_name, { view, expected }) => {
     expect(
       shareText({
+        levelId: view.level_id,
         levelTitle: view.level_title,
         parKeys: view.par_keys,
         dailyDate: view.daily_date,
