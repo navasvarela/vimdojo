@@ -56,6 +56,7 @@ describe("verifier/manifest.json", function()
         expected[level.id] = {
           daily = level.web_demo == true,
           hash = level_hash.of(level),
+          par_keys = level.par_keys,
           ranked = pack.track ~= "setup",
         }
       end
