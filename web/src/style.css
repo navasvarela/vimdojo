@@ -564,6 +564,13 @@ h2::before {
   cursor: pointer;
 }
 
+.challenge {
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--accent);
+  color: var(--text);
+}
+
 .par-player {
   margin-top: 12px;
 }
