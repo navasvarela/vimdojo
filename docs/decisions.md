@@ -947,3 +947,15 @@ PLAN-v3.md records the full table. The two departures from the proposal:
 - **No API change.** A web run is an ordinary run whose `nvim` field says `web`.
 - **Not in this change:** global totals and time plausibility flags (proposal phase 2).
 
+## Tips
+
+- **Read as commands, not keys.** Text typed in Insert mode or on the command line, and
+  the argument after `f`, `r` or `m`, never looks like a run of motions, so `ijjjj<Esc>`
+  gets no tip.
+- **One tip, the one worth the most keys.** A list of everything would be noise. Arrow
+  keys only get a tip when nothing saves more.
+- **Only over par.** At or under par there's nothing to shorten.
+- **Shared rules, pinned by `tests/fixtures/tips.json`,** like scoring and the daily, so
+  Neovim and the site give the same advice for the same keys.
+- **Tips don't reveal the par route,** so they show on today's daily too.
+

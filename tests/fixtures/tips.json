@@ -1,0 +1,104 @@
+{
+  "cases": [
+    {
+      "name": "nothing to say about a short attempt",
+      "keys": ["w", "w"],
+      "tip": null
+    },
+    {
+      "name": "a run of one motion",
+      "keys": ["j", "j", "j", "j", "l", "l"],
+      "tip": "You typed `j` 4 times in a row: `4j` does the same in 2 keys."
+    },
+    {
+      "name": "the longest saving wins",
+      "keys": ["j", "j", "j", "w", "w", "w", "w", "w", "w"],
+      "tip": "You typed `w` 6 times in a row: `6w` does the same in 2 keys."
+    },
+    {
+      "name": "a counted motion isn't a run",
+      "keys": ["4", "j", "j", "j"],
+      "tip": null
+    },
+    {
+      "name": "a run of a two-key command",
+      "keys": ["d", "w", "d", "w"],
+      "tip": "You typed `dw` 2 times in a row: `2dw` does the same in 3 keys."
+    },
+    {
+      "name": "a run of a linewise command",
+      "keys": ["d", "d", "d", "d", "d", "d"],
+      "tip": "You typed `dd` 3 times in a row: `3dd` does the same in 3 keys."
+    },
+    {
+      "name": "a run of a Ctrl key",
+      "keys": ["<C-A>", "<C-A>", "<C-A>", "<C-A>", "<C-A>"],
+      "tip": "You typed `<C-A>` 5 times in a row: `5<C-A>` does the same in 2 keys."
+    },
+    {
+      "name": "typed text isn't a run",
+      "keys": ["i", "j", "j", "j", "j", "<Esc>"],
+      "tip": null
+    },
+    {
+      "name": "a search isn't a run",
+      "keys": ["/", "l", "l", "l", "l", "<CR>"],
+      "tip": null
+    },
+    {
+      "name": "the character after f isn't a run",
+      "keys": ["f", "j", "f", "j", "f", "j"],
+      "tip": "You typed `fj` 3 times in a row: `3fj` does the same in 3 keys."
+    },
+    {
+      "name": "delete then insert is change",
+      "keys": ["d", "w", "i", "x", "<Esc>"],
+      "tip": "`dw` then `i` is `cw`, one key shorter."
+    },
+    {
+      "name": "x then i is s",
+      "keys": ["x", "i", "y", "<Esc>"],
+      "tip": "`x` then `i` is `s`, one key shorter."
+    },
+    {
+      "name": "D then a is C",
+      "keys": ["D", "a", "!", "<Esc>"],
+      "tip": "`D` then `a` is `C`, one key shorter."
+    },
+    {
+      "name": "^ then i is I",
+      "keys": ["^", "i", "#", "<Esc>"],
+      "tip": "`^` then `i` is `I`, one key shorter."
+    },
+    {
+      "name": "$ then a is A",
+      "keys": ["$", "a", ";", "<Esc>"],
+      "tip": "`$` then `a` is `A`, one key shorter."
+    },
+    {
+      "name": "A then a line break is o",
+      "keys": ["A", "<CR>", "x", "<Esc>"],
+      "tip": "`A` then `<CR>` is `o`, one key shorter."
+    },
+    {
+      "name": "arrow keys",
+      "keys": ["<Down>", "<Down>", "<Right>"],
+      "tip": "Arrow keys move your hand off the home row: `h` `j` `k` `l` do the same in Normal mode."
+    },
+    {
+      "name": "arrow keys aren't suggested as a count",
+      "keys": ["<Down>", "<Down>", "<Down>", "<Down>"],
+      "tip": "Arrow keys move your hand off the home row: `h` `j` `k` `l` do the same in Normal mode."
+    },
+    {
+      "name": "a change after a count is left alone",
+      "keys": ["2", "d", "w", "i", "x", "<Esc>"],
+      "tip": "`2dw` then `i` is `2cw`, one key shorter."
+    },
+    {
+      "name": "a text object then insert is change",
+      "keys": ["d", "i", "w", "i", "x", "<Esc>"],
+      "tip": "`diw` then `i` is `ciw`, one key shorter."
+    }
+  ]
+}

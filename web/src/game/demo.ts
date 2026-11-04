@@ -21,6 +21,7 @@ import { presentGoal, type GoalPresentation } from "./goal-view"
 import { readableKeys, SOLUTION_HIDDEN } from "./lesson"
 import { RunError, RunsApi, type Run, VERIFY_POLL_MS, VERIFY_POLL_TRIES, verdictText } from "./runs"
 import { Session, type Outcome, type UnloggedReason } from "./session"
+import { tip } from "./tips"
 
 const UNLOGGED_TEXT: Readonly<Record<UnloggedReason, string>> = {
   pasted: "This attempt included pasted text, so it can't go on the leaderboards.",
@@ -436,6 +437,10 @@ export class Demo {
       dailyDate: play.dailyDate,
       outcome,
     })
+    // Only an attempt over par gets a tip: at or under par, there's nothing to shorten.
+    const log = play.session.keyLog()
+    const advice =
+      log !== undefined && outcome.keys > play.level.par_keys ? tip(log.keys) : undefined
     const online = h("div", { className: "results-online" })
     void this.offerSubmit(play, outcome, online)
     const card = h(
@@ -469,6 +474,8 @@ export class Demo {
           ]),
           !solutionHidden && h("dt", {}, ["Learn"]),
           !solutionHidden && h("dd", {}, [play.level.teaches.join(", ")]),
+          advice !== undefined && h("dt", {}, ["Tip"]),
+          advice !== undefined && h("dd", {}, [advice]),
         ]),
         outcome.hinted && h("p", { className: "results-note" }, ["Hint used: capped at 2 stars."]),
         h("div", { className: "results-actions" }, [nextButton, retryButton, copyButton]),

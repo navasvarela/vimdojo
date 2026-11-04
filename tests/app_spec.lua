@@ -180,6 +180,23 @@ describe("playing a level", function()
       assert.is_truthy(card:find("Learn  j, l", 1, true))
     end)
 
+    it("gives a tip on a solve over par, and none at par", function()
+      local TEXT = "return table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), '\\n')"
+      assert.is_true(player:start("basic-motions-01"))
+      -- Down, back up, then down the rest of the way in a run a count would shorten.
+      player:type("jkjjjll")
+      assert.is_truthy(player:wait_for_record("basic-motions-01"))
+      assert.is_truthy(player:poll(function()
+        return player:lua(TEXT):find("`3j` does the same", 1, true)
+      end))
+
+      player:input("r")
+      assert.is_truthy(player:wait_for("(" .. CURRENT .. " or {}).ready == true"))
+      player:type("jjjll")
+      assert.is_truthy(player:wait_for(CURRENT .. ".session:is_finished()"))
+      assert.is_nil(player:lua(TEXT):find("Tip", 1, true))
+    end)
+
     describe("daily streaks", function()
       local FIX_CLOCK_ON_DAILY = [[
         local daily = require("vimdojo.daily")

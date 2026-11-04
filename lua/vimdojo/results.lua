@@ -17,6 +17,7 @@ local M = {}
 ---@field solution_hidden boolean It's today's daily: the board is still open.
 ---@field record vimdojo.LevelRecord Best-so-far, including this attempt.
 ---@field streak vimdojo.StreakView|nil Set when this solve was today's daily.
+---@field tip string|nil A shorter way to type what the player typed (tips.lua).
 ---@field has_next boolean
 ---@field can_submit boolean Offer to submit this run to the leaderboards.
 ---@field has_board boolean Offer to show this level's board.
@@ -57,12 +58,38 @@ end
 
 --- What the attempt can teach: the player's keys beside the par route. On today's
 --- daily, showing it would let anyone copy their way up the board until the day ends.
+-- The card's labels take 9 columns, and its other lines stay within 70.
+local TIP_WIDTH = 61
+local LABEL_INDENT = "         "
+
+--- Wraps at spaces, so a tip doesn't widen the card past an 80-column screen.
+---@param text string
+---@return string[]
+local function wrap(text)
+  local lines, line = {}, ""
+  for word in text:gmatch("%S+") do
+    if line ~= "" and vim.fn.strdisplaywidth(line .. " " .. word) > TIP_WIDTH then
+      table.insert(lines, line)
+      line = word
+    else
+      line = line == "" and word or line .. " " .. word
+    end
+  end
+  table.insert(lines, line)
+  return lines
+end
+
 ---@param view vimdojo.ResultsView|vimdojo.PracticeView
 ---@return string[]
 local function lesson_lines(view)
   local lines = {}
   if view.typed_keys then
     table.insert(lines, "  You    " .. typed_summary(view.typed_keys))
+  end
+  if view.tip then
+    for index, line in ipairs(wrap(view.tip)) do
+      table.insert(lines, (index == 1 and "  Tip    " or LABEL_INDENT) .. line)
+    end
   end
   if view.solution_hidden then
     table.insert(lines, "  Par    shown once today's daily ends (00:00 UTC)")
@@ -144,6 +171,7 @@ end
 ---@field outcome vimdojo.Outcome
 ---@field typed_keys string[]|nil
 ---@field solution_hidden boolean
+---@field tip string|nil
 
 ---@class vimdojo.PracticeActions
 ---@field retry fun()
