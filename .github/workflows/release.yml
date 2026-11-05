@@ -9,7 +9,6 @@ on:
   pull_request:
     paths-ignore:
       - "**.md"
-      - "docs/launch/**"
       - "docs/proposals/**"
 
 # Read-only token; the upload authenticates with its own API key, which fork
