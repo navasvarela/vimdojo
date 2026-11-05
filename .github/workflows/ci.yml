@@ -42,7 +42,7 @@ jobs:
           # would let untested code merge.
           if ! changed=$(git diff --name-only "$BASE" "$HEAD"); then
             echo "code=true" >>"$GITHUB_OUTPUT"
-          elif grep -qvE '\.md$|^docs/launch/|^docs/proposals/' <<<"$changed"; then
+          elif grep -qvE '\.md$|^docs/proposals/' <<<"$changed"; then
             echo "code=true" >>"$GITHUB_OUTPUT"
           else
             echo "code=false" >>"$GITHUB_OUTPUT"
