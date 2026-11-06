@@ -6,6 +6,26 @@
   "order": 22,
   "authors": ["navasvarela"],
   "track": "setup",
+  "lesson": {
+    "intro": [
+      "Neovim 0.11 made several things simple that used to take plugins or boilerplate. Diagnostics are set up in one call, floating windows get a default border from one option, and language servers are configured with vim.lsp.config and started with vim.lsp.enable."
+    ],
+    "commands": [
+      {
+        "keys": "vim.diagnostic.config",
+        "text": "Choose how diagnostics show. vim.diagnostic.config({ virtual_text = true }) puts each message at the end of its line, which 0.11 no longer does by default."
+      },
+      {
+        "keys": "winborder",
+        "text": "The default border for floating windows, such as \"rounded\" or \"single\"."
+      },
+      {
+        "keys": "vim.lsp.config",
+        "text": "Configure a language server. vim.lsp.config(\"*\", { ... }) sets defaults for every server, and vim.lsp.enable(\"name\") starts one for its filetypes."
+      }
+    ],
+    "help": ["vim.diagnostic.config()", "'winborder'", "lsp-config"]
+  },
   "levels": [
     {
       "id": "modern-01",

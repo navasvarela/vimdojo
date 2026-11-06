@@ -51,7 +51,7 @@
               "keys": { "type": "string", "minLength": 1 },
               "text": { "description": "What the command does.", "type": "string", "minLength": 1 },
               "example": {
-                "description": "One line before and after the keys run.",
+                "description": "One line before and after the keys run, replayed in Neovim by tests/lesson_spec.lua.",
                 "type": "object",
                 "additionalProperties": false,
                 "required": ["before", "cursor", "keys", "after"],
@@ -63,7 +63,12 @@
                     "minimum": 0
                   },
                   "keys": { "description": "In key notation.", "type": "string", "minLength": 1 },
-                  "after": { "type": "string" }
+                  "after": { "type": "string" },
+                  "cursor_after": {
+                    "description": "0-based byte column where the cursor ends up in after, for examples of motions.",
+                    "type": "integer",
+                    "minimum": 0
+                  }
                 }
               }
             }

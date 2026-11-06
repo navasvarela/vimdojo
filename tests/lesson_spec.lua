@@ -75,6 +75,13 @@ describe("lesson.errors", function()
       error = "lesson commands[1] (w): example cursor must be a byte column inside before",
     },
     {
+      name = "an example's cursor_after past the end of its line",
+      edit = function(l)
+        l.commands[1].example.cursor_after = #"world"
+      end,
+      error = "lesson commands[1] (w): example cursor_after must be a byte column inside after",
+    },
+    {
       name = "a command its levels teach but it leaves out",
       edit = function(l)
         l.commands[1].keys = "b"
@@ -92,27 +99,52 @@ describe("lesson.errors", function()
   end
 end)
 
+---@class vimdojo.ExampleRun
+---@field line string
+---@field cursor integer 0-based byte column.
+
 --- Runs an example's keys on its line in a scratch buffer, as a player would type them.
 ---@param example vimdojo.LessonExample
----@return string
+---@return vimdojo.ExampleRun
 local function run_example(example)
   local buf = vim.api.nvim_create_buf(false, true)
   vim.api.nvim_set_current_buf(buf)
   vim.api.nvim_buf_set_lines(buf, 0, -1, true, { example.before })
   vim.api.nvim_win_set_cursor(0, { 1, example.cursor })
-  -- "n" ignores any mappings, "x" runs the keys now rather than when the test yields.
-  vim.api.nvim_feedkeys(vim.keycode(example.keys), "nx", false)
-  local lines = vim.api.nvim_buf_get_lines(buf, 0, -1, true)
+  -- "n" ignores any mappings, "t" makes the keys count as typed, so q records them,
+  -- and "x" runs them now rather than when the test yields.
+  vim.api.nvim_feedkeys(vim.keycode(example.keys), "ntx", false)
+  local run = {
+    line = table.concat(vim.api.nvim_buf_get_lines(buf, 0, -1, true), "\n"),
+    cursor = vim.api.nvim_win_get_cursor(0)[2],
+  }
   vim.api.nvim_buf_delete(buf, { force = true })
-  return table.concat(lines, "\n")
+  return run
 end
+
+-- A lesson panel has a border and sits on an 80-column screen.
+local MAX_LESSON_WIDTH = 78
 
 describe("shipped lessons", function()
   for _, pack in ipairs(assert(challenges.load_dir(challenges.default_dir()))) do
+    if pack.lesson then
+      it(("%s: fits an 80-column screen"):format(pack.pack), function()
+        local lesson_panel = require("vimdojo.lesson_panel")
+        for _, line in ipairs(lesson_panel.content(pack.lesson)) do
+          assert(vim.fn.strdisplaywidth(line) <= MAX_LESSON_WIDTH, "too wide: " .. line)
+        end
+      end)
+    end
+
     for _, command in ipairs(pack.lesson and pack.lesson.commands or {}) do
-      if command.example then
+      local example = command.example
+      if example then
         it(("%s: %s's example does what it shows"):format(pack.pack, command.keys), function()
-          assert.are.equal(command.example.after, run_example(command.example))
+          local run = run_example(example)
+          assert.are.equal(example.after, run.line)
+          if example.cursor_after then
+            assert.are.equal(example.cursor_after, run.cursor)
+          end
         end)
       end
     end
@@ -144,5 +176,27 @@ describe("lesson_panel.content", function()
       return highlight.group == "VimDojoCursor"
     end, highlights)[1]
     assert.are.equal("é", lines[cursor.line + 1]:sub(cursor.col + 1, cursor.end_col))
+  end)
+
+  it("gives keys too wide for the column a line of their own", function()
+    local value = valid_lesson()
+    table.insert(value.commands, { keys = "macro stops on failure", text = "It stops." })
+    local lines = lesson_panel.content(value)
+    assert.is_truthy(vim.tbl_contains(lines, "  macro stops on failure"))
+    assert.is_truthy(vim.tbl_contains(lines, "      It stops."))
+  end)
+
+  it("draws the cursor where a motion leaves it, and shows <lt> as <", function()
+    local value = valid_lesson()
+    value.commands[1].example =
+      { before = "a <b>", cursor = 0, keys = "f<lt>", after = "a <b>", cursor_after = 2 }
+    local lines, highlights = lesson_panel.content(value)
+    local example = lines[5]
+    assert.are.equal("      a <b>   f<   a <b>", example)
+    local cursors = vim.tbl_filter(function(highlight)
+      return highlight.group == "VimDojoCursor"
+    end, highlights)
+    assert.are.equal(2, #cursors)
+    assert.are.equal(#"      a <b>   f<   a ", cursors[2].col)
   end)
 end)

@@ -103,8 +103,8 @@ they teach, with a one-line example and the |:help| tags to read next. It shows
 before a level of that pack until you've solved one of its levels, so you meet
 it before the pack's first puzzle. <CR> starts the level, and `q` goes back to
 the menu. Press `L` on a pack in the menu to read its lesson any time, even
-for a locked pack. The menu marks packs that have one. Operate and Text Objects
-have lessons so far.
+for a locked pack. The menu marks packs that have one: every pack except Boss
+Levels, which teaches nothing new.
 
                                                                *vimdojo-setup*
 Setup levels hand you an `init.lua` to fix or extend instead of plain text.

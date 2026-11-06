@@ -5,6 +5,89 @@
   "description": "Get anywhere in a few keys: f t ; , for characters, { } for paragraphs, % for brackets, and counts.",
   "order": 2,
   "authors": ["navasvarela"],
+  "lesson": {
+    "intro": [
+      "The quickest way along a line is to say where you're going. f and a character jumps onto the next one on the line, and t stops just before it, which is what you want after an operator: dt) deletes up to the bracket and keeps it.",
+      "; repeats the last f or t, and , repeats it backwards. { and } jump between the blank lines that separate blocks, % jumps between matching brackets, and most motions take a count first: 3w is w three times."
+    ],
+    "commands": [
+      {
+        "keys": "f",
+        "text": "Jump onto the next occurrence of a character on the line: f; for the next semicolon. F looks backwards.",
+        "example": {
+          "before": "a = b; c = d;",
+          "cursor": 0,
+          "keys": "f;",
+          "after": "a = b; c = d;",
+          "cursor_after": 5
+        }
+      },
+      {
+        "keys": "t",
+        "text": "Jump to just before a character: t) stops before the bracket. T looks backwards.",
+        "example": {
+          "before": "call(x, y)",
+          "cursor": 0,
+          "keys": "t)",
+          "after": "call(x, y)",
+          "cursor_after": 8
+        }
+      },
+      {
+        "keys": ";",
+        "text": "Repeat the last f, F, t or T.",
+        "example": {
+          "before": "a, b, c, d",
+          "cursor": 0,
+          "keys": "f,;;",
+          "after": "a, b, c, d",
+          "cursor_after": 7
+        }
+      },
+      {
+        "keys": ",",
+        "text": "Repeat the last f, F, t or T in the other direction.",
+        "example": {
+          "before": "a, b, c, d",
+          "cursor": 0,
+          "keys": "f,;;,",
+          "after": "a, b, c, d",
+          "cursor_after": 4
+        }
+      },
+      {
+        "keys": "}",
+        "text": "Forward to the next blank line, the end of the paragraph or block."
+      },
+      {
+        "keys": "{",
+        "text": "Back to the previous blank line."
+      },
+      {
+        "keys": "%",
+        "text": "Jump to the bracket that matches the one under the cursor, or the first one after it on the line.",
+        "example": {
+          "before": "if (a(b) && c)",
+          "cursor": 0,
+          "keys": "%",
+          "after": "if (a(b) && c)",
+          "cursor_after": 13
+        }
+      },
+      {
+        "keys": "count",
+        "text": "A number before a motion repeats it: 7j moves down seven lines and 3w three words.",
+        "example": {
+          "before": "one two three four",
+          "cursor": 0,
+          "keys": "3w",
+          "after": "one two three four",
+          "cursor_after": 14
+        }
+      }
+    ],
+    "help": ["f", "%", "count"]
+  },
   "levels": [
     {
       "id": "find-and-jump-01",

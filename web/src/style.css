@@ -942,3 +942,11 @@ pre[data-copy] {
   background: var(--accent);
   color: var(--on-accent);
 }
+
+.lesson-commands dt.lesson-wide {
+  grid-column: 1 / -1;
+}
+
+.lesson-commands dd.lesson-wide {
+  grid-column: 2;
+}

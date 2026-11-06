@@ -5,6 +5,139 @@
   "description": "Patterns that do the work a macro can't: very magic, groups and backreferences, zero-width matches, lazy repeats and lookaround.",
   "order": 10,
   "authors": ["navasvarela"],
+  "lesson": {
+    "intro": [
+      "Vim's patterns are regular expressions with their own spelling. By default ( ) + | and { match themselves and need a backslash to be special. \\v at the start of a pattern, very magic, flips that, so patterns read like those in other languages.",
+      "In a substitution, the groups you capture come back as \\1, \\2 and so on, and & is the whole match. Zero-width items such as \\zs, \\ze and the lookarounds match a position rather than text, so they say where the change goes without being replaced."
+    ],
+    "commands": [
+      {
+        "keys": "\\v",
+        "text": "Very magic: punctuation is special without a backslash, so groups, alternatives and repeats read as in other languages."
+      },
+      {
+        "keys": "\\1",
+        "text": "In the replacement, the text the first group captured. \\2 is the second.",
+        "example": {
+          "before": "hello world",
+          "cursor": 0,
+          "keys": ":s/\\v(\\w+) (\\w+)/\\2 \\1/<CR>",
+          "after": "world hello"
+        }
+      },
+      {
+        "keys": "&",
+        "text": "In the replacement, the whole match.",
+        "example": {
+          "before": "use MAX here",
+          "cursor": 0,
+          "keys": ":s/MAX/`&`/<CR>",
+          "after": "use `MAX` here"
+        }
+      },
+      {
+        "keys": "\\1 in the pattern",
+        "text": "A backreference works inside the pattern too: (\\w+) \\1 finds a word written twice.",
+        "example": {
+          "before": "the the end",
+          "cursor": 0,
+          "keys": ":s/\\v<lt>(\\w+) \\1>/\\1/<CR>",
+          "after": "the end"
+        }
+      },
+      {
+        "keys": "\\v<>",
+        "text": "In very magic mode, < and > match the start and end of a word, so <let> doesn't match inside outlet.",
+        "example": {
+          "before": "let outlet",
+          "cursor": 0,
+          "keys": ":s/\\v<lt>let>/const/g<CR>",
+          "after": "const outlet"
+        }
+      },
+      {
+        "keys": "\\v(a|b)",
+        "text": "Match either alternative.",
+        "example": {
+          "before": "var a; let b",
+          "cursor": 0,
+          "keys": ":s/\\v<lt>(let|var)>/const/g<CR>",
+          "after": "const a; const b"
+        }
+      },
+      {
+        "keys": "\\u",
+        "text": "In the replacement, make the next character uppercase. \\l makes it lowercase.",
+        "example": {
+          "before": "hello world",
+          "cursor": 0,
+          "keys": ":s/\\<lt>./\\u&/g<CR>",
+          "after": "Hello World"
+        }
+      },
+      {
+        "keys": "\\zs",
+        "text": "Start the match here: what comes before must match, but isn't replaced.",
+        "example": {
+          "before": "a, b, c",
+          "cursor": 0,
+          "keys": ":s/.*\\zs,/ and<CR>",
+          "after": "a, b and c"
+        }
+      },
+      {
+        "keys": "\\ze",
+        "text": "End the match here: what comes after must match, but isn't replaced.",
+        "example": {
+          "before": "100px",
+          "cursor": 0,
+          "keys": ":s/\\d*\\zepx/50<CR>",
+          "after": "50px"
+        }
+      },
+      {
+        "keys": "\\{-}",
+        "text": "Repeat as few times as possible: .\\{-} is a lazy .*.",
+        "example": {
+          "before": "(a) (b)",
+          "cursor": 0,
+          "keys": ":s/(.\\{-})/()/<CR>",
+          "after": "() (b)"
+        }
+      },
+      {
+        "keys": ":s#",
+        "text": "Any character can separate the parts of :s, so paths need no escaped slashes.",
+        "example": {
+          "before": "/usr/bin",
+          "cursor": 0,
+          "keys": ":s#/usr#/opt#<CR>",
+          "after": "/opt/bin"
+        }
+      },
+      {
+        "keys": "\\@!",
+        "text": "Not followed by: in very magic mode, (bar)@! matches only where bar doesn't come next, and takes no text.",
+        "example": {
+          "before": "foo foobar",
+          "cursor": 0,
+          "keys": ":s/\\vfoo(bar)@!/baz/g<CR>",
+          "after": "baz foobar"
+        }
+      },
+      {
+        "keys": "\\@<!",
+        "text": "Not preceded by: \\.\\@<! matches only where there's no dot just before.",
+        "example": {
+          "before": "print x.print",
+          "cursor": 0,
+          "keys": ":s/\\.\\@<!print/log/g<CR>",
+          "after": "log x.print"
+        }
+      }
+    ],
+    "help": ["pattern", "/\\v", "sub-replace-special"]
+  },
   "levels": [
     {
       "id": "regex-01",

@@ -398,7 +398,7 @@ describe("playing a level", function()
     end)
 
     it("shows no lesson for a pack without one", function()
-      pick("1\\. Basic Motions", "Baby steps")
+      pick("12\\. Boss Levels", "Spreadsheet to docs")
       assert.is_true(player:wait_for("(" .. CURRENT .. " or {}).ready"))
     end)
   end)

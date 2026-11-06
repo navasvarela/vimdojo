@@ -6,6 +6,43 @@
   "order": 19,
   "authors": ["navasvarela"],
   "track": "setup",
+  "lesson": {
+    "intro": [
+      "Your config is a Lua file, usually ~/.config/nvim/init.lua. Options are set through vim.o, so vim.o.number = true is :set number, and keymaps through vim.keymap.set(mode, keys, action, options).",
+      "A config runs top to bottom, so anything a later line reads, such as the leader key, has to be set before that line."
+    ],
+    "commands": [
+      {
+        "keys": "vim.o",
+        "text": "Set an option: vim.o.relativenumber = true. vim.opt does the same, with methods for list options."
+      },
+      {
+        "keys": "vim.g.mapleader",
+        "text": "The key <leader> stands for in mappings. Set it before any mapping that uses <leader>."
+      },
+      {
+        "keys": "shiftwidth",
+        "text": "How many columns >>, << and automatic indenting move by."
+      },
+      {
+        "keys": "expandtab",
+        "text": "Insert spaces instead of a tab character when you press Tab or indent."
+      },
+      {
+        "keys": "smartcase",
+        "text": "With 'ignorecase' on, a search that has a capital letter in it becomes case sensitive."
+      },
+      {
+        "keys": "<cmd>",
+        "text": "In a mapping, <cmd>...<CR> runs an Ex command without leaving the current mode or showing the command line."
+      },
+      {
+        "keys": "desc",
+        "text": "Describe a mapping in its options: { desc = \"Save\" }. :map and pickers show it."
+      }
+    ],
+    "help": ["lua-guide-options", "vim.keymap.set()", "mapleader"]
+  },
   "levels": [
     {
       "id": "options-01",

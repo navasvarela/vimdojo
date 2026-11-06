@@ -5,6 +5,72 @@
   "description": "Change text without retyping it: case, numbers, joining lines, swapping and overwriting characters.",
   "order": 7,
   "authors": ["navasvarela"],
+  "lesson": {
+    "intro": [
+      "Some edits are quicker as a transformation than as typing. Vim can change the case of text, do arithmetic on the number under the cursor, join lines, and swap or overwrite characters, all in place.",
+      "gU and gu are operators, so they take any motion or text object: gUiw shouts a word. ~ flips the case of one character."
+    ],
+    "commands": [
+      {
+        "keys": "gU",
+        "text": "Make text uppercase. gu makes it lowercase.",
+        "example": {
+          "before": "make it loud",
+          "cursor": 8,
+          "keys": "gUiw",
+          "after": "make it LOUD"
+        }
+      },
+      {
+        "keys": "<C-a>",
+        "text": "Add one to the number under the cursor, or the next one on the line. <C-x> subtracts, and a count adds that much.",
+        "example": {
+          "before": "version = 41",
+          "cursor": 0,
+          "keys": "<C-a>",
+          "after": "version = 42"
+        }
+      },
+      {
+        "keys": "g<C-a>",
+        "text": "On a selection of lines, add one to the first number, two to the next and so on, which numbers a list."
+      },
+      {
+        "keys": "J",
+        "text": "Join the next line onto this one, with a space between."
+      },
+      {
+        "keys": "gJ",
+        "text": "Join the next line on without adding a space."
+      },
+      {
+        "keys": "x",
+        "text": "Delete the character under the cursor.",
+        "example": { "before": "helllo", "cursor": 3, "keys": "x", "after": "hello" }
+      },
+      {
+        "keys": "xp",
+        "text": "Swap two characters: x deletes one, and p puts it back after the next.",
+        "example": { "before": "teh", "cursor": 1, "keys": "xp", "after": "the" }
+      },
+      {
+        "keys": "R",
+        "text": "Overwrite: what you type replaces the text under it, one character at a time, until <Esc>.",
+        "example": {
+          "before": "status: DRAFT",
+          "cursor": 8,
+          "keys": "RFINAL<Esc>",
+          "after": "status: FINAL"
+        }
+      },
+      {
+        "keys": "r",
+        "text": "Replace the one character under the cursor, and stay in Normal mode.",
+        "example": { "before": "port = 8080", "cursor": 10, "keys": "r1", "after": "port = 8081" }
+      }
+    ],
+    "help": ["case", "CTRL-A", "J"]
+  },
   "levels": [
     {
       "id": "transform-01",

@@ -9,6 +9,7 @@ local M = {}
 ---@field cursor integer 0-based byte column of the cursor in `before`.
 ---@field keys string In key notation, as a level's solution is.
 ---@field after string The line once the keys have run.
+---@field cursor_after integer|nil Where the cursor ends up, for examples of motions.
 
 ---@class vimdojo.LessonCommand
 ---@field keys string
@@ -38,6 +39,13 @@ local function example_error(example)
     or example.cursor >= #example.before
   then
     return "cursor must be a byte column inside before"
+  end
+  local after = example.cursor_after
+  if
+    after ~= nil
+    and not (check.is_integer(after) and after >= 0 and after < math.max(1, #example.after))
+  then
+    return "cursor_after must be a byte column inside after"
   end
 end
 

@@ -1,5 +1,6 @@
 -- Shows a pack's lesson (see lesson.lua) in a panel, from the menu or before the
 -- pack's first level.
+local readable = require("vimdojo.keys").readable
 local ui = require("vimdojo.ui")
 
 local M = {}
@@ -8,6 +9,9 @@ local M = {}
 local TEXT_WIDTH = 70
 local INDENT = "  "
 local EXAMPLE_GAP = "   "
+-- Keys up to this wide share a column with the text. Longer ones, such as a concept
+-- like "macro stops on failure", get a line of their own so the column stays narrow.
+local KEYS_COLUMN_MAX = 8
 
 ---@class vimdojo.LessonRows
 ---@field lines string[]
@@ -15,7 +19,7 @@ local EXAMPLE_GAP = "   "
 
 ---@param text string
 ---@param byte integer 0-based.
----@return integer Bytes in the UTF-8 character starting at `byte`.
+---@return integer Bytes in the UTF-8 character starting at `byte`, 1 past the end.
 local function char_length(text, byte)
   local char = vim.fn.strcharpart(text:sub(byte + 1), 0, 1)
   return math.max(1, #char)
@@ -26,34 +30,57 @@ end
 local function keys_width(commands)
   local width = 0
   for _, command in ipairs(commands) do
-    width = math.max(width, vim.fn.strdisplaywidth(command.keys))
+    local keys = vim.fn.strdisplaywidth(command.keys)
+    if keys <= KEYS_COLUMN_MAX then
+      width = math.max(width, keys)
+    end
   end
   return width + 3
 end
 
---- The example's line before the keys, with the cursor drawn where the keys start.
+---@param rows vimdojo.LessonRows
+---@param col integer 0-based byte column in the last line where `text` starts.
+---@param text string The text the cursor is drawn on.
+---@param byte integer The cursor's byte column in `text`.
+local function add_cursor(rows, col, text, byte)
+  table.insert(rows.highlights, {
+    line = #rows.lines - 1,
+    col = col + byte,
+    end_col = col + byte + char_length(text, byte),
+    group = "VimDojoCursor",
+  })
+end
+
+--- The line before and after the keys, with the cursor drawn where the keys start
+--- and, for a motion, where it ends up.
 ---@param rows vimdojo.LessonRows
 ---@param indent string
 ---@param example vimdojo.LessonExample
 local function add_example(rows, indent, example)
+  local keys = readable(example.keys)
   local keys_col = #indent + #example.before + #EXAMPLE_GAP
-  ui.add_line(
-    rows,
-    indent .. example.before .. EXAMPLE_GAP .. example.keys .. EXAMPLE_GAP .. example.after
-  )
-  local line = #rows.lines - 1
-  local cursor_col = #indent + example.cursor
+  local after_col = keys_col + #keys + #EXAMPLE_GAP
+  ui.add_line(rows, indent .. example.before .. EXAMPLE_GAP .. keys .. EXAMPLE_GAP .. example.after)
+  add_cursor(rows, #indent, example.before, example.cursor)
   table.insert(rows.highlights, {
-    line = line,
-    col = cursor_col,
-    end_col = cursor_col + char_length(example.before, example.cursor),
-    group = "VimDojoCursor",
-  })
-  table.insert(rows.highlights, {
-    line = line,
+    line = #rows.lines - 1,
     col = keys_col,
-    end_col = keys_col + #example.keys,
+    end_col = keys_col + #keys,
     group = "VimDojoStar",
+  })
+  if example.cursor_after then
+    add_cursor(rows, after_col, example.after, example.cursor_after)
+  end
+end
+
+---@param rows vimdojo.LessonRows
+---@param keys string
+local function highlight_keys(rows, keys)
+  table.insert(rows.highlights, {
+    line = #rows.lines - 1,
+    col = #INDENT,
+    end_col = #INDENT + #keys,
+    group = "VimDojoTitle",
   })
 end
 
@@ -63,23 +90,42 @@ local function add_commands(rows, commands)
   local width = keys_width(commands)
   local indent = INDENT .. string.rep(" ", width)
   for _, command in ipairs(commands) do
-    for index, line in ipairs(ui.wrap(command.text, TEXT_WIDTH - width)) do
-      if index == 1 then
-        ui.add_line(rows, INDENT .. ui.pad(command.keys, width) .. line)
-        table.insert(rows.highlights, {
-          line = #rows.lines - 1,
-          col = #INDENT,
-          end_col = #INDENT + #command.keys,
-          group = "VimDojoTitle",
-        })
-      else
-        ui.add_line(rows, indent .. line)
-      end
+    local text = ui.wrap(command.text, TEXT_WIDTH - width)
+    if vim.fn.strdisplaywidth(command.keys) > KEYS_COLUMN_MAX then
+      ui.add_line(rows, INDENT .. command.keys)
+    else
+      ui.add_line(rows, INDENT .. ui.pad(command.keys, width) .. table.remove(text, 1))
+    end
+    highlight_keys(rows, command.keys)
+    for _, line in ipairs(text) do
+      ui.add_line(rows, indent .. line)
     end
     if command.example then
       add_example(rows, indent, command.example)
     end
   end
+end
+
+local HELP_LABEL = "More: "
+
+--- The :help tags, wrapped between tags so a tag is never split from its :help.
+---@param tags string[]
+---@return string[]
+local function help_lines(tags)
+  local lines, line = {}, INDENT .. HELP_LABEL
+  local continued = INDENT .. string.rep(" ", #HELP_LABEL)
+  for index, tag in ipairs(tags) do
+    local item = ":help " .. tag
+    local candidate = index == 1 and line .. item or line .. " · " .. item
+    if index > 1 and vim.fn.strdisplaywidth(candidate) > #INDENT + TEXT_WIDTH then
+      table.insert(lines, line)
+      line = continued .. item
+    else
+      line = candidate
+    end
+  end
+  table.insert(lines, line)
+  return lines
 end
 
 ---@param lesson vimdojo.Lesson
@@ -96,10 +142,9 @@ function M.content(lesson)
   end
   add_commands(rows, lesson.commands)
   ui.add_line(rows, "")
-  local tags = vim.tbl_map(function(tag)
-    return ":help " .. tag
-  end, lesson.help)
-  ui.add_line(rows, INDENT .. "More: " .. table.concat(tags, " · "), "VimDojoMuted")
+  for _, line in ipairs(help_lines(lesson.help)) do
+    ui.add_line(rows, line, "VimDojoMuted")
+  end
   ui.add_line(rows, "")
   return rows.lines, rows.highlights
 end

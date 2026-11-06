@@ -5,6 +5,90 @@
   "description": "Jump anywhere by content: / and ?, * under the cursor, n for the next match, and cgn to change matches one by one.",
   "order": 5,
   "authors": ["navasvarela"],
+  "lesson": {
+    "intro": [
+      "Over a long distance, searching beats counting. Type / and a few letters of where you're going, press <CR>, and the cursor jumps to the next match. ? searches backwards.",
+      "The pattern stays set, so n jumps to the next match and N to the previous one. * and # set it for you from the word under the cursor. cgn changes the next match and . repeats that on the one after, so you can change matches one at a time and skip any with n."
+    ],
+    "commands": [
+      {
+        "keys": "/",
+        "text": "Search forward. A few distinctive letters are enough.",
+        "example": {
+          "before": "find the print",
+          "cursor": 0,
+          "keys": "/pr<CR>",
+          "after": "find the print",
+          "cursor_after": 9
+        }
+      },
+      {
+        "keys": "?",
+        "text": "Search backwards.",
+        "example": {
+          "before": "a@b and c@d",
+          "cursor": 10,
+          "keys": "?@<CR>",
+          "after": "a@b and c@d",
+          "cursor_after": 9
+        }
+      },
+      {
+        "keys": "*",
+        "text": "Search forward for the whole word under the cursor.",
+        "example": {
+          "before": "foo bar foo",
+          "cursor": 0,
+          "keys": "*",
+          "after": "foo bar foo",
+          "cursor_after": 8
+        }
+      },
+      {
+        "keys": "#",
+        "text": "Search backwards for the whole word under the cursor.",
+        "example": {
+          "before": "foo bar foo",
+          "cursor": 8,
+          "keys": "#",
+          "after": "foo bar foo",
+          "cursor_after": 0
+        }
+      },
+      {
+        "keys": "n",
+        "text": "Jump to the next match of the last search. N goes the other way.",
+        "example": {
+          "before": "ab ab ab",
+          "cursor": 0,
+          "keys": "/ab<CR>n",
+          "after": "ab ab ab",
+          "cursor_after": 6
+        }
+      },
+      {
+        "keys": "cgn",
+        "text": "Change the next match of the last search, or the one under the cursor.",
+        "example": {
+          "before": "old and old",
+          "cursor": 0,
+          "keys": "*cgnnew<Esc>",
+          "after": "old and new"
+        }
+      },
+      {
+        "keys": ".",
+        "text": "After cgn, change the next match the same way. Press n first to skip one.",
+        "example": {
+          "before": "old and old",
+          "cursor": 0,
+          "keys": "*cgnnew<Esc>.",
+          "after": "new and new"
+        }
+      }
+    ],
+    "help": ["/", "star", "gn"]
+  },
   "levels": [
     {
       "id": "search-01",

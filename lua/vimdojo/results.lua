@@ -1,5 +1,6 @@
 -- The results card shown when an attempt reaches its goal.
 local help = require("vimdojo.help")
+local readable = require("vimdojo.keys").readable
 local share = require("vimdojo.share")
 local ui = require("vimdojo.ui")
 
@@ -32,14 +33,6 @@ local M = {}
 
 -- Cut so that a long, wandering attempt doesn't stretch the card past the screen.
 local MAX_TYPED_WIDTH = 60
-
---- Key notation spells a typed "<" as "<lt>" and a space as "<Space>", which read as
---- commands to a player. Key logs use both (keys.lua), so "You" lines need this too.
----@param keys string
----@return string
-local function readable(keys)
-  return (keys:gsub("<lt>", "<"):gsub("<Space>", " "))
-end
 
 ---@param keys string[]
 ---@return string

@@ -5,6 +5,50 @@
   "description": "Named and appending registers, pasting from Insert mode, and macros: record once, replay anywhere.",
   "order": 8,
   "authors": ["navasvarela"],
+  "lesson": {
+    "intro": [
+      "Vim has many clipboards, called registers, each named by a letter. \"a before a yank or a delete puts the text in register a, and \"a before p puts it back. A capital letter appends instead of replacing, so \"A can collect lines from all over a file.",
+      "A macro is keys recorded into a register. qa starts recording into a, q stops, and @a plays the keys back. An edit you can make once, the same way, can be repeated on every line that needs it."
+    ],
+    "commands": [
+      {
+        "keys": "\"a",
+        "text": "Use register a for the next yank, delete or put: \"ayy, then \"ap."
+      },
+      {
+        "keys": "\"A",
+        "text": "Append to register a instead of replacing it."
+      },
+      {
+        "keys": "<C-r>",
+        "text": "In Insert mode, insert a register's contents: <C-r>a, or <C-r>\" for the last yank.",
+        "example": {
+          "before": "Hi Bob.",
+          "cursor": 3,
+          "keys": "yiwA <C-r>\"!<Esc>",
+          "after": "Hi Bob. Bob!"
+        }
+      },
+      {
+        "keys": "q",
+        "text": "Start recording into a register: qa records into a. Press q again to stop."
+      },
+      {
+        "keys": "@",
+        "text": "Play a macro back: @a, or 3@a three times. @@ repeats the last one played.",
+        "example": { "before": "1 2 3", "cursor": 0, "keys": "qa<C-a>wq2@a", "after": "2 3 4" }
+      },
+      {
+        "keys": "macro",
+        "text": "Record the edit for one line, ending with j so the macro leaves the cursor on the next line, ready to run again."
+      },
+      {
+        "keys": "macro stops on failure",
+        "text": "A macro stops at the first key that fails, such as a search with no more matches. So a generous count is safe: 99@a runs until there's nothing left to do."
+      }
+    ],
+    "help": ["registers", "recording", "i_CTRL-R"]
+  },
   "levels": [
     {
       "id": "registers-01",

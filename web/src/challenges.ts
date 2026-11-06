@@ -164,6 +164,8 @@ const LessonExample = z.object({
   cursor: z.number().int().min(0),
   keys: z.string().min(1),
   after: z.string(),
+  /** Where the cursor ends up in `after`, for examples of motions. */
+  cursor_after: z.number().int().min(0).optional(),
 })
 
 /** Read before a pack's first level. Its coverage of `teaches` is checked in Lua (lesson.lua). */

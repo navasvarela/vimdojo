@@ -5,6 +5,51 @@
   "description": "Say which lines, then what to do: :t copies, :g picks, marks and patterns aim, and :argdo reaches every file.",
   "order": 14,
   "authors": ["navasvarela"],
+  "lesson": {
+    "intro": [
+      "A range says which lines an Ex command works on, and it can be more than line numbers: . is the current line, $ the last, 'a a mark and /pattern/ the next match. +2 or -1 counts from any of them.",
+      ":g picks lines by pattern and runs a command on each one, and that command can have its own range, counted from the line :g is on. :argdo goes one level up and runs a command in every file on the argument list."
+    ],
+    "commands": [
+      {
+        "keys": ":t",
+        "text": "Copy lines below an address: :20t. copies line 20 below the current line. :m moves them instead."
+      },
+      {
+        "keys": ":g/x/t$",
+        "text": "Copy every line that matches x to the end of the file."
+      },
+      {
+        "keys": ":t.|s",
+        "text": "| runs a second command after the first. After :t. the cursor is on the copy, so the :s changes the copy. An empty :s pattern reuses the last search."
+      },
+      {
+        "keys": ":g/a/,/b/",
+        "text": "Give :g's command a range, from each match to the next line matching b: :g/BEGIN/,/END/d deletes every block."
+      },
+      {
+        "keys": ":g/x/-j",
+        "text": "Addresses count from the matching line: -j joins the line above with the match."
+      },
+      {
+        "keys": ":'a,'b",
+        "text": "Marks are addresses: 'a,'b is every line from mark a to mark b."
+      },
+      {
+        "keys": ":{range}g/^/m",
+        "text": "^ matches every line, so :3,7g/^/m2 moves lines 3 to 7 one at a time to the same place, which reverses them."
+      },
+      {
+        "keys": ":argdo",
+        "text": "Run a command in every file on the argument list, such as :argdo %s/old/new/."
+      },
+      {
+        "keys": ":n {files}",
+        "text": "Open the first of these files and make them all the argument list, as in :n src/*, ready for :argdo."
+      }
+    ],
+    "help": [":range", ":g", ":argdo"]
+  },
   "levels": [
     {
       "id": "ex-ranges-01",

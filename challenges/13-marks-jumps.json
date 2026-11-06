@@ -5,6 +5,60 @@
   "description": "Stop counting lines: marks you set, the jumps Neovim remembers and the changes it tracks.",
   "order": 13,
   "authors": ["navasvarela"],
+  "lesson": {
+    "intro": [
+      "A mark remembers a position. ma sets mark a at the cursor, and `a jumps back to it, so you can leave to copy something and come straight back. Marks are motions, so operators take them: d`a deletes up to mark a.",
+      "Neovim also remembers positions without being asked. Each jump, such as a search, G or %, goes in the jump list, and each change in the change list, so <C-o> and g; take you back without a mark."
+    ],
+    "commands": [
+      {
+        "keys": "`",
+        "text": "Jump to a mark's exact line and column: `a.",
+        "example": {
+          "before": "one two three",
+          "cursor": 4,
+          "keys": "ma$`a",
+          "after": "one two three",
+          "cursor_after": 4
+        }
+      },
+      {
+        "keys": "'",
+        "text": "Jump to a mark's line, at its first non-blank character."
+      },
+      {
+        "keys": "d'",
+        "text": "Delete whole lines, from the cursor's line to the mark's."
+      },
+      {
+        "keys": "d`",
+        "text": "Delete from the cursor up to the mark's exact column.",
+        "example": {
+          "before": "keep drop keep",
+          "cursor": 5,
+          "keys": "mbwd`b",
+          "after": "keep keep"
+        }
+      },
+      {
+        "keys": "m",
+        "text": "Set a mark: ma sets mark a where the cursor is."
+      },
+      {
+        "keys": "<C-o>",
+        "text": "Go back to where you were before the last jump. <C-i> goes forward again, and both take a count."
+      },
+      {
+        "keys": "g;",
+        "text": "Go back to where you last changed text, and further back with a count. g, goes forward."
+      },
+      {
+        "keys": "`A",
+        "text": "A capital mark remembers its file too: set mA in one file, and `A from any other opens it at the mark."
+      }
+    ],
+    "help": ["mark-motions", "jumplist", "changelist"]
+  },
   "levels": [
     {
       "id": "marks-01",

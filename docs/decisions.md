@@ -1036,5 +1036,13 @@ PLAN-v3.md records the full table. The two departures from the proposal:
 - **Checked against the levels.** Every `teaches` entry must be one of the lesson's
   commands, and every example is replayed in Neovim by `tests/lesson_spec.lua`, so a
   lesson can't go stale or show an example that doesn't do what it says.
-- **Two packs first,** Operate and Text Objects, to settle the length and tone before
-  writing the rest.
+- **Every pack but Boss Levels.** Boss Levels teaches no new commands, only the order to
+  use old ones in, and a lesson about its refactors would give the levels away.
+- **Concepts can be "commands".** Some packs teach ideas (`count`, `macro stops on
+  failure`, `option types`), so a command's keys can be a phrase; the panel gives keys
+  wider than its column a line of their own.
+- **Motions show where the cursor lands.** A motion changes no text, so an example can
+  set `cursor_after`, drawn on the line after the keys and checked by the replay test.
+- **One screen where it can be, 80 columns always.** A test fails if a shipped lesson
+  has a line wider than 78 columns. Regex Power and The Expression Register run to 40 or
+  50 lines because they teach a dozen items each; the panel scrolls.

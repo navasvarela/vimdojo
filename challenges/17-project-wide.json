@@ -6,6 +6,31 @@
   "order": 17,
   "authors": ["navasvarela"],
   "track": "usage",
+  "lesson": {
+    "intro": [
+      "Neovim works across a project without plugins. gf follows a file name in the text, :find opens a file by name from anywhere in 'path', and :vimgrep searches every file for a pattern.",
+      "Search results go into the quickfix list, a list of positions in files. :copen shows it, ]q and [q move through it, and :cdo runs a command at every entry, which makes a rename across a project one line."
+    ],
+    "commands": [
+      {
+        "keys": "gf",
+        "text": "Open the file whose name is under the cursor. <C-o> brings you back."
+      },
+      {
+        "keys": ":vimgrep",
+        "text": ":vim /pattern/ ** searches every file under the current directory and puts each match in the quickfix list."
+      },
+      {
+        "keys": ":cdo",
+        "text": "Run a command at each quickfix entry, such as :cdo s/old/new/."
+      },
+      {
+        "keys": ":find",
+        "text": "Open a file by name, searching the directories in 'path'. With ** in 'path' that's the whole tree, and Tab completes the name."
+      }
+    ],
+    "help": ["gf", ":vimgrep", "quickfix"]
+  },
   "levels": [
     {
       "id": "project-01",
