@@ -98,6 +98,19 @@ function M.is_completed(progress, level_id)
   return record ~= nil and record.stars >= 1
 end
 
+--- Whether any of the pack's levels is solved: until one is, the pack is new to the player.
+---@param progress vimdojo.Progress
+---@param pack vimdojo.Pack
+---@return boolean
+function M.has_solved_any(progress, pack)
+  for _, level in ipairs(pack.levels) do
+    if M.is_completed(progress, level.id) then
+      return true
+    end
+  end
+  return false
+end
+
 ---@alias vimdojo.Supports fun(level: vimdojo.Level): boolean
 
 ---@type vimdojo.Supports

@@ -1018,6 +1018,23 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   packs have short routes, a hint and tips.
 - **Not in the level hash,** like `hint` and `teaches`: rewording an explanation doesn't
   reset a board.
-- **Pack introductions are left for later.** Showing one at the right moment means a
-  panel over a level, where this week's focus bugs were, so it deserves its own change.
+- **Pack introductions came later,** as lessons (below).
 
+## Pack lessons
+
+- **Per pack, before the first puzzle.** A level's hint says what to type but not the
+  idea behind it, so a player who has never seen `di"` meets it with no context. One
+  screen per pack (the idea, then each command the levels teach with a one-line example)
+  gives the context without turning the game into a tutorial. `:help` and books stay the
+  reference, and the lesson ends with the tags to read.
+- **Shown until one of the pack's levels is solved, not "seen once".** That needs no new
+  field in the progress file, which the site and the plugin share. The cost: a player who
+  reads the lesson, quits and comes back sees it again, until they solve a level. The
+  daily, practice and challenge links skip it, since those players picked a level, and
+  the menu's `L` key (the site's Lesson link) shows it any time.
+- **In the pack's JSON,** so the plugin and the site show the same text.
+- **Checked against the levels.** Every `teaches` entry must be one of the lesson's
+  commands, and every example is replayed in Neovim by `tests/lesson_spec.lua`, so a
+  lesson can't go stale or show an example that doesn't do what it says.
+- **Two packs first,** Operate and Text Objects, to settle the length and tone before
+  writing the rest.

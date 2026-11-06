@@ -2,6 +2,7 @@
 -- bests.
 local challenges = require("vimdojo.challenges")
 local help = require("vimdojo.help")
+local lesson_panel = require("vimdojo.lesson_panel")
 local ui = require("vimdojo.ui")
 
 local M = {}
@@ -20,6 +21,7 @@ local TITLE_WIDTH = 28
 ---@field lines string[]
 ---@field highlights vimdojo.Highlight[]
 ---@field level_at table<integer, string> 1-based line number -> level id.
+---@field pack_at table<integer, vimdojo.Pack> 1-based line number -> the pack it's in.
 ---@field daily_line integer|nil Line of the daily challenge.
 ---@field first_level integer|nil Line of the first level.
 ---@field first_open integer|nil Line of the first unlocked, unfinished level.
@@ -106,10 +108,25 @@ local function add_level(rows, model, level, index)
   rows.first_level = rows.first_level or #rows.lines
 end
 
+local LESSON_LABEL = "  L lesson"
+
+---@param rows vimdojo.MenuRows
+---@param pack vimdojo.Pack
+local function add_pack_title(rows, pack)
+  local title = ("  %d. %s"):format(pack.order, pack.title)
+  add(rows, title .. (pack.lesson and LESSON_LABEL or ""))
+  local line = #rows.lines - 1
+  table.insert(rows.highlights, { line = line, col = 0, end_col = #title, group = "VimDojoTitle" })
+  if pack.lesson then
+    table.insert(rows.highlights, { line = line, col = #title, group = "VimDojoMuted" })
+  end
+  rows.pack_at[#rows.lines] = pack
+end
+
 ---@param model vimdojo.MenuModel
 ---@return vimdojo.MenuRows
 function M.rows(model)
-  local rows = { lines = { "" }, highlights = {}, level_at = {} }
+  local rows = { lines = { "" }, highlights = {}, level_at = {}, pack_at = {} }
   add_daily(rows, model)
   for _, track in ipairs(challenges.TRACKS) do
     local packs = vim.tbl_filter(function(pack)
@@ -118,9 +135,10 @@ function M.rows(model)
     if #packs > 0 then
       add(rows, ("  %s"):format(track.title:upper()), "VimDojoMuted")
       for _, pack in ipairs(packs) do
-        add(rows, ("  %d. %s"):format(pack.order, pack.title), "VimDojoTitle")
+        add_pack_title(rows, pack)
         for index, level in ipairs(pack.levels) do
           add_level(rows, model, level, index)
+          rows.pack_at[#rows.lines] = pack
         end
         add(rows, "")
       end
@@ -143,7 +161,7 @@ function M.open(model, on_select)
     title = " vimdojo ",
     lines = rows.lines,
     highlights = rows.highlights,
-    footer = " <CR> play · p practice · ? help · q close ",
+    footer = " <CR> play · p practice · L lesson · ? help · q close ",
   })
   local start_line = rows.first_open or rows.first_level or 1
   vim.api.nvim_win_set_cursor(panel.win, { start_line, 4 })
@@ -196,9 +214,21 @@ function M.open(model, on_select)
     end
   end
 
+  --- Shown over the menu, so closing it comes back here. Locked packs' lessons can be
+  --- read too: reading ahead costs nothing.
+  local function lesson()
+    local pack = rows.pack_at[cursor_line()]
+    if pack and pack.lesson then
+      lesson_panel.open(pack.title, pack.lesson)
+    elseif pack then
+      vim.notify("vimdojo: this pack has no lesson yet", vim.log.levels.INFO)
+    end
+  end
+
   ui.map(panel.buf, {
     ["<CR>"] = select,
     p = practice,
+    L = lesson,
     ["?"] = help.toggle,
     q = panel.close,
     ["<Esc>"] = panel.close,

@@ -36,6 +36,7 @@ local ONLINE_COMMANDS = {
 local MENU_KEYS = {
   { "<CR>", "Play the level under the cursor" },
   { "p", "Practice it: nothing is recorded" },
+  { "L", "Read the lesson for the pack under the cursor" },
   { "q", "Close the menu" },
 }
 

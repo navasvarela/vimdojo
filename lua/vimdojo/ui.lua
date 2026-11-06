@@ -12,6 +12,8 @@ local HIGHLIGHTS = {
   VimDojoStar = { link = "DiagnosticWarn" },
   VimDojoLocked = { link = "NonText" },
   VimDojoGood = { link = "DiagnosticOk" },
+  -- Where a lesson example's keys start. It's text, so the panel's own cursor is elsewhere.
+  VimDojoCursor = { reverse = true },
 }
 
 function M.define_highlights()
@@ -84,6 +86,24 @@ function M.add_line(rows, line, group)
   if group then
     table.insert(rows.highlights, { line = #rows.lines - 1, col = 0, group = group })
   end
+end
+
+--- Wraps at spaces, so long text doesn't widen a panel past the screen.
+---@param text string
+---@param width integer Display width.
+---@return string[]
+function M.wrap(text, width)
+  local lines, line = {}, ""
+  for word in text:gmatch("%S+") do
+    if line ~= "" and vim.fn.strdisplaywidth(line .. " " .. word) > width then
+      table.insert(lines, line)
+      line = word
+    else
+      line = line == "" and word or line .. " " .. word
+    end
+  end
+  table.insert(lines, line)
+  return lines
 end
 
 ---@param lines string[]

@@ -68,18 +68,7 @@ local LABEL_INDENT = "         "
 ---@param width integer|nil
 ---@return string[]
 local function wrap(text, width)
-  width = width or TIP_WIDTH
-  local lines, line = {}, ""
-  for word in text:gmatch("%S+") do
-    if line ~= "" and vim.fn.strdisplaywidth(line .. " " .. word) > width then
-      table.insert(lines, line)
-      line = word
-    else
-      line = line == "" and word or line .. " " .. word
-    end
-  end
-  table.insert(lines, line)
-  return lines
+  return ui.wrap(text, width or TIP_WIDTH)
 end
 
 -- Each step's text sits under its keys, indented past the label column.

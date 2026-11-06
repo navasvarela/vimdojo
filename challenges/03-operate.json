@@ -5,6 +5,76 @@
   "description": "Operators plus motions: d, c, y, the dot command, and text objects.",
   "order": 3,
   "authors": ["navasvarela"],
+  "lesson": {
+    "intro": [
+      "Vim edits read like sentences: an operator says what to do, and a motion or a text object says where. d deletes, c deletes and leaves you typing in Insert mode, and y copies. Typing an operator twice, as in dd or yy, works on the whole line.",
+      "A text object names something the cursor is in. i means inside and a means around: di\" empties a quoted string, and dap takes a paragraph with the blank line after it. Learn the grammar once and every operator works with every motion and object."
+    ],
+    "commands": [
+      {
+        "keys": "dw",
+        "text": "Delete from the cursor to the start of the next word.",
+        "example": { "before": "the fxo jumps", "cursor": 4, "keys": "dw", "after": "the jumps" }
+      },
+      {
+        "keys": "dd",
+        "text": "Delete the whole line, whatever column the cursor is in."
+      },
+      {
+        "keys": "cw",
+        "text": "Change to the end of the word: it's deleted and you type its replacement. Unlike dw, it keeps the space after the word.",
+        "example": {
+          "before": "I love meetings",
+          "cursor": 7,
+          "keys": "cwnaps<Esc>",
+          "after": "I love naps"
+        }
+      },
+      {
+        "keys": "di\"",
+        "text": "Delete inside double quotes, leaving the quotes. The cursor can be inside them, or anywhere on the line before them.",
+        "example": {
+          "before": "msg = \"Hello, World!\"",
+          "cursor": 0,
+          "keys": "di\"",
+          "after": "msg = \"\""
+        }
+      },
+      {
+        "keys": "ciw",
+        "text": "Change the whole word under the cursor, from any letter in it.",
+        "example": {
+          "before": "const thingamajig = 42;",
+          "cursor": 10,
+          "keys": "ciwanswer<Esc>",
+          "after": "const answer = 42;"
+        }
+      },
+      {
+        "keys": ".",
+        "text": "Repeat the last change. Make an edit once, move, then press . instead of making it again.",
+        "example": {
+          "before": "TODO fix TODO tidy",
+          "cursor": 0,
+          "keys": "dww.",
+          "after": "fix tidy"
+        }
+      },
+      {
+        "keys": "dap",
+        "text": "Delete around the paragraph: the block of lines the cursor is in, and the blank line after it."
+      },
+      {
+        "keys": "yy",
+        "text": "Copy (yank) the whole line."
+      },
+      {
+        "keys": "p",
+        "text": "Put what you copied after the cursor. A copied line goes below the current one, and a count repeats it: 2p puts it twice."
+      }
+    ],
+    "help": ["operator", "text-objects", "."]
+  },
   "levels": [
     {
       "id": "operate-01",

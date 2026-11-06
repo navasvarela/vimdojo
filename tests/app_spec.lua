@@ -346,6 +346,63 @@ describe("playing a level", function()
     end)
   end)
 
+  describe("with lessons", function()
+    local BUFFER = "table.concat(vim.api.nvim_buf_get_lines(0, 0, -1, false), '\\n')"
+    local LESSON_SHOWING = BUFFER .. ":find('Vim edits read like sentences', 1, true) ~= nil"
+    local MENU_SHOWING = BUFFER .. ":find('Baby steps', 1, true) ~= nil"
+
+    before_each(function()
+      player = player_mod.spawn({ unlock_all = true })
+      player:lua("vim.cmd('VimDojo')")
+    end)
+
+    --- Searching from the pack's title skips today's daily, which may be the same level.
+    ---@param pack string The pack's title line, as a pattern.
+    ---@param title string A level's title.
+    local function pick(pack, title)
+      player:lua("local pack, title = ...; vim.fn.search(pack); vim.fn.search(title)", pack, title)
+      player:input("<CR>")
+    end
+
+    it("shows a new pack's lesson before its first level, then starts it", function()
+      pick("3\\. Operate", "Kill the typo")
+      assert.is_true(player:wait_for(LESSON_SHOWING))
+      assert.is_nil(player:lua("return " .. CURRENT))
+      player:input("<CR>")
+      assert.is_true(player:wait_for("(" .. CURRENT .. " or {}).ready"))
+      assert.are.equal("operate-01", player:lua("return " .. CURRENT_LEVEL .. ".id"))
+    end)
+
+    it("goes back to the menu from that lesson with q", function()
+      pick("3\\. Operate", "Kill the typo")
+      player:input("q")
+      assert.is_true(player:wait_for(MENU_SHOWING))
+    end)
+
+    it("skips the lesson once one of the pack's levels is solved", function()
+      player:lua("vim.cmd('VimDojo quit')")
+      assert.is_true(player:start("operate-01"))
+      player:type("ffdw")
+      player:wait_for_record("operate-01")
+      player:lua("vim.cmd('VimDojo')")
+      pick("3\\. Operate", "Security through deletion")
+      assert.is_true(player:wait_for("(" .. CURRENT .. " or {}).ready"))
+    end)
+
+    it("shows a lesson over the menu with L, and q comes back to it", function()
+      player:lua("vim.fn.search('3\\\\. Operate')")
+      player:input("L")
+      assert.is_true(player:wait_for(LESSON_SHOWING))
+      player:input("q")
+      assert.is_true(player:wait_for(MENU_SHOWING))
+    end)
+
+    it("shows no lesson for a pack without one", function()
+      pick("1\\. Basic Motions", "Baby steps")
+      assert.is_true(player:wait_for("(" .. CURRENT .. " or {}).ready"))
+    end)
+  end)
+
   describe("with schema v2 packs", function()
     before_each(function()
       player =

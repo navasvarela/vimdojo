@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest"
 import { TRACKS, demoPacks, loadPacks, nextLevel, parsePacks } from "./challenges"
 import { dailyPool, dayNumber, pickDaily } from "./daily"
 import { isCountableKeydown, pastedKeyCount, splitNotation } from "./keys"
-import { emptyProgress, recordResult, unlockedByProgress } from "./progress"
+import { emptyProgress, hasSolvedAny, recordResult, unlockedByProgress } from "./progress"
 import { loadProgress, saveProgress, serializeProgress, parseJsonProgress } from "./storage"
 import { byteColToIndex, indexToByteCol } from "./text"
 import { Session } from "./game/session"
@@ -121,6 +121,20 @@ describe("progress", () => {
     let progress = recordResult(emptyProgress(), "a", { keys: 6, seconds: 4.5, stars: 2 })
     progress = recordResult(progress, "a", { keys: 5, seconds: 9, stars: 1 })
     expect(progress.levels["a"]).toEqual({ best_keys: 5, best_seconds: 4.5, stars: 2, attempts: 2 })
+  })
+
+  it("counts a pack as new until one of its levels is solved", () => {
+    const [pack] = parsePacks([
+      { pack: "m", title: "M", order: 1, levels: [lvl("m-1"), lvl("m-2")] },
+    ])
+    if (pack === undefined) {
+      throw new Error("the fixture has a pack")
+    }
+    expect(hasSolvedAny(emptyProgress(), pack)).toBe(false)
+    const elsewhere = recordResult(emptyProgress(), "other-1", { keys: 1, seconds: 1, stars: 3 })
+    expect(hasSolvedAny(elsewhere, pack)).toBe(false)
+    const solved = recordResult(emptyProgress(), "m-2", { keys: 1, seconds: 1, stars: 1 })
+    expect(hasSolvedAny(solved, pack)).toBe(true)
   })
 })
 

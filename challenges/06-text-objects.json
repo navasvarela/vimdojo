@@ -5,6 +5,70 @@
   "description": "Operate on structure from anywhere inside it: parentheses, brackets, tags, words and sentences.",
   "order": 6,
   "authors": ["navasvarela"],
+  "lesson": {
+    "intro": [
+      "A text object is a thing rather than a distance: a word, a sentence, the inside of some brackets, an HTML tag. Put one after an operator and Vim finds its edges for you, so the cursor can be anywhere inside it.",
+      "i means inside and a means around. ci( changes what's between the parentheses, and da( takes the parentheses too. aw and as also take the space after the word or sentence, so the text closes up neatly.",
+      "Either half of a pair names the same object: ci( and ci) do the same thing, and so do di[ and di], and yi{ and yi}."
+    ],
+    "commands": [
+      {
+        "keys": "ci(",
+        "text": "Change everything inside the parentheses around the cursor.",
+        "example": {
+          "before": "print(name, age)",
+          "cursor": 8,
+          "keys": "ci(user<Esc>",
+          "after": "print(user)"
+        }
+      },
+      {
+        "keys": "di[",
+        "text": "Delete inside square brackets, leaving the brackets.",
+        "example": {
+          "before": "bins = [1, 2, 3]",
+          "cursor": 11,
+          "keys": "di[",
+          "after": "bins = []"
+        }
+      },
+      {
+        "keys": "cit",
+        "text": "Change the text between an HTML or XML tag and its closing tag.",
+        "example": {
+          "before": "<b>Hello</b>",
+          "cursor": 5,
+          "keys": "citBye<Esc>",
+          "after": "<b>Bye</b>"
+        }
+      },
+      {
+        "keys": "daw",
+        "text": "Delete a word and the space after it, or the space before it when it ends the line.",
+        "example": {
+          "before": "I love Vim Vim",
+          "cursor": 12,
+          "keys": "daw",
+          "after": "I love Vim"
+        }
+      },
+      {
+        "keys": "yi{",
+        "text": "Copy what's inside curly braces, such as a function's body, without the braces. It works across lines."
+      },
+      {
+        "keys": "das",
+        "text": "Delete a sentence and the space after it. A sentence ends at a full stop, exclamation mark or question mark followed by a space or the end of the line.",
+        "example": {
+          "before": "One. Two. Three.",
+          "cursor": 6,
+          "keys": "das",
+          "after": "One. Three."
+        }
+      }
+    ],
+    "help": ["text-objects", "aw", "it"]
+  },
   "levels": [
     {
       "id": "textobj-01",
