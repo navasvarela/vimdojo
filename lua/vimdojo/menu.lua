@@ -187,7 +187,11 @@ function M.open(model, on_select)
         vim.log.levels.INFO
       )
     elseif availability == "locked" then
-      vim.notify("vimdojo: finish the previous level to unlock this one", vim.log.levels.INFO)
+      vim.notify(
+        "vimdojo: finish the previous level to unlock this one,"
+          .. " or skip ahead with unlock_all (:help vimdojo-config)",
+        vim.log.levels.INFO
+      )
     else
       panel.close()
       action(level_id)

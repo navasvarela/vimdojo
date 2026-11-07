@@ -1069,3 +1069,19 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   level list, which has no cursor to put a key on. Locks need no check: the level is
   already open. Practice leaves the clock out of the status line and records nothing,
   today's daily included, as in the plugin.
+
+## Site navigation and first visits
+
+- **One menu, written into every page at build time** (`web/build/site-nav.ts`). The
+  pages are separate HTML files with no shared layout, and the boards, account and daily
+  were only reachable from the landing page's footer.
+- **`#daily` rather than `?play=daily`.** A query would share a namespace with level ids,
+  and a hash needs no server and changes without a reload, so the nav's Daily link works
+  on the landing page too. The daily is always a demo level (`dailyPool` draws only from
+  them), so the boards can always offer it in the browser.
+- **The welcome isn't focused.** It offers the first unsolved level and today's daily,
+  but the visitor has only just scrolled there, so it leaves focus and Tab order alone.
+- **The demo is told the whole curriculum,** not only its levels, so it can say how many
+  more each pack has in the plugin and which packs the browser can't play.
+- **`/play/` share pages stay crawlable.** X's card crawler obeys `robots.txt`, so
+  disallowing them would lose the cards; they're `noindex` instead.

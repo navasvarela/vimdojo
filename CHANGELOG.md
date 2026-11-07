@@ -13,10 +13,22 @@
   card, plays it again with nothing recorded and free hints, as `p` does in the plugin.
   The practice card shows your keys beside par; Play for real (P) switches back.
 
+- **A menu at the top of every page:** Play, Daily, Leaderboards, Install and Account.
+  `vimdojo.org/#daily` opens today's daily straight away, and the boards link to it.
+- **A way in for first-time visitors.** Before a level is picked, the site offers to start
+  the first unsolved level, or today's daily.
+- **The site says what else there is.** Each pack in the level list says how many more
+  levels the plugin has, and the packs the browser can't play are listed at the end.
+- `robots.txt`, a sitemap, canonical links and a vimdojo 404 page.
+
 ### Changed
 
 - The site's results card lists the keys you typed, as the plugin's does, and its
   buttons wrap whole on narrow screens instead of breaking their labels over lines.
+- **Fixed:** opening a level or lesson from low in the site's level list left it out of
+  view, above the screen or, on a phone, below the list. It now scrolls into view.
+- The plugin's message for a locked level mentions `unlock_all`.
+- The landing page's button says "Play in your browser" rather than "Play the demo".
 
 ## v0.12.0 (2026-11-07)
 
