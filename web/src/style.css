@@ -550,11 +550,14 @@ h2::before {
 
 .results-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-top: 12px;
 }
 
+/* A label split over lines reads as several buttons, so whole buttons wrap instead. */
 .results-actions button {
+  white-space: nowrap;
   padding: 6px 12px;
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -568,6 +571,13 @@ h2::before {
   margin: 0 0 8px;
   padding: 6px 10px;
   border-left: 3px solid var(--accent);
+  color: var(--text);
+}
+
+.practice-note {
+  margin: 0 0 8px;
+  padding: 6px 10px;
+  border-left: 3px solid var(--good);
   color: var(--text);
 }
 
