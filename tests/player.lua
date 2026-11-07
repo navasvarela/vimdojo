@@ -160,7 +160,32 @@ function Player:wait_for(code)
   end)
 end
 
---- Starts a level and waits until its clean room is ready for keys.
+-- `play.ready` alone is too early. The callback that sets it also runs :startinsert, which
+-- takes effect only after the player's Neovim has handled every event already queued. A
+-- request in that queue sees a ready level still in Normal mode ("nt"), and a panel that
+-- the next request opens gets the pending Insert mode instead of the room, so its
+-- Normal-mode keys stop working: screens_spec's "the screens can't be closed with their
+-- own keys", a few times in a hundred on a loaded machine. Keys a player types are read
+-- only after the pending Insert mode has applied, so only an RPC client like this harness
+-- can get in between.
+local LEVEL_HAS_THE_KEYS = [[
+local play = require('vimdojo.app').current()
+return play ~= nil
+  and play.ready
+  and vim.api.nvim_get_current_win() == play.layout.room_win
+  and vim.api.nvim_get_mode().mode == 't'
+]]
+
+--- Waits until the current level takes keys: its room has loaded the level, and the room
+--- window is in Terminal mode.
+---@return boolean ready
+function Player:wait_for_level()
+  return self:poll(function()
+    return self:lua(LEVEL_HAS_THE_KEYS)
+  end) == true
+end
+
+--- Starts a level and waits until it takes keys (see wait_for_level).
 ---@param level_id string
 ---@return boolean ready
 function Player:start(level_id)
@@ -171,7 +196,7 @@ function Player:start(level_id)
       .. " return play and vim.fn.jobpid(play.room.job)",
     level_id
   )
-  return self:wait_for("(require('vimdojo.app').current() or {}).ready") == true
+  return self:wait_for_level()
 end
 
 -- A Neovim at a "Press ENTER" prompt, or anything else that waits for a key

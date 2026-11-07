@@ -167,14 +167,14 @@ local SCREENS = {
     name = "practice",
     open = function(player)
       run(player, "practice " .. LEVEL)
-      assert.is_true(player:wait_for("(require('vimdojo.app').current() or {}).ready"))
+      assert.is_true(player:wait_for_level())
     end,
   },
   {
     name = "the practice results",
     open = function(player)
       run(player, "practice " .. LEVEL)
-      assert.is_true(player:wait_for("(require('vimdojo.app').current() or {}).ready"))
+      assert.is_true(player:wait_for_level())
       player:type(SOLUTION)
       assert.is_true(
         player:wait_for("require('vimdojo.app').current().session:is_finished()"),
