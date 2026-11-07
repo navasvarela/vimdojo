@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.12.0 (2026-11-07)
+
+### Added
+
+- **Pack lessons.** Every pack except Boss Levels now opens with a short lesson: the idea
+  behind its levels, each command they teach with a worked example, and the `:help` tags
+  to read next. It shows before a level you pick from the menu until you've solved one
+  of the pack's levels, and `L` on the menu (the Lesson link on the site) shows it any
+  time. The daily, practice and "beat my keys" links go straight to the level. Packs can
+  carry a `lesson`, and validation checks it covers every command the levels teach.
+
 ## v0.11.0 (2026-11-04)
 
 ### Added
