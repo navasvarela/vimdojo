@@ -5,6 +5,48 @@
   "description": "Select first, act second: block selections that edit many lines at once, and pasting over a selection.",
   "order": 4,
   "authors": ["navasvarela"],
+  "lesson": {
+    "intro": [
+      "Visual mode turns the order around: select first, then act. v selects characters, V whole lines and <C-v> a block, a rectangle down several lines. Move to stretch the selection, then any operator works on it: d deletes, c changes and y copies.",
+      "Block selections edit many lines at once. Select a column, press I or A, type once, and <Esc> repeats what you typed on every line of the block."
+    ],
+    "commands": [
+      {
+        "keys": "<C-v>",
+        "text": "Start a block selection. Move down and across to stretch it."
+      },
+      {
+        "keys": "I",
+        "text": "In a block selection, insert before the block on every line. The other lines get the text when you press <Esc>."
+      },
+      {
+        "keys": "<C-v>$",
+        "text": "Stretch a block to the end of every line, however long each one is."
+      },
+      {
+        "keys": "A",
+        "text": "In a block selection, append after the block on every line."
+      },
+      {
+        "keys": "<C-v>d",
+        "text": "Delete the block: the same columns from every line."
+      },
+      {
+        "keys": "<C-v>c",
+        "text": "Change the block: it's deleted on every line, and what you type goes on every line."
+      },
+      {
+        "keys": "v",
+        "text": "Select characters. iw, i\" and the other text objects work here too: viw selects a word."
+      },
+      {
+        "keys": "p over a selection",
+        "text": "Put what you copied in place of the selection.",
+        "example": { "before": "cat dog", "cursor": 0, "keys": "yiwwviwp", "after": "cat cat" }
+      }
+    ],
+    "help": ["visual-mode", "v_b_I", "v_p"]
+  },
   "levels": [
     {
       "id": "visual-01",

@@ -7,7 +7,15 @@ import { type Challenge, challengeResult } from "../challenge-link"
 import { keyNotation } from "../key-notation"
 import { isCountableKeydown, pastedKeyCount } from "../keys"
 import { levelHash } from "../level-hash"
-import { currentStreak, recordDaily, recordResult, unlockedAll, type Progress } from "../progress"
+import {
+  currentStreak,
+  hasSolvedAny,
+  isCompleted,
+  recordDaily,
+  recordResult,
+  unlockedAll,
+  type Progress,
+} from "../progress"
 import {
   EXPORT_FILE_NAME,
   loadProgress,
@@ -22,6 +30,7 @@ import { presentGoal, type GoalPresentation } from "./goal-view"
 import { readableKeys, SOLUTION_HIDDEN } from "./lesson"
 import { RunError, RunsApi, type Run, VERIFY_POLL_MS, VERIFY_POLL_TRIES, verdictText } from "./runs"
 import { Session, type Outcome, type UnloggedReason } from "./session"
+import { lessonView } from "./pack-lesson"
 import { parPlayer } from "./par-player"
 import { tip } from "./tips"
 
@@ -211,7 +220,7 @@ export class Demo {
     list.replaceChildren(
       ...this.packs.map((pack) =>
         h("li", {}, [
-          h("p", { className: "pack-title" }, [pack.title]),
+          h("p", { className: "pack-title" }, [pack.title, this.lessonLink(pack)]),
           h(
             "ol",
             {},
@@ -238,13 +247,51 @@ export class Demo {
                 ],
               )
               button.disabled = !unlocked.has(level.id)
-              button.addEventListener("click", () => this.start(level.id))
+              button.addEventListener("click", () => this.choose(pack, level))
               return h("li", {}, [button])
             }),
           ),
         ]),
       ),
     )
+  }
+
+  private lessonLink(pack: Pack): HTMLButtonElement | undefined {
+    if (pack.lesson === undefined) {
+      return undefined
+    }
+    const link = h("button", { className: "link-button lesson-link", attrs: { type: "button" } }, [
+      "Lesson",
+    ])
+    link.addEventListener("click", () => {
+      const next = pack.levels.find((level) => !isCompleted(this.progress, level.id))
+      this.showLesson(pack, next)
+    })
+    return link
+  }
+
+  /** A pack's lesson helps most before its first level, so it comes first until one is solved. */
+  private choose(pack: Pack, level: Level): void {
+    if (pack.lesson === undefined || hasSolvedAny(this.progress, pack)) {
+      this.start(level.id)
+    } else {
+      this.showLesson(pack, level)
+    }
+  }
+
+  private showLesson(pack: Pack, level: Level | undefined): void {
+    if (pack.lesson === undefined) {
+      return
+    }
+    this.stop()
+    const start =
+      level === undefined
+        ? undefined
+        : { label: `Start "${level.title}"`, run: () => this.start(level.id) }
+    const view = lessonView(pack.title, pack.lesson, start)
+    this.elements.stage.replaceChildren(view.element)
+    // Enter starts the level, but the lesson is read from the top, so focusing mustn't scroll.
+    view.startButton?.focus({ preventScroll: true })
   }
 
   start(levelId: string): void {

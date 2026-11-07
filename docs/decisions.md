@@ -1018,6 +1018,31 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   packs have short routes, a hint and tips.
 - **Not in the level hash,** like `hint` and `teaches`: rewording an explanation doesn't
   reset a board.
-- **Pack introductions are left for later.** Showing one at the right moment means a
-  panel over a level, where this week's focus bugs were, so it deserves its own change.
+- **Pack introductions came later,** as lessons (below).
 
+## Pack lessons
+
+- **Per pack, before the first puzzle.** A level's hint says what to type but not the
+  idea behind it, so a player who has never seen `di"` meets it with no context. One
+  screen per pack (the idea, then each command the levels teach with a one-line example)
+  gives the context without turning the game into a tutorial. `:help` and books stay the
+  reference, and the lesson ends with the tags to read.
+- **Shown until one of the pack's levels is solved, not "seen once".** That needs no new
+  field in the progress file, which the site and the plugin share. The cost: a player who
+  reads the lesson, quits and comes back sees it again, until they solve a level. The
+  daily, practice and challenge links skip it, since those players picked a level, and
+  the menu's `L` key (the site's Lesson link) shows it any time.
+- **In the pack's JSON,** so the plugin and the site show the same text.
+- **Checked against the levels.** Every `teaches` entry must be one of the lesson's
+  commands, and every example is replayed in Neovim by `tests/lesson_spec.lua`, so a
+  lesson can't go stale or show an example that doesn't do what it says.
+- **Every pack but Boss Levels.** Boss Levels teaches no new commands, only the order to
+  use old ones in, and a lesson about its refactors would give the levels away.
+- **Concepts can be "commands".** Some packs teach ideas (`count`, `macro stops on
+  failure`, `option types`), so a command's keys can be a phrase; the panel gives keys
+  wider than its column a line of their own.
+- **Motions show where the cursor lands.** A motion changes no text, so an example can
+  set `cursor_after`, drawn on the line after the keys and checked by the replay test.
+- **One screen where it can be, 80 columns always.** A test fails if a shipped lesson
+  has a line wider than 78 columns. Regex Power and The Expression Register run to 40 or
+  50 lines because they teach a dozen items each; the panel scrolls.

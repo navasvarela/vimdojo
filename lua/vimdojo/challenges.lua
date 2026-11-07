@@ -7,6 +7,7 @@
 local check = require("vimdojo.check")
 local compat = require("vimdojo.compat")
 local goals = require("vimdojo.goals")
+local lesson = require("vimdojo.lesson")
 
 local M = {}
 
@@ -61,6 +62,7 @@ end
 ---@field order integer
 ---@field track string One of M.TRACKS; defaults to "motions".
 ---@field authors string[]|nil GitHub handles credited for the pack.
+---@field lesson vimdojo.Lesson|nil Read before the pack's first level.
 ---@field levels vimdojo.Level[]
 
 --- Where the packs ship with the plugin.
@@ -376,6 +378,7 @@ function M.validate_pack(pack)
     table.insert(errors, "levels must be a non-empty array")
     return errors
   end
+  vim.list_extend(errors, lesson.errors(pack.lesson, pack.levels))
   for index, level in ipairs(pack.levels) do
     local label = ("levels[%d]"):format(index)
     if type(level) ~= "table" then
@@ -457,6 +460,19 @@ function M.find(packs, level_id)
     for _, level in ipairs(pack.levels) do
       if level.id == level_id then
         return level
+      end
+    end
+  end
+end
+
+---@param packs vimdojo.Pack[]
+---@param level_id string
+---@return vimdojo.Pack|nil
+function M.pack_of(packs, level_id)
+  for _, pack in ipairs(packs) do
+    for _, level in ipairs(pack.levels) do
+      if level.id == level_id then
+        return pack
       end
     end
   end

@@ -127,4 +127,13 @@ function M.capture(is_active, handlers)
   end
 end
 
+--- Key notation spells a typed "<" as "<lt>" and a space as "<Space>", which read as
+--- commands to a player. Key logs use both, so the results card's "You" line needs this
+--- too, and so do solutions and lesson examples.
+---@param notation string
+---@return string
+function M.readable(notation)
+  return (notation:gsub("<lt>", "<"):gsub("<Space>", " "))
+end
+
 return M

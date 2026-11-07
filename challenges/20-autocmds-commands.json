@@ -6,6 +6,35 @@
   "order": 20,
   "authors": ["navasvarela"],
   "track": "setup",
+  "lesson": {
+    "intro": [
+      "An autocommand runs code when something happens: a file is opened or saved, its filetype is set, a yank finishes. vim.api.nvim_create_autocmd(event, { pattern = ..., callback = ... }) creates one.",
+      "Put them in an augroup created with clear = true. Then sourcing your config again replaces them, instead of adding a second copy of each."
+    ],
+    "commands": [
+      {
+        "keys": "TextYankPost",
+        "text": "The event right after a yank."
+      },
+      {
+        "keys": "vim.hl.on_yank",
+        "text": "Briefly highlights the text just yanked, when called from a TextYankPost callback. Before Neovim 0.11 it was vim.highlight.on_yank."
+      },
+      {
+        "keys": "FileType",
+        "text": "The event when a buffer's filetype is set. Its pattern is the filetype's name, such as markdown, not the file extension."
+      },
+      {
+        "keys": "BufWritePre",
+        "text": "The event just before a buffer is written, the moment to trim whitespace. BufWritePost comes after the write."
+      },
+      {
+        "keys": "augroup",
+        "text": "vim.api.nvim_create_augroup(name, { clear = true }) groups autocommands, and deletes the old ones each time it runs."
+      }
+    ],
+    "help": ["lua-guide-autocommands", "autocmd-events", "nvim_create_augroup()"]
+  },
   "levels": [
     {
       "id": "autocmds-01",

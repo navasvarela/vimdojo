@@ -5,6 +5,55 @@
   "description": "Hand lines to sort, rewrap prose with gq and gw, and let = fix the indentation.",
   "order": 15,
   "authors": ["navasvarela"],
+  "lesson": {
+    "intro": [
+      "Three operators reshape lines instead of editing them. ! sends lines through a shell command and puts back what it prints, so sort, column or jq can do the work. gq rewraps text to 'textwidth', and = fixes the indentation.",
+      "They take motions and text objects like any operator, and doubling one works on the current line: !!, gqq and ==."
+    ],
+    "commands": [
+      {
+        "keys": "!",
+        "text": "Filter lines through a command: !ip, then sort and <CR>, sorts a paragraph."
+      },
+      {
+        "keys": "!G",
+        "text": "Filter from the cursor's line to the end of the file."
+      },
+      {
+        "keys": "!!",
+        "text": "Filter the current line, or with a count, that many lines."
+      },
+      {
+        "keys": "gqq",
+        "text": "Rewrap the current line at 'textwidth'. A comment keeps its leader on every line."
+      },
+      {
+        "keys": "gq",
+        "text": "Rewrap the lines a motion covers: gqip rewraps a paragraph."
+      },
+      {
+        "keys": "gw",
+        "text": "Rewrap like gq, then put the cursor back on the same text."
+      },
+      {
+        "keys": "==",
+        "text": "Fix the indentation of the current line."
+      },
+      {
+        "keys": "=i{",
+        "text": "Fix the indentation of everything inside a pair of braces."
+      },
+      {
+        "keys": "gg=G",
+        "text": "Reindent the whole file: go to the top, then = to the bottom."
+      },
+      {
+        "keys": "! gq =",
+        "text": "All three are operators, so each takes the shortest motion that covers the lines you want."
+      }
+    ],
+    "help": ["filter", "gq", "="]
+  },
   "levels": [
     {
       "id": "filters-01",

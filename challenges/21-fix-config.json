@@ -6,6 +6,34 @@
   "order": 21,
   "authors": ["navasvarela"],
   "track": "setup",
+  "lesson": {
+    "intro": [
+      "These bugs break real configs, often without an error message. A config runs top to bottom, each line seeing only what came before it, and most mistakes come from that order or from a value of the wrong kind in the wrong place."
+    ],
+    "commands": [
+      {
+        "keys": "mapleader order",
+        "text": "<leader> is read when a mapping is made. Set vim.g.mapleader before any mapping that uses it, or those mappings keep the default leader, \\."
+      },
+      {
+        "keys": "option types",
+        "text": "An option takes a Lua value of its own type: vim.o.tabstop = 4, not \"4\"."
+      },
+      {
+        "keys": "<CR> in mappings",
+        "text": "A mapping that starts with : types into the command line, so it needs <CR> at the end to run, or use <cmd>...<CR>."
+      },
+      {
+        "keys": "vim.g vs vim.o",
+        "text": "vim.g sets a global variable, which only plugins read. Options are set with vim.o."
+      },
+      {
+        "keys": "user commands",
+        "text": "A command made with nvim_create_user_command must start with a capital letter."
+      }
+    ],
+    "help": ["lua-guide", "lua-vim-variables", "nvim_create_user_command()"]
+  },
   "levels": [
     {
       "id": "fix-01",

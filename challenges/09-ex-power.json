@@ -5,6 +5,51 @@
   "description": "Command-line editing: substitute, global, sort, normal on ranges, and moving lines.",
   "order": 9,
   "authors": ["navasvarela"],
+  "lesson": {
+    "intro": [
+      "Ex commands are typed after a colon and work on lines. Most take a range first: none means the current line, % the whole file, and 4,6 lines 4 to 6. One of them often does what would take dozens of keys in Normal mode.",
+      "They can be shortened: :s is :substitute, :g is :global, :sor is :sort, :norm is :normal and :m is :move."
+    ],
+    "commands": [
+      {
+        "keys": ":s",
+        "text": ":s/old/new/ replaces the first match on the line. The g flag replaces every match.",
+        "example": {
+          "before": "lol ok lol",
+          "cursor": 0,
+          "keys": ":s/lol/ok/g<CR>",
+          "after": "ok ok ok"
+        }
+      },
+      {
+        "keys": ":%s",
+        "text": "The % range runs :s on every line of the file."
+      },
+      {
+        "keys": ":g",
+        "text": ":g/pattern/ runs a command on every line that matches: :g/log/d deletes them. :v does the lines that don't match."
+      },
+      {
+        "keys": ":sort",
+        "text": "Sort lines. u removes duplicates, and n sorts by the first number on each line."
+      },
+      {
+        "keys": ":norm",
+        "text": "Run Normal-mode keys on each line of a range, from the start of the line: :%norm A; adds a semicolon to every line.",
+        "example": {
+          "before": "let x = 1",
+          "cursor": 0,
+          "keys": ":norm A;<CR>",
+          "after": "let x = 1;"
+        }
+      },
+      {
+        "keys": ":m",
+        "text": "Move lines below another line: :4,6m0 moves lines 4 to 6 to the top. :t copies them instead."
+      }
+    ],
+    "help": [":s", ":g", ":normal"]
+  },
   "levels": [
     {
       "id": "ex-01",

@@ -893,3 +893,60 @@ pre[data-copy] {
   color: var(--accent);
   font-weight: bold;
 }
+
+.lesson-link {
+  margin-left: 8px;
+  font-size: 0.75rem;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.lesson p {
+  margin: 8px 0;
+}
+
+.lesson-commands {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+  margin: 16px 0;
+}
+
+.lesson-commands dt {
+  padding-top: 2px;
+}
+
+.lesson-commands dd {
+  margin: 0;
+}
+
+.lesson-commands dd p {
+  margin: 0 0 6px;
+}
+
+.lesson-example {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  font-size: 0.9rem;
+}
+
+.lesson-example code {
+  color: var(--text);
+  font-family: var(--font-mono);
+  white-space: pre;
+}
+
+.lesson-cursor {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.lesson-commands dt.lesson-wide {
+  grid-column: 1 / -1;
+}
+
+.lesson-commands dd.lesson-wide {
+  grid-column: 2;
+}

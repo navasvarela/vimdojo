@@ -28,6 +28,60 @@
       "$ref": "#/$defs/authors",
       "description": "Who wrote the pack's levels, credited on the site. A level's own authors replace these."
     },
+    "lesson": {
+      "description": "Read before the pack's first level: the idea behind its levels and the commands they teach. Every command in its levels' teaches must be one of its commands (checked in challenges.lua), and every example is replayed in Neovim by tests/lesson_spec.lua.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["intro", "commands", "help"],
+      "properties": {
+        "intro": {
+          "description": "Short paragraphs on the idea behind the pack.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "commands": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["keys", "text"],
+            "properties": {
+              "keys": { "type": "string", "minLength": 1 },
+              "text": { "description": "What the command does.", "type": "string", "minLength": 1 },
+              "example": {
+                "description": "One line before and after the keys run, replayed in Neovim by tests/lesson_spec.lua.",
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["before", "cursor", "keys", "after"],
+                "properties": {
+                  "before": { "type": "string", "minLength": 1 },
+                  "cursor": {
+                    "description": "0-based byte column of the cursor in before.",
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "keys": { "description": "In key notation.", "type": "string", "minLength": 1 },
+                  "after": { "type": "string" },
+                  "cursor_after": {
+                    "description": "0-based byte column where the cursor ends up in after, for examples of motions.",
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "help": {
+          "description": ":help tags to read next.",
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
     "levels": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/level" } }
   },
   "$defs": {

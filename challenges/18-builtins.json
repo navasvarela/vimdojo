@@ -6,6 +6,38 @@
   "order": 18,
   "authors": ["navasvarela"],
   "track": "usage",
+  "lesson": {
+    "intro": [
+      "Recent versions of Neovim ship with mappings that used to take a plugin or a line in your config. They're there in a clean Neovim, so they work on any machine you sit down at."
+    ],
+    "commands": [
+      {
+        "keys": "gc",
+        "text": "The comment operator, in the filetype's comment style: gcc comments or uncomments a line, and gcip a paragraph."
+      },
+      {
+        "keys": "g&",
+        "text": "Repeat the last :s on every line, with the same pattern and flags."
+      },
+      {
+        "keys": "]q",
+        "text": "Jump to the next entry in the quickfix list."
+      },
+      {
+        "keys": "[q",
+        "text": "Jump to the previous entry in the quickfix list."
+      },
+      {
+        "keys": "]d",
+        "text": "Jump to the next diagnostic, such as an error from a language server."
+      },
+      {
+        "keys": "[d",
+        "text": "Jump to the previous diagnostic."
+      }
+    ],
+    "help": ["commenting", "g&", "default-mappings"]
+  },
   "levels": [
     {
       "id": "builtins-01",

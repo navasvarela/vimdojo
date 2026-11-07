@@ -220,6 +220,42 @@ unique `order` and its `levels`. Packs unlock in `order`. Add `authors`
 the plugin, the demo and the landing page pick it up automatically. Run
 `make manifest` afterwards, and commit `verifier/manifest.json`.
 
+### A lesson
+
+A pack can have a `lesson`, shown before its first level and from the menu's
+`L` key:
+
+```json
+"lesson": {
+  "intro": ["Vim edits read like sentences: an operator says what to do..."],
+  "commands": [
+    {
+      "keys": "dw",
+      "text": "Delete from the cursor to the start of the next word.",
+      "example": { "before": "the fxo jumps", "cursor": 4, "keys": "dw", "after": "the jumps" }
+    }
+  ],
+  "help": ["operator", "text-objects"]
+}
+```
+
+- `intro` is one to three short paragraphs on the idea behind the pack, not a list of
+  commands.
+- `commands` must include every command in its levels' `teaches`, with the same
+  spelling. Validation fails otherwise, so a new level can't teach something its
+  lesson never mentions. Commands beyond those are fine.
+- A command's `keys` can be a phrase when a level teaches an idea rather than keys, such
+  as `macro stops on failure`. Keys wider than 8 columns get a line of their own.
+- `example` is optional: one line before the keys run, the cursor's 0-based byte column
+  in it, and the line afterwards. For a motion, which changes no text, add
+  `cursor_after`: where the cursor ends up. `tests/lesson_spec.lua` runs every example
+  in Neovim and fails if the line or the cursor doesn't end up as shown. Write `<` in
+  the keys as `<lt>`, as in a solution.
+- `help` is the `:help` tags to read next.
+
+Keep it to about one screen, and every line within 78 columns: the same test checks. Anything longer belongs in `:help`, which the lesson points
+to. It isn't in the level hash, so rewording it doesn't reset a board.
+
 ## Changing a level
 
 A level's hash covers what defines play: its text or files, cursor start, goal,

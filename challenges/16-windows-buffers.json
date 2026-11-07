@@ -6,6 +6,43 @@
   "order": 16,
   "authors": ["navasvarela"],
   "track": "usage",
+  "lesson": {
+    "intro": [
+      "A buffer is a file loaded into Neovim, and a window is a view of a buffer. You can split the screen into several windows, on the same buffer or on different ones, and closing a window leaves its buffer loaded.",
+      "Window commands start with <C-w>: <C-w>v splits, <C-w>h, j, k and l move between windows, and <C-w> with a capital H, J, K or L moves the window itself to an edge."
+    ],
+    "commands": [
+      {
+        "keys": "<C-w>v",
+        "text": "Split the window side by side. <C-w>s splits it top and bottom."
+      },
+      {
+        "keys": ":vsplit",
+        "text": ":vs file opens a file in a new window beside this one."
+      },
+      {
+        "keys": "<Tab> completion",
+        "text": "On the command line, Tab completes file names, commands and options, and costs one key."
+      },
+      {
+        "keys": "<C-w>x",
+        "text": "Swap this window with the next one."
+      },
+      {
+        "keys": "<C-^>",
+        "text": "Switch to the alternate file: the one you were in before."
+      },
+      {
+        "keys": "<C-w>o",
+        "text": "Close every other window, leaving only this one."
+      },
+      {
+        "keys": "<C-w>L",
+        "text": "Move this window to the far right, full height. H, J and K move it to the other edges."
+      }
+    ],
+    "help": ["windows", "CTRL-W", "alternate-file"]
+  },
   "levels": [
     {
       "id": "windows-01",

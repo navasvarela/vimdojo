@@ -157,6 +157,33 @@ const Level = LevelData.transform((level, ctx) => {
   return { ...level, start_text: startText }
 })
 
+const LessonExample = z.object({
+  /** One line, before the keys run. */
+  before: z.string().min(1),
+  /** 0-based UTF-8 byte column of the cursor in `before`. */
+  cursor: z.number().int().min(0),
+  keys: z.string().min(1),
+  after: z.string(),
+  /** Where the cursor ends up in `after`, for examples of motions. */
+  cursor_after: z.number().int().min(0).optional(),
+})
+
+/** Read before a pack's first level. Its coverage of `teaches` is checked in Lua (lesson.lua). */
+const Lesson = z.object({
+  intro: z.array(z.string().min(1)).min(1),
+  commands: z
+    .array(
+      z.object({
+        keys: z.string().min(1),
+        text: z.string().min(1),
+        example: LessonExample.optional(),
+      }),
+    )
+    .min(1),
+  /** :help tags to read next. */
+  help: z.array(z.string().min(1)).min(1),
+})
+
 const Pack = z.object({
   pack: z.string().min(1),
   title: z.string().min(1),
@@ -164,6 +191,7 @@ const Pack = z.object({
   order: z.number().int().min(1),
   track: z.enum(TRACKS).default("motions"),
   authors: Authors.optional(),
+  lesson: Lesson.optional(),
   levels: z.array(Level).min(1),
 })
 
@@ -177,6 +205,8 @@ export type Preset = z.infer<typeof Preset>
 export type Goal = z.infer<typeof Goal>
 export type Level = z.infer<typeof Level>
 export type Pack = z.infer<typeof Pack>
+export type Lesson = z.infer<typeof Lesson>
+export type LessonExample = z.infer<typeof LessonExample>
 
 /** Parses raw pack files and sorts them into curriculum order. Throws on invalid data. */
 export function parsePacks(raw: readonly unknown[]): Pack[] {

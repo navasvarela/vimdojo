@@ -8,6 +8,7 @@ local game = require("vimdojo.game")
 local goals = require("vimdojo.goals")
 local keylog = require("vimdojo.keylog")
 local keys = require("vimdojo.keys")
+local lesson_panel = require("vimdojo.lesson_panel")
 local level_hash = require("vimdojo.level_hash")
 local menu = require("vimdojo.menu")
 local progress = require("vimdojo.progress")
@@ -594,6 +595,24 @@ function M.hint()
   play.layout:show_hint(play.level.hint)
 end
 
+--- A pack's lesson helps most before its first level, so the menu shows it until one of
+--- the pack's levels is solved. The daily and practice skip it, and the menu's L key
+--- shows it any time.
+---@param level_id string
+local function start_from_menu(level_id)
+  local pack = challenges.pack_of(state.packs, level_id)
+  if not (pack and pack.lesson) or progress.has_solved_any(state.progress, pack) then
+    M.start(level_id)
+    return
+  end
+  lesson_panel.open(pack.title, pack.lesson, {
+    start = function()
+      M.start(level_id)
+    end,
+    back = M.open_menu,
+  })
+end
+
 function M.open_menu()
   if not ensure_loaded() then
     return
@@ -607,7 +626,7 @@ function M.open_menu()
     supports = supports,
     daily = todays_daily(),
     streak = streak_view(),
-  }, { level = M.start, daily = M.start_daily, practice = M.start_practice })
+  }, { level = start_from_menu, daily = M.start_daily, practice = M.start_practice })
 end
 
 --- Drops cached packs and progress so the next command reloads them from disk.

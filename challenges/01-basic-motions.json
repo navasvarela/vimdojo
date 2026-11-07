@@ -5,6 +5,89 @@
   "description": "Move without the arrow keys: h j k l, word motions, line edges, and file edges.",
   "order": 1,
   "authors": ["navasvarela"],
+  "lesson": {
+    "intro": [
+      "Your right hand rests on h j k l: left, down, up and right. They beat the arrow keys because your fingers never leave the home row, and every motion after them works the same way: a key that moves the cursor, which later packs put after an operator to say what to edit.",
+      "Bigger motions cover more ground. w, b and e move by words, 0 and $ go to the edges of the line, and gg and G to the edges of the file."
+    ],
+    "commands": [
+      {
+        "keys": "j",
+        "text": "Down one line. k goes up."
+      },
+      {
+        "keys": "l",
+        "text": "Right one character. h goes left.",
+        "example": {
+          "before": "hello",
+          "cursor": 0,
+          "keys": "ll",
+          "after": "hello",
+          "cursor_after": 2
+        }
+      },
+      {
+        "keys": "w",
+        "text": "Forward to the start of the next word.",
+        "example": {
+          "before": "one two three",
+          "cursor": 0,
+          "keys": "ww",
+          "after": "one two three",
+          "cursor_after": 8
+        }
+      },
+      {
+        "keys": "b",
+        "text": "Back to the start of the word, or of the previous one if you're already at a start.",
+        "example": {
+          "before": "one two three",
+          "cursor": 12,
+          "keys": "bb",
+          "after": "one two three",
+          "cursor_after": 4
+        }
+      },
+      {
+        "keys": "e",
+        "text": "Forward to the end of the word, or of the next one if you're already at an end.",
+        "example": {
+          "before": "one two three",
+          "cursor": 0,
+          "keys": "ee",
+          "after": "one two three",
+          "cursor_after": 6
+        }
+      },
+      {
+        "keys": "$",
+        "text": "To the last character of the line. 0 goes to the first column.",
+        "example": {
+          "before": "let x = 1",
+          "cursor": 0,
+          "keys": "$",
+          "after": "let x = 1",
+          "cursor_after": 8
+        }
+      },
+      {
+        "keys": "gg",
+        "text": "To the first line of the file. G goes to the last, and 12G to line 12."
+      },
+      {
+        "keys": "^",
+        "text": "To the first character on the line that isn't a space, where indented code starts.",
+        "example": {
+          "before": "    return x",
+          "cursor": 11,
+          "keys": "^",
+          "after": "    return x",
+          "cursor_after": 4
+        }
+      }
+    ],
+    "help": ["left-right-motions", "up-down-motions", "word-motions"]
+  },
   "levels": [
     {
       "id": "basic-motions-01",

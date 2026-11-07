@@ -95,6 +95,11 @@ export function isCompleted(progress: Progress, levelId: string): boolean {
   return record !== undefined && record.stars >= 1
 }
 
+/** Whether any of the pack's levels is solved: until one is, the pack is new to the player. */
+export function hasSolvedAny(progress: Progress, pack: Pack): boolean {
+  return pack.levels.some((level) => isCompleted(progress, level.id))
+}
+
 /** Whether the running editor can play a level (see lua/vimdojo/compat.lua). */
 export type Supports = (level: Level) => boolean
 
