@@ -27,7 +27,8 @@ export function shareText(view: ShareView): string {
   const { outcome } = view
   const score = `${stars(outcome.stars)} ${outcome.keys} keys (par ${view.parKeys}) ${tenths(outcome.seconds)}s`
   const hint = outcome.hinted ? " · hint" : ""
-  // The link names the level and the count, never the keys, so it stays spoiler-free.
-  const link = `${SITE_URL}/?play=${view.levelId}&beat=${outcome.keys}`
+  // The link names the level and the count, never the keys, so it stays spoiler-free. It
+  // goes to the level's share page, which previews as a card (web/build/share-pages.ts).
+  const link = `${SITE_URL}/play/${view.levelId}/?beat=${outcome.keys}`
   return `vimdojo ${name} ${score}${hint}\nBeat it: ${link}`
 }

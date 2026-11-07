@@ -919,9 +919,7 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   hiding the par route. Hints don't break a streak: it rewards showing up.
 - **A malformed streak is dropped, not treated as corruption.** Corruption moves the whole
   file aside, which is too high a price for a counter.
-- **Practice is plugin-only for now.** The site saves nothing to a server and has no key
-  log, so the pressure practice removes is mostly in Neovim. Add it with web runs if
-  browser players want it.
+- **Practice came to the site later** (see "Share cards and practice on the site").
 - **Practice respects locks, except today's daily.** It's for going back over what you've
   reached, not for skipping ahead; `unlock_all` does that.
 - **Practice hides today's par route too.** The same level is on that day's board.
@@ -1046,3 +1044,44 @@ PLAN-v3.md records the full table. The two departures from the proposal:
 - **One screen where it can be, 80 columns always.** A test fails if a shipped lesson
   has a line wider than 78 columns. Regex Power and The Expression Register run to 40 or
   50 lines because they teach a dozen items each; the panel scrolls.
+
+## Share cards and practice on the site
+
+- **A page per level for link previews.** Previews read meta tags without running
+  scripts, and the site is static on GitHub Pages, so `/?play=<level>&beat=<keys>` could
+  only ever preview as the landing page. The build writes `/play/<level>/index.html` for
+  every level (`web/build/share-pages.ts`) with the level's own card, and copied results
+  link there. The page forwards to `/?play=...`, which still works for older links.
+- **The count isn't on the card.** A static page can't know it, and a server to render
+  it (the Worker could) means a second origin for share links and a moving part for a
+  preview. The card names the level, its pack and par; the result text above the link
+  already has the count.
+- **One image for every card,** the repository's social preview, emitted as `/og.png`.
+  A per-level image would need a rasterizer in the build; revisit if cards with the
+  level's text in them seem worth a dependency.
+- **The forwarding page is a script, not a meta refresh,** because a refresh can't carry
+  the query along. It forwards only `beat`, which `parseChallenge` checks again, and the
+  build refuses a level id that isn't safe in a path or a script.
+- **Share pages are `noindex`.** They're for previews, not search: the landing page is
+  where a search should land.
+- **Practice on the site switches in place.** `Alt+P` restarts the open level in the
+  other mode, and the results card offers it, rather than a key on every row of the
+  level list, which has no cursor to put a key on. Locks need no check: the level is
+  already open. Practice leaves the clock out of the status line and records nothing,
+  today's daily included, as in the plugin.
+
+## Site navigation and first visits
+
+- **One menu, written into every page at build time** (`web/build/site-nav.ts`). The
+  pages are separate HTML files with no shared layout, and the boards, account and daily
+  were only reachable from the landing page's footer.
+- **`#daily` rather than `?play=daily`.** A query would share a namespace with level ids,
+  and a hash needs no server and changes without a reload, so the nav's Daily link works
+  on the landing page too. The daily is always a demo level (`dailyPool` draws only from
+  them), so the boards can always offer it in the browser.
+- **The welcome isn't focused.** It offers the first unsolved level and today's daily,
+  but the visitor has only just scrolled there, so it leaves focus and Tab order alone.
+- **The demo is told the whole curriculum,** not only its levels, so it can say how many
+  more each pack has in the plugin and which packs the browser can't play.
+- **`/play/` share pages stay crawlable.** X's card crawler obeys `robots.txt`, so
+  disallowing them would lose the cards; they're `noindex` instead.

@@ -1,5 +1,5 @@
 import type { EditorView } from "@codemirror/view"
-import { nextLevel, type Level, type Pack } from "../challenges"
+import { demoPacks, nextLevel, type Level, type Pack } from "../challenges"
 import { isMet, registersFor } from "../goals"
 import { dailyDate, dailyPool, dayNumber, pickDaily } from "../daily"
 import { BoardsApi } from "../boards/api"
@@ -27,7 +27,7 @@ import { shareText } from "../share"
 import { h, stars } from "../ui/dom"
 import { createEditor, freezeEditor, isNormalMode, resetEditor, snapshot, vimMode } from "./editor"
 import { presentGoal, type GoalPresentation } from "./goal-view"
-import { readableKeys, SOLUTION_HIDDEN } from "./lesson"
+import { lessonRows, onCardKeys } from "./results-card"
 import { RunError, RunsApi, type Run, VERIFY_POLL_MS, VERIFY_POLL_TRIES, verdictText } from "./runs"
 import { Session, type Outcome, type UnloggedReason } from "./session"
 import { lessonView } from "./pack-lesson"
@@ -50,12 +50,22 @@ const STATUS_REFRESH_MS = 100
 // Game controls use Alt so they never collide with Vim keys, and are never
 // counted. KeyboardEvent.code is used because Alt+letter types a different
 // character on macOS.
-const Control = { Hint: "KeyH", Reset: "KeyR", Next: "KeyN" } as const
+const Control = { Hint: "KeyH", Reset: "KeyR", Next: "KeyN", Practice: "KeyP" } as const
+
+/** Practice records nothing (progress, streak, submission) and its hints cost nothing. */
+const Mode = { Play: "play", Practice: "practice" } as const
+type Mode = (typeof Mode)[keyof typeof Mode]
+
+const OTHER_MODE: Readonly<Record<Mode, Mode>> = {
+  [Mode.Play]: Mode.Practice,
+  [Mode.Practice]: Mode.Play,
+}
 
 type Play = {
   readonly level: Level
   /** Set when this is the daily challenge. */
   readonly dailyDate: string | undefined
+  readonly mode: Mode
   readonly view: EditorView
   readonly goal: GoalPresentation
   readonly hint: HTMLElement
@@ -79,6 +89,9 @@ const clock = (): number => performance.now() / 1000
 export type ChallengeOffer = { readonly challenge: Challenge; readonly title: string | undefined }
 
 export class Demo {
+  /** The levels the emulation can play; the rest of the curriculum is plugin-only. */
+  private readonly packs: readonly Pack[]
+  private readonly curriculum: readonly Pack[]
   private progress: Progress
   private readonly runs = new RunsApi()
   private readonly boards = new BoardsApi()
@@ -86,12 +99,15 @@ export class Demo {
   private challenge: Challenge | undefined
   private readonly elements: DemoElements
 
+  /** @param curriculum Every pack; the demo plays its web_demo levels and points to the rest. */
   constructor(
     private readonly root: HTMLElement,
-    private readonly packs: readonly Pack[],
+    curriculum: readonly Pack[],
     private readonly storage: Storage | undefined,
     offer?: ChallengeOffer,
   ) {
+    this.curriculum = curriculum
+    this.packs = demoPacks(curriculum)
     const loaded = loadProgress(storage)
     this.progress = loaded.progress
     this.elements = this.render()
@@ -124,11 +140,7 @@ export class Demo {
   private render(): DemoElements {
     const daily = h("div", { className: "daily" })
     const list = h("ol", { className: "level-list", attrs: { "aria-label": "Demo levels" } })
-    const stage = h("section", { className: "stage", attrs: { "aria-live": "polite" } }, [
-      h("p", { className: "stage-empty" }, [
-        "Pick a level to start. The timer waits for your first key.",
-      ]),
-    ])
+    const stage = h("section", { className: "stage", attrs: { "aria-live": "polite" } })
     const message = h("p", { className: "demo-message", attrs: { role: "status" } })
     const exportButton = h("button", { className: "link-button", attrs: { type: "button" } }, [
       "Export progress",
@@ -164,7 +176,51 @@ export class Demo {
     const elements = { daily, list, stage, message }
     this.renderDaily(elements.daily)
     this.renderList(elements.list)
+    stage.replaceChildren(...this.welcome())
     return elements
+  }
+
+  /** A first-time visitor gets a level to press Enter on rather than a list to choose from. */
+  private welcome(): HTMLElement[] {
+    const pack = this.packs.find((p) => p.levels.some((l) => !isCompleted(this.progress, l.id)))
+    const level = pack?.levels.find((l) => !isCompleted(this.progress, l.id))
+    const today = this.todaysDaily()
+    const startButton =
+      pack !== undefined && level !== undefined
+        ? h("button", { className: "button primary", attrs: { type: "button" } }, [
+            hasSolvedAny(this.progress, pack)
+              ? `Continue: ${level.title}`
+              : `Start: ${level.title}`,
+          ])
+        : undefined
+    const dailyButton =
+      today === undefined
+        ? undefined
+        : h("button", { className: "button", attrs: { type: "button" } }, [
+            `Today's daily: ${today.level.title}`,
+          ])
+    if (pack !== undefined && level !== undefined) {
+      startButton?.addEventListener("click", () => this.choose(pack, level))
+    }
+    dailyButton?.addEventListener("click", () => this.startDaily())
+    // Not focused: the page has only just scrolled here, and focus would steal Tab order.
+    return [
+      h("p", { className: "stage-empty" }, [
+        "Pick a level, or start here. The timer waits for your first key.",
+      ]),
+      h("p", { className: "cta" }, [startButton, dailyButton]),
+    ]
+  }
+
+  /**
+   * Opening a level or lesson from low in the level list would leave it above the
+   * screen (or, on a narrow screen, below the list), so the stage's top comes into view.
+   */
+  private revealStage(): void {
+    const top = this.elements.stage.getBoundingClientRect().top
+    if (top < 0 || top > window.innerHeight / 2) {
+      this.elements.stage.scrollIntoView({ block: "start" })
+    }
   }
 
   /** Today's (UTC) daily challenge: the same level the plugin picks. */
@@ -251,9 +307,41 @@ export class Demo {
               return h("li", {}, [button])
             }),
           ),
+          this.morePackLevels(pack),
         ]),
       ),
+      ...this.pluginOnlyPacks(),
     )
+  }
+
+  /** The demo plays a few levels per pack; the rest need the plugin, and it says so. */
+  private morePackLevels(pack: Pack): HTMLElement | undefined {
+    const all = this.curriculum.find((p) => p.pack === pack.pack)?.levels.length ?? 0
+    const more = all - pack.levels.length
+    return more > 0
+      ? h("p", { className: "more-levels" }, [
+          h("a", { attrs: { href: "#install" } }, [`+${more} more in the plugin`]),
+        ])
+      : undefined
+  }
+
+  private pluginOnlyPacks(): HTMLLIElement[] {
+    const playable = new Set(this.packs.map((pack) => pack.pack))
+    const rest = this.curriculum.filter((pack) => !playable.has(pack.pack))
+    if (rest.length === 0) {
+      return []
+    }
+    const levels = rest.reduce((sum, pack) => sum + pack.levels.length, 0)
+    return [
+      h("li", {}, [
+        h("p", { className: "pack-title" }, ["Neovim only"]),
+        h("p", { className: "more-levels" }, [
+          `${rest.map((pack) => pack.title).join(", ")}: ${levels} levels. `,
+          h("a", { attrs: { href: "#install" } }, ["Install the plugin"]),
+          " to play them.",
+        ]),
+      ]),
+    ]
   }
 
   private lessonLink(pack: Pack): HTMLButtonElement | undefined {
@@ -292,12 +380,13 @@ export class Demo {
     this.elements.stage.replaceChildren(view.element)
     // Enter starts the level, but the lesson is read from the top, so focusing mustn't scroll.
     view.startButton?.focus({ preventScroll: true })
+    this.revealStage()
   }
 
   start(levelId: string): void {
     const level = this.packs.flatMap((pack) => pack.levels).find((l) => l.id === levelId)
     if (level !== undefined) {
-      this.open(level, undefined)
+      this.open(level, undefined, Mode.Play)
     }
   }
 
@@ -305,35 +394,52 @@ export class Demo {
   startDaily(): void {
     const today = this.todaysDaily()
     if (today !== undefined) {
-      this.open(today.level, today.date)
+      this.open(today.level, today.date, Mode.Play)
     }
   }
 
   private retry(play: Play): void {
-    this.open(play.level, play.dailyDate)
+    this.open(play.level, play.dailyDate, play.mode)
   }
 
-  private open(level: Level, dailyDate: string | undefined): void {
+  /** Practice says so above the level; otherwise a challenge link says what to beat. */
+  private stageNotes(mode: Mode, challenge: Challenge | undefined): HTMLElement[] {
+    if (mode === Mode.Practice) {
+      return [
+        h("p", { className: "practice-note" }, [
+          "Practice: nothing is recorded and hints are free. ",
+          altKey("P"),
+          " to play for real.",
+        ]),
+      ]
+    }
+    return challenge === undefined
+      ? []
+      : [
+          h("p", { className: "challenge" }, [
+            `Challenge: someone solved this in ${challenge.keys} keys. Can you beat it?`,
+          ]),
+        ]
+  }
+
+  /** Restarts the level in the other mode. Locks don't matter: the level is already open. */
+  private switchMode(play: Play): void {
+    this.open(play.level, play.dailyDate, OTHER_MODE[play.mode])
+  }
+
+  private open(level: Level, dailyDate: string | undefined, mode: Mode): void {
     this.stop()
     const goal = presentGoal(level)
     const editorHost = h("div", { className: "editor" })
     const status = h("p", { className: "statusline", attrs: { "aria-live": "off" } })
     const hint = h("p", { className: "hint" }, [
-      h("kbd", {}, ["Alt"]),
-      "+",
-      h("kbd", {}, ["H"]),
-      " shows a hint (caps the attempt at 2 stars)",
+      altKey("H"),
+      mode === Mode.Practice ? " shows a hint" : " shows a hint (caps the attempt at 2 stars)",
     ])
     const challenge = this.challenge?.levelId === level.id ? this.challenge : undefined
     this.elements.stage.replaceChildren(
       h("h3", { className: "level-title" }, [level.title]),
-      ...(challenge === undefined
-        ? []
-        : [
-            h("p", { className: "challenge" }, [
-              `Challenge: someone solved this in ${challenge.keys} keys. Can you beat it?`,
-            ]),
-          ]),
+      ...this.stageNotes(mode, challenge),
       h("p", { className: "level-description" }, [level.description]),
       goal.element,
       h("p", { className: "par" }, [`Par: ${level.par_keys} keys · ${level.par_seconds}s`]),
@@ -341,14 +447,12 @@ export class Demo {
       status,
       hint,
       h("p", { className: "controls" }, [
-        h("kbd", {}, ["Alt"]),
-        "+",
-        h("kbd", {}, ["R"]),
+        altKey("R"),
         " reset · ",
-        h("kbd", {}, ["Alt"]),
-        "+",
-        h("kbd", {}, ["N"]),
-        " next level",
+        altKey("N"),
+        " next level · ",
+        altKey("P"),
+        mode === Mode.Practice ? " play for real" : " practice",
       ]),
     )
     const view = createEditor(
@@ -362,6 +466,7 @@ export class Demo {
     const play: Play = {
       level,
       dailyDate,
+      mode,
       view,
       goal,
       hint,
@@ -383,6 +488,7 @@ export class Demo {
     this.renderDaily(this.elements.daily)
     this.renderList(this.elements.list)
     view.focus()
+    this.revealStage()
   }
 
   private stop(): void {
@@ -419,6 +525,7 @@ export class Demo {
       [Control.Hint]: () => this.showHint(play),
       [Control.Reset]: () => this.reset(play),
       [Control.Next]: () => this.startNext(play.level.id),
+      [Control.Practice]: () => this.switchMode(play),
     }
     const action = actions[event.code]
     if (action !== undefined) {
@@ -432,7 +539,9 @@ export class Demo {
     if (play.session.status === "finished") {
       return
     }
-    play.session.useHint()
+    if (play.mode === Mode.Play) {
+      play.session.useHint()
+    }
     play.hint.replaceChildren(h("strong", {}, ["Hint: "]), play.level.hint)
   }
 
@@ -489,6 +598,10 @@ export class Demo {
     window.clearInterval(play.ticker)
     this.renderStatus(play)
     freezeEditor(play.view)
+    if (play.mode === Mode.Practice) {
+      this.showPracticeResults(play, outcome)
+      return
+    }
     this.progress = recordResult(this.progress, play.level.id, outcome)
     // By level, not by how it was opened: the same level is in the list too.
     if (this.todaysDaily()?.level.id === play.level.id) {
@@ -512,11 +625,11 @@ export class Demo {
       : undefined
     const retryButton = h("button", { attrs: { type: "button" } }, ["Retry (R)"])
     const copyButton = h("button", { attrs: { type: "button" } }, ["Copy result (C)"])
+    const practiceButton = h("button", { attrs: { type: "button" } }, ["Practice (P)"])
     const challenge = this.challenge?.levelId === play.level.id ? this.challenge : undefined
     // Not on today's daily: the route would give the day's board away.
     const parRoute = solutionHidden ? undefined : parPlayer(play.level)
     const watchButton = parRoute && h("button", { attrs: { type: "button" } }, ["Watch par (W)"])
-    const explain = play.level.explain
     const share = shareText({
       levelId: play.level.id,
       levelTitle: play.level.title,
@@ -524,10 +637,8 @@ export class Demo {
       dailyDate: play.dailyDate,
       outcome,
     })
-    // Only an attempt over par gets a tip: at or under par, there's nothing to shorten.
     const log = play.session.keyLog()
-    const advice =
-      log !== undefined && outcome.keys > play.level.par_keys ? tip(log.keys) : undefined
+    const advice = this.tipFor(play, outcome)
     const online = h("div", { className: "results-online" })
     void this.offerSubmit(play, outcome, online)
     const card = h(
@@ -555,28 +666,9 @@ export class Demo {
             ]),
           solutionHidden && h("dt", {}, ["Streak"]),
           solutionHidden && h("dd", {}, [this.streakText()]),
-          h("dt", {}, ["Par"]),
-          h("dd", {}, [
-            solutionHidden ? SOLUTION_HIDDEN : h("code", {}, [readableKeys(play.level.solution)]),
-          ]),
-          !solutionHidden && h("dt", {}, ["Learn"]),
-          !solutionHidden && h("dd", {}, [play.level.teaches.join(", ")]),
-          !solutionHidden && explain !== undefined && h("dt", {}, ["Steps"]),
-          !solutionHidden &&
-            explain !== undefined &&
-            h("dd", {}, [
-              h(
-                "ol",
-                { className: "steps" },
-                explain.map((step) =>
-                  h("li", {}, [h("code", {}, [readableKeys(step.keys)]), ` ${step.text}`]),
-                ),
-              ),
-            ]),
           challenge !== undefined && h("dt", {}, ["Challenge"]),
           challenge !== undefined && h("dd", {}, [challengeResult(challenge, outcome.keys)]),
-          advice !== undefined && h("dt", {}, ["Tip"]),
-          advice !== undefined && h("dd", {}, [advice]),
+          ...lessonRows({ level: play.level, typed: log?.keys, tip: advice, solutionHidden }),
         ]),
         outcome.hinted && h("p", { className: "results-note" }, ["Hint used: capped at 2 stars."]),
         h("div", { className: "results-actions" }, [
@@ -584,6 +676,7 @@ export class Demo {
           retryButton,
           copyButton,
           watchButton,
+          practiceButton,
         ]),
         online,
       ],
@@ -591,6 +684,7 @@ export class Demo {
     nextButton?.addEventListener("click", () => this.startNext(play.level.id))
     retryButton.addEventListener("click", () => this.retry(play))
     copyButton.addEventListener("click", () => void this.copyResult(share))
+    practiceButton.addEventListener("click", () => this.switchMode(play))
     const watchPar = (): void => {
       if (parRoute !== undefined) {
         card.append(parRoute.element)
@@ -598,29 +692,87 @@ export class Demo {
       }
     }
     watchButton?.addEventListener("click", watchPar)
-    card.addEventListener("keydown", (event) => {
-      if (event.key === "r" || event.key === "R") {
-        event.preventDefault()
-        this.retry(play)
-      } else if ((event.key === "w" || event.key === "W") && parRoute !== undefined) {
-        event.preventDefault()
-        watchPar()
-      } else if (event.key === "s" || event.key === "S") {
+    onCardKeys(card, {
+      r: () => this.retry(play),
+      p: () => this.switchMode(play),
+      c: () => void this.copyResult(share),
+      s: () => {
         const submit = online.querySelector("button")
         if (submit !== null && !submit.disabled) {
-          event.preventDefault()
           submit.click()
         }
-      } else if (event.key === "c" || event.key === "C") {
-        event.preventDefault()
-        void this.copyResult(share)
-      } else if ((event.key === "n" || event.key === "N") && next) {
-        event.preventDefault()
-        this.startNext(play.level.id)
-      }
+      },
+      ...(parRoute === undefined ? {} : { w: watchPar }),
+      ...(next === undefined ? {} : { n: () => this.startNext(play.level.id) }),
     })
     this.elements.stage.append(card)
     ;(nextButton ?? retryButton).focus()
+  }
+
+  /** Only an attempt over par gets a tip: at or under par, there's nothing to shorten. */
+  private tipFor(play: Play, outcome: Outcome): string | undefined {
+    const log = play.session.keyLog()
+    return log !== undefined && outcome.keys > play.level.par_keys ? tip(log.keys) : undefined
+  }
+
+  /** Like the plugin's practice card: what the attempt can teach, and nothing recorded. */
+  private showPracticeResults(play: Play, outcome: Outcome): void {
+    const next = nextLevel(this.packs, play.level.id)
+    const solutionHidden = this.todaysDaily()?.level.id === play.level.id
+    const parRoute = solutionHidden ? undefined : parPlayer(play.level)
+    const againButton = h("button", { className: "primary", attrs: { type: "button" } }, [
+      "Again (R)",
+    ])
+    const playButton = h("button", { attrs: { type: "button" } }, ["Play for real (P)"])
+    const nextButton = next && h("button", { attrs: { type: "button" } }, ["Next level (N)"])
+    const watchButton = parRoute && h("button", { attrs: { type: "button" } }, ["Watch par (W)"])
+    const card = h(
+      "section",
+      {
+        className: "results",
+        attrs: { role: "dialog", "aria-label": `${play.level.title} practised`, tabindex: "-1" },
+      },
+      [
+        h("p", { className: "results-points" }, [
+          `Solved in ${outcome.keys} keys · par ${play.level.par_keys}`,
+        ]),
+        h("p", { className: "results-note" }, ["Practice: this attempt wasn't recorded."]),
+        h(
+          "dl",
+          { className: "results-stats" },
+          lessonRows({
+            level: play.level,
+            typed: play.session.keyLog()?.keys,
+            tip: this.tipFor(play, outcome),
+            solutionHidden,
+          }),
+        ),
+        h("div", { className: "results-actions" }, [
+          againButton,
+          playButton,
+          nextButton,
+          watchButton,
+        ]),
+      ],
+    )
+    const watchPar = (): void => {
+      if (parRoute !== undefined) {
+        card.append(parRoute.element)
+        parRoute.play()
+      }
+    }
+    againButton.addEventListener("click", () => this.retry(play))
+    playButton.addEventListener("click", () => this.switchMode(play))
+    nextButton?.addEventListener("click", () => this.startNext(play.level.id))
+    watchButton?.addEventListener("click", watchPar)
+    onCardKeys(card, {
+      r: () => this.retry(play),
+      p: () => this.switchMode(play),
+      ...(parRoute === undefined ? {} : { w: watchPar }),
+      ...(next === undefined ? {} : { n: () => this.startNext(play.level.id) }),
+    })
+    this.elements.stage.append(card)
+    againButton.focus()
   }
 
   /** The leaderboard part of the results card. It asks the server only after a solve. */
@@ -724,12 +876,16 @@ export class Demo {
 
   private renderStatus(play: Play): void {
     const { session } = play
-    const parts = [
-      `-- ${vimMode(play.view)} --`,
-      `time ${session.elapsed().toFixed(1)}s`,
-      `keys ${session.keys}`,
-      ...(session.hinted ? ["hinted"] : []),
-    ]
+    // Practice has no clock to beat, as in the plugin, so its status leaves time out.
+    const parts =
+      play.mode === Mode.Practice
+        ? [`-- ${vimMode(play.view)} --`, "practice", `keys ${session.keys}`]
+        : [
+            `-- ${vimMode(play.view)} --`,
+            `time ${session.elapsed().toFixed(1)}s`,
+            `keys ${session.keys}`,
+            ...(session.hinted ? ["hinted"] : []),
+          ]
     play.status.textContent = parts.join("  ·  ")
   }
 
@@ -762,4 +918,10 @@ export class Demo {
   private say(text: string): void {
     this.elements.message.textContent = text
   }
+}
+
+function altKey(key: string): DocumentFragment {
+  const fragment = document.createDocumentFragment()
+  fragment.append(h("kbd", {}, ["Alt"]), "+", h("kbd", {}, [key]))
+  return fragment
 }
