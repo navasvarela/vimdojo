@@ -1,5 +1,34 @@
 # Changelog
 
+## v0.13.0 (2026-11-08)
+
+### Added
+
+- **Link previews for shared results.** The link in a copied result, from the plugin or
+  the site, now goes to a page for that level, `https://vimdojo.org/play/<level>/?beat=<keys>`,
+  so Slack, Discord, X and other apps show a card with the level's name, pack, par and
+  what it asks for. The page forwards to the level in the browser with the count to beat.
+  Links copied before this still work. The landing page and the boards have cards too.
+- **Practice on the site.** `Alt+P` while playing a level, or Practice (P) on the results
+  card, plays it again with nothing recorded and free hints, as `p` does in the plugin.
+  The practice card shows your keys beside par; Play for real (P) switches back.
+- **A menu at the top of every page of the site:** Play, Daily, Leaderboards, Install and
+  Account. `vimdojo.org/#daily` opens today's daily straight away, and the boards link to it.
+- **A way in for first-time visitors.** Before a level is picked, the site offers to start
+  the first unsolved level, or today's daily.
+- **The site says what else there is.** Each pack in the level list says how many more
+  levels the plugin has, and the packs the browser can't play are listed at the end.
+- `robots.txt`, a sitemap, canonical links and a vimdojo 404 page.
+
+### Changed
+
+- The plugin's message for a locked level mentions `unlock_all`.
+- The site's results card lists the keys you typed, as the plugin's does, and its
+  buttons wrap whole on narrow screens instead of breaking their labels over lines.
+- **Fixed:** opening a level or lesson from low in the site's level list left it out of
+  view, above the screen or, on a phone, below the list. It now scrolls into view.
+- The landing page's button says "Play in your browser" rather than "Play the demo".
+
 ## v0.12.0 (2026-11-07)
 
 ### Added
