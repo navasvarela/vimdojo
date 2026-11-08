@@ -179,7 +179,17 @@ export async function showDaily(root: HTMLElement, api: BoardsApi, view: DailyVi
     root.replaceChildren(
       h("p", {}, [
         `${board.date}: ${level}. `,
-        ...(isToday ? [h("code", {}, [":VimDojo daily"]), " to play it."] : []),
+        // The daily is always a demo level, so the browser can play it too.
+        ...(isToday
+          ? [
+              h("a", { attrs: { href: `${import.meta.env.BASE_URL}#daily` } }, [
+                "Play it in your browser",
+              ]),
+              ", or ",
+              h("code", {}, [":VimDojo daily"]),
+              " in Neovim.",
+            ]
+          : []),
       ]),
       place,
       board.entries.length === 0

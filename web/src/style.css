@@ -82,6 +82,41 @@ pre {
   top: 8px;
 }
 
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 24px;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 12px 16px;
+  font-size: 0.9rem;
+}
+
+.site-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"] {
+  color: var(--text);
+}
+
+.site-nav .site-nav-home {
+  color: var(--accent);
+  font-weight: 700;
+}
+
 .button {
   display: inline-block;
   padding: 8px 16px;
@@ -89,6 +124,12 @@ pre {
   border-radius: var(--radius);
   color: var(--text);
   text-decoration: none;
+}
+
+button.button {
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
 }
 
 .button:disabled {
@@ -397,6 +438,13 @@ h2::before {
 }
 
 .stage-empty {
+  color: var(--muted);
+}
+
+.more-levels {
+  margin: 2px 0 6px;
+  padding-left: 8px;
+  font-size: 0.8rem;
   color: var(--muted);
 }
 

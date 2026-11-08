@@ -182,6 +182,7 @@ describe("the daily board", () => {
     await showDaily(root, api, today)
     expect(root.textContent).toContain("2026-10-31: Basic motions")
     expect(root.textContent).toContain(":VimDojo daily")
+    expect(root.querySelector("p a")?.getAttribute("href")).toBe("/#daily")
     expect(root.querySelector("tbody a")?.getAttribute("href")).toBe("/player/?handle=ana")
   })
 

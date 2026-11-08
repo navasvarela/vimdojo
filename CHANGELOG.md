@@ -1,23 +1,5 @@
 # Changelog
 
-## Unreleased
-
-### Added
-
-- **Link previews for shared results.** The link in a copied result now goes to a page
-  for that level, `https://vimdojo.org/play/<level>/?beat=<keys>`, so Slack, Discord, X
-  and other apps show a card with the level's name, pack, par and what it asks for. The
-  page forwards to the level in the browser with the count to beat. Links copied before
-  this still work. The landing page and the boards have cards too.
-- **Practice on the site.** `Alt+P` while playing a level, or Practice (P) on the results
-  card, plays it again with nothing recorded and free hints, as `p` does in the plugin.
-  The practice card shows your keys beside par; Play for real (P) switches back.
-
-### Changed
-
-- The site's results card lists the keys you typed, as the plugin's does, and its
-  buttons wrap whole on narrow screens instead of breaking their labels over lines.
-
 ## v0.12.0 (2026-11-07)
 
 ### Added

@@ -6,6 +6,7 @@ import { boardLevelsPlugin } from "./build/board-levels"
 import { accountCspPlugin } from "./build/csp"
 import { curriculumPlugin } from "./build/curriculum"
 import { shareCardsPlugin } from "./build/share-pages"
+import { siteNavPlugin } from "./build/site-nav"
 import { SITE_URL } from "./src/share"
 
 const CHALLENGES_DIR = fileURLToPath(new URL("../challenges", import.meta.url))
@@ -14,6 +15,8 @@ const ACCOUNT_HTML = fileURLToPath(new URL("account/index.html", import.meta.url
 const PRIVACY_HTML = fileURLToPath(new URL("privacy/index.html", import.meta.url))
 const BOARDS_HTML = fileURLToPath(new URL("boards/index.html", import.meta.url))
 const PLAYER_HTML = fileURLToPath(new URL("player/index.html", import.meta.url))
+// GitHub Pages serves it for any path that has no page.
+const NOT_FOUND_HTML = fileURLToPath(new URL("404.html", import.meta.url))
 const SHARE_IMAGE = fileURLToPath(new URL("../docs/brand/social-preview.png", import.meta.url))
 const API_ORIGIN = process.env["VITE_API_URL"] ?? "https://api.vimdojo.org"
 
@@ -28,6 +31,7 @@ export default defineConfig({
     analyticsPlugin(INDEX_HTML, process.env["VITE_CF_BEACON_TOKEN"]),
     accountCspPlugin([ACCOUNT_HTML, BOARDS_HTML, PLAYER_HTML], API_ORIGIN),
     boardLevelsPlugin(CHALLENGES_DIR, [BOARDS_HTML, PLAYER_HTML]),
+    siteNavPlugin(fileURLToPath(new URL(".", import.meta.url))),
     shareCardsPlugin({
       challengesDir: CHALLENGES_DIR,
       imagePath: SHARE_IMAGE,
@@ -51,7 +55,9 @@ export default defineConfig({
     // The lazily loaded demo chunk (CodeMirror + Vim emulation) is ~500 kB
     // minified (~160 kB gzip). It is off the critical path, so allow it.
     chunkSizeWarningLimit: 600,
-    rollupOptions: { input: [INDEX_HTML, ACCOUNT_HTML, PRIVACY_HTML, BOARDS_HTML, PLAYER_HTML] },
+    rollupOptions: {
+      input: [INDEX_HTML, ACCOUNT_HTML, PRIVACY_HTML, BOARDS_HTML, PLAYER_HTML, NOT_FOUND_HTML],
+    },
   },
   server: {
     // challenges/ and tests/fixtures/ live outside web/ and are imported directly,
