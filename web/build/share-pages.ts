@@ -40,6 +40,7 @@ export function cardTags(card: Card): string {
     `<meta property="og:site_name" content="vimdojo" />`,
     `<meta property="og:title" content="${escapeHtml(card.title)}" />`,
     `<meta property="og:description" content="${escapeHtml(card.description)}" />`,
+    `<link rel="canonical" href="${escapeHtml(card.url)}" />`,
     `<meta property="og:url" content="${escapeHtml(card.url)}" />`,
     `<meta property="og:image" content="${image}" />`,
     `<meta property="og:image:width" content="${SHARE_IMAGE_SIZE.width}" />`,

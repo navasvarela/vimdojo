@@ -1,5 +1,5 @@
 import type { EditorView } from "@codemirror/view"
-import { nextLevel, type Level, type Pack } from "../challenges"
+import { demoPacks, nextLevel, type Level, type Pack } from "../challenges"
 import { isMet, registersFor } from "../goals"
 import { dailyDate, dailyPool, dayNumber, pickDaily } from "../daily"
 import { BoardsApi } from "../boards/api"
@@ -89,6 +89,9 @@ const clock = (): number => performance.now() / 1000
 export type ChallengeOffer = { readonly challenge: Challenge; readonly title: string | undefined }
 
 export class Demo {
+  /** The levels the emulation can play; the rest of the curriculum is plugin-only. */
+  private readonly packs: readonly Pack[]
+  private readonly curriculum: readonly Pack[]
   private progress: Progress
   private readonly runs = new RunsApi()
   private readonly boards = new BoardsApi()
@@ -96,12 +99,15 @@ export class Demo {
   private challenge: Challenge | undefined
   private readonly elements: DemoElements
 
+  /** @param curriculum Every pack; the demo plays its web_demo levels and points to the rest. */
   constructor(
     private readonly root: HTMLElement,
-    private readonly packs: readonly Pack[],
+    curriculum: readonly Pack[],
     private readonly storage: Storage | undefined,
     offer?: ChallengeOffer,
   ) {
+    this.curriculum = curriculum
+    this.packs = demoPacks(curriculum)
     const loaded = loadProgress(storage)
     this.progress = loaded.progress
     this.elements = this.render()
@@ -134,11 +140,7 @@ export class Demo {
   private render(): DemoElements {
     const daily = h("div", { className: "daily" })
     const list = h("ol", { className: "level-list", attrs: { "aria-label": "Demo levels" } })
-    const stage = h("section", { className: "stage", attrs: { "aria-live": "polite" } }, [
-      h("p", { className: "stage-empty" }, [
-        "Pick a level to start. The timer waits for your first key.",
-      ]),
-    ])
+    const stage = h("section", { className: "stage", attrs: { "aria-live": "polite" } })
     const message = h("p", { className: "demo-message", attrs: { role: "status" } })
     const exportButton = h("button", { className: "link-button", attrs: { type: "button" } }, [
       "Export progress",
@@ -174,7 +176,51 @@ export class Demo {
     const elements = { daily, list, stage, message }
     this.renderDaily(elements.daily)
     this.renderList(elements.list)
+    stage.replaceChildren(...this.welcome())
     return elements
+  }
+
+  /** A first-time visitor gets a level to press Enter on rather than a list to choose from. */
+  private welcome(): HTMLElement[] {
+    const pack = this.packs.find((p) => p.levels.some((l) => !isCompleted(this.progress, l.id)))
+    const level = pack?.levels.find((l) => !isCompleted(this.progress, l.id))
+    const today = this.todaysDaily()
+    const startButton =
+      pack !== undefined && level !== undefined
+        ? h("button", { className: "button primary", attrs: { type: "button" } }, [
+            hasSolvedAny(this.progress, pack)
+              ? `Continue: ${level.title}`
+              : `Start: ${level.title}`,
+          ])
+        : undefined
+    const dailyButton =
+      today === undefined
+        ? undefined
+        : h("button", { className: "button", attrs: { type: "button" } }, [
+            `Today's daily: ${today.level.title}`,
+          ])
+    if (pack !== undefined && level !== undefined) {
+      startButton?.addEventListener("click", () => this.choose(pack, level))
+    }
+    dailyButton?.addEventListener("click", () => this.startDaily())
+    // Not focused: the page has only just scrolled here, and focus would steal Tab order.
+    return [
+      h("p", { className: "stage-empty" }, [
+        "Pick a level, or start here. The timer waits for your first key.",
+      ]),
+      h("p", { className: "cta" }, [startButton, dailyButton]),
+    ]
+  }
+
+  /**
+   * Opening a level or lesson from low in the level list would leave it above the
+   * screen (or, on a narrow screen, below the list), so the stage's top comes into view.
+   */
+  private revealStage(): void {
+    const top = this.elements.stage.getBoundingClientRect().top
+    if (top < 0 || top > window.innerHeight / 2) {
+      this.elements.stage.scrollIntoView({ block: "start" })
+    }
   }
 
   /** Today's (UTC) daily challenge: the same level the plugin picks. */
@@ -261,9 +307,41 @@ export class Demo {
               return h("li", {}, [button])
             }),
           ),
+          this.morePackLevels(pack),
         ]),
       ),
+      ...this.pluginOnlyPacks(),
     )
+  }
+
+  /** The demo plays a few levels per pack; the rest need the plugin, and it says so. */
+  private morePackLevels(pack: Pack): HTMLElement | undefined {
+    const all = this.curriculum.find((p) => p.pack === pack.pack)?.levels.length ?? 0
+    const more = all - pack.levels.length
+    return more > 0
+      ? h("p", { className: "more-levels" }, [
+          h("a", { attrs: { href: "#install" } }, [`+${more} more in the plugin`]),
+        ])
+      : undefined
+  }
+
+  private pluginOnlyPacks(): HTMLLIElement[] {
+    const playable = new Set(this.packs.map((pack) => pack.pack))
+    const rest = this.curriculum.filter((pack) => !playable.has(pack.pack))
+    if (rest.length === 0) {
+      return []
+    }
+    const levels = rest.reduce((sum, pack) => sum + pack.levels.length, 0)
+    return [
+      h("li", {}, [
+        h("p", { className: "pack-title" }, ["Neovim only"]),
+        h("p", { className: "more-levels" }, [
+          `${rest.map((pack) => pack.title).join(", ")}: ${levels} levels. `,
+          h("a", { attrs: { href: "#install" } }, ["Install the plugin"]),
+          " to play them.",
+        ]),
+      ]),
+    ]
   }
 
   private lessonLink(pack: Pack): HTMLButtonElement | undefined {
@@ -302,6 +380,7 @@ export class Demo {
     this.elements.stage.replaceChildren(view.element)
     // Enter starts the level, but the lesson is read from the top, so focusing mustn't scroll.
     view.startButton?.focus({ preventScroll: true })
+    this.revealStage()
   }
 
   start(levelId: string): void {
@@ -409,6 +488,7 @@ export class Demo {
     this.renderDaily(this.elements.daily)
     this.renderList(this.elements.list)
     view.focus()
+    this.revealStage()
   }
 
   private stop(): void {

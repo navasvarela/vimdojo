@@ -6,9 +6,13 @@ import { mountHeroDemo } from "./landing/hero-demo"
 // The demo (CodeMirror + Vim emulation) is most of the bundle, so it loads
 // only when its section approaches the viewport. The landing page stays light.
 const PRELOAD_MARGIN = "400px"
+// The site nav's Daily link and the boards' "play it in your browser" link.
+const DAILY_HASH = "#daily"
 
-async function mountDemo(root: HTMLElement, challenge: Challenge | undefined): Promise<void> {
-  const [{ demoPacks, loadPacks }, { Demo }, { browserStorage }] = await Promise.all([
+type DemoHandle = { startDaily(): void }
+
+async function mountDemo(root: HTMLElement, challenge: Challenge | undefined): Promise<DemoHandle> {
+  const [{ loadPacks }, { Demo }, { browserStorage }] = await Promise.all([
     import("./challenges"),
     import("./game/demo"),
     import("./storage"),
@@ -16,9 +20,9 @@ async function mountDemo(root: HTMLElement, challenge: Challenge | undefined): P
   const packs = loadPacks()
   // Looked up in every pack: a challenge can name a level that's only in the plugin.
   const title = packs.flatMap((pack) => pack.levels).find((l) => l.id === challenge?.levelId)?.title
-  new Demo(
+  return new Demo(
     root,
-    demoPacks(packs),
+    packs,
     browserStorage(),
     challenge === undefined ? undefined : { challenge, title },
   )
@@ -52,17 +56,31 @@ const demo = document.querySelector<HTMLElement>("#demo")
 if (demo !== null) {
   demo.textContent = "Loading the demo…"
   const challenge = parseChallenge(window.location.search)
-  const load = (): void => {
-    mountDemo(demo, challenge).catch((error: unknown) => {
+  let mounted: Promise<DemoHandle | undefined> | undefined
+  const load = (): Promise<DemoHandle | undefined> => {
+    mounted ??= mountDemo(demo, challenge).catch((error: unknown) => {
       demo.textContent = "The demo failed to load. Try reloading the page."
       console.error(error)
+      return undefined
     })
+    return mounted
   }
-  // A challenge link is someone asking to play: open the demo straight away.
-  if (challenge === undefined) {
-    whenNearViewport(demo, load)
-  } else {
+  const playDaily = async (): Promise<void> => {
     document.querySelector("#play")?.scrollIntoView()
-    load()
+    ;(await load())?.startDaily()
   }
+  // A challenge or daily link is someone asking to play: open the demo straight away.
+  if (challenge !== undefined) {
+    document.querySelector("#play")?.scrollIntoView()
+    void load()
+  } else if (window.location.hash === DAILY_HASH) {
+    void playDaily()
+  } else {
+    whenNearViewport(demo, () => void load())
+  }
+  window.addEventListener("hashchange", () => {
+    if (window.location.hash === DAILY_HASH) {
+      void playDaily()
+    }
+  })
 }
