@@ -15,7 +15,7 @@
         },
         "level_id": "macros-01"
       },
-      "expected": "vimdojo daily 2026-10-30 ★★★ 7 keys (par 7) 4.3s\nBeat it: https://vimdojo.org/?play=macros-01&beat=7"
+      "expected": "vimdojo daily 2026-10-30 ★★★ 7 keys (par 7) 4.3s\nBeat it: https://vimdojo.org/play/macros-01/?beat=7"
     },
     {
       "name": "level with a hint",
@@ -30,7 +30,7 @@
         },
         "level_id": "macros-01"
       },
-      "expected": "vimdojo \"Again and again\" ★★☆ 9 keys (par 7) 12.0s · hint\nBeat it: https://vimdojo.org/?play=macros-01&beat=9"
+      "expected": "vimdojo \"Again and again\" ★★☆ 9 keys (par 7) 12.0s · hint\nBeat it: https://vimdojo.org/play/macros-01/?beat=9"
     }
   ]
 }

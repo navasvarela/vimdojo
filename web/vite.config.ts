@@ -5,6 +5,8 @@ import { analyticsPlugin } from "./build/analytics"
 import { boardLevelsPlugin } from "./build/board-levels"
 import { accountCspPlugin } from "./build/csp"
 import { curriculumPlugin } from "./build/curriculum"
+import { shareCardsPlugin } from "./build/share-pages"
+import { SITE_URL } from "./src/share"
 
 const CHALLENGES_DIR = fileURLToPath(new URL("../challenges", import.meta.url))
 const INDEX_HTML = fileURLToPath(new URL("index.html", import.meta.url))
@@ -12,6 +14,7 @@ const ACCOUNT_HTML = fileURLToPath(new URL("account/index.html", import.meta.url
 const PRIVACY_HTML = fileURLToPath(new URL("privacy/index.html", import.meta.url))
 const BOARDS_HTML = fileURLToPath(new URL("boards/index.html", import.meta.url))
 const PLAYER_HTML = fileURLToPath(new URL("player/index.html", import.meta.url))
+const SHARE_IMAGE = fileURLToPath(new URL("../docs/brand/social-preview.png", import.meta.url))
 const API_ORIGIN = process.env["VITE_API_URL"] ?? "https://api.vimdojo.org"
 
 // The site is served from the root of its custom domain (vimdojo.org).
@@ -25,6 +28,24 @@ export default defineConfig({
     analyticsPlugin(INDEX_HTML, process.env["VITE_CF_BEACON_TOKEN"]),
     accountCspPlugin([ACCOUNT_HTML, BOARDS_HTML, PLAYER_HTML], API_ORIGIN),
     boardLevelsPlugin(CHALLENGES_DIR, [BOARDS_HTML, PLAYER_HTML]),
+    shareCardsPlugin({
+      challengesDir: CHALLENGES_DIR,
+      imagePath: SHARE_IMAGE,
+      pages: {
+        [INDEX_HTML]: {
+          title: "vimdojo · learn Vim motions by solving puzzles",
+          description:
+            "Learn Vim motions, Neovim workflows and your own init.lua by solving tiny puzzles in real Neovim, or in your browser. Every key counts: beat par for three stars.",
+          url: `${SITE_URL}/`,
+        },
+        [BOARDS_HTML]: {
+          title: "Leaderboards · vimdojo",
+          description:
+            "Fewest verified keystrokes on today's daily, on each level and across them all, replayed in real Neovim.",
+          url: `${SITE_URL}/boards/`,
+        },
+      },
+    }),
   ],
   build: {
     // The lazily loaded demo chunk (CodeMirror + Vim emulation) is ~500 kB
