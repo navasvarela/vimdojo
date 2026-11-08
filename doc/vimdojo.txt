@@ -95,7 +95,9 @@ don't break a streak, and practice doesn't extend one.
 Practice plays a level with nothing recorded: no progress, stars, streak, key
 log or submission, and hints cost nothing. Press `p` on a level in the menu, or
 run `:VimDojo practice {level}`. It only opens levels you've unlocked, and the
-daily. On today's daily the par route stays hidden in practice too.
+daily. On today's daily the par route stays hidden in practice too. On
+https://vimdojo.org, press `Alt+P` while playing a level to switch it to
+practice and back.
 
                                                             *vimdojo-lessons*
 Some packs have a lesson: the idea behind the pack's levels and each command

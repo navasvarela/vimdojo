@@ -1,6 +1,8 @@
-// "Beat my keys" links: https://vimdojo.org/?play=<level>&beat=<keys>, from the result
-// a player copies (share.lua, share.ts). The query is untrusted, so it's checked here
-// and the rest of the site only sees a valid challenge.
+// "Beat my keys" links: https://vimdojo.org/?play=<level>&beat=<keys>. A copied result
+// (share.lua, share.ts) links to the level's share page, /play/<level>/?beat=<keys>,
+// which forwards here. Links copied before the share pages existed come here directly.
+// The query is untrusted, so it's checked here and the rest of the site only sees a
+// valid challenge.
 
 export type Challenge = { readonly levelId: string; readonly keys: number }
 
