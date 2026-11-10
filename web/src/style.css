@@ -536,6 +536,26 @@ h2::before {
 }
 /* biome-ignore-end lint/complexity/noImportantStyles: overrides CodeMirror's injected theme */
 
+/* The prompt for `:`, `/` and `?`. CodeMirror's light theme paints its panel
+   near-white and leaves the input's text colour to the browser, which draws it
+   near-white under the page's dark color-scheme, so what you type was invisible.
+   The extra .cm-editor outranks the base theme's selectors, which are injected
+   after this stylesheet. */
+.editor .cm-editor .cm-panels {
+  background: var(--surface-raised);
+  color: var(--text);
+}
+
+.editor .cm-editor .cm-panels-bottom {
+  border-top: 1px solid var(--border);
+}
+
+.editor .cm-editor .cm-vim-panel input {
+  color: var(--text);
+  caret-color: var(--accent);
+  font: inherit;
+}
+
 .statusline {
   margin: 0;
   padding: 2px 8px;
