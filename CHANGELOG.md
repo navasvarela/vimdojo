@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.14.0 (2026-11-11)
+
+### Added
+
+- **45 levels in the browser, up from 19.** Every level that plays the same in the
+  site's Vim emulation is now on the site: Basic Motions, Find and Jump and Operate in
+  full, most of Search, Text Objects, Transform, Registers and Macros and Ex Power,
+  and the first levels of Marks and Jumps and Ex Ranges.
+
+### Changed
+
+- **The daily goes through 45 levels instead of 19,** so a level comes round every 45
+  days. The schedule changes from today: update the plugin so it shows the same daily
+  as the site and the boards.
+- **Fixed:** on the site, what you typed after `:`, `/` or `?` was invisible, white
+  on a light bar. The prompt now uses the site's colours.
+
 ## v0.13.0 (2026-11-08)
 
 ### Added
