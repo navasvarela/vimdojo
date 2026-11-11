@@ -144,7 +144,8 @@
       "par_seconds": 8,
       "hint": "? searches backwards, like / but up. One distinctive character is often enough.",
       "solution": "?@<CR>",
-      "teaches": ["?"]
+      "teaches": ["?"],
+      "web_demo": true
     },
     {
       "id": "search-03",
@@ -184,7 +185,8 @@
       "par_seconds": 22,
       "hint": "Search for /ie, swap the two letters with xp, then n jumps to the next match. Repeat.",
       "solution": "/ie<CR>xpnxpnxpnxp",
-      "teaches": ["n"]
+      "teaches": ["n"],
+      "web_demo": true
     },
     {
       "id": "search-05",

@@ -128,7 +128,8 @@
       "par_seconds": 6,
       "hint": "b jumps back to the start of the previous word.",
       "solution": "bbb",
-      "teaches": ["b"]
+      "teaches": ["b"],
+      "web_demo": true
     },
     {
       "id": "basic-motions-04",
@@ -155,7 +156,8 @@
       "par_seconds": 5,
       "hint": "$ jumps to the end of the line.",
       "solution": "j$",
-      "teaches": ["$"]
+      "teaches": ["$"],
+      "web_demo": true
     },
     {
       "id": "basic-motions-06",
@@ -175,7 +177,8 @@
       "par_seconds": 6,
       "hint": "gg jumps to the first line (G to the last). ^ jumps to the first non-blank character.",
       "solution": "gg^",
-      "teaches": ["gg", "^"]
+      "teaches": ["gg", "^"],
+      "web_demo": true
     }
   ]
 }

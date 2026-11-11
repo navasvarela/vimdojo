@@ -105,7 +105,8 @@
       "hint": "In Insert mode, <C-r> followed by a register name inserts that register.",
       "solution": "A <C-r>a (we reply eventually)<Esc>",
       "teaches": ["<C-r>"],
-      "preset": { "registers": { "a": "support@vimdojo.invalid" } }
+      "preset": { "registers": { "a": "support@vimdojo.invalid" } },
+      "web_demo": true
     },
     {
       "id": "macros-01",
@@ -154,7 +155,8 @@
       "par_seconds": 50,
       "hint": "Record one row's edit, finishing with j to move down. I inserts at the start, f, finds the comma, cl changes it, A appends.",
       "solution": "qaI{ name = \"<Esc>f,cl\", age = <Esc>A },<Esc>jq6@a",
-      "teaches": ["macro"]
+      "teaches": ["macro"],
+      "web_demo": true
     },
     {
       "id": "macros-03",

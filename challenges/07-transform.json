@@ -83,7 +83,8 @@
       "par_seconds": 9,
       "hint": "gU is the uppercase operator. Give it a text object.",
       "solution": "gUiw",
-      "teaches": ["gU"]
+      "teaches": ["gU"],
+      "web_demo": true
     },
     {
       "id": "transform-02",
@@ -129,7 +130,8 @@
       "par_seconds": 8,
       "hint": "J joins lines with a space; gJ joins them without one.",
       "solution": "gJJ",
-      "teaches": ["J", "gJ"]
+      "teaches": ["J", "gJ"],
+      "web_demo": true
     },
     {
       "id": "transform-05",
@@ -142,7 +144,8 @@
       "par_seconds": 8,
       "hint": "x deletes a character and p puts it back after the cursor: xp swaps two characters.",
       "solution": "lxp",
-      "teaches": ["x", "xp"]
+      "teaches": ["x", "xp"],
+      "web_demo": true
     },
     {
       "id": "transform-06",

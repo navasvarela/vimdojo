@@ -91,7 +91,8 @@
       "par_seconds": 22,
       "hint": "The % range runs :s on every line of the file.",
       "solution": ":%s/usr/user/g<CR>",
-      "teaches": [":%s"]
+      "teaches": [":%s"],
+      "web_demo": true
     },
     {
       "id": "ex-03",
@@ -152,7 +153,8 @@
       "par_seconds": 12,
       "hint": ":sort u sorts lines and removes duplicates. Ex commands can be abbreviated: :sor works too.",
       "solution": ":sor u<CR>",
-      "teaches": [":sort"]
+      "teaches": [":sort"],
+      "web_demo": true
     },
     {
       "id": "ex-05",
@@ -174,7 +176,8 @@
       "par_seconds": 17,
       "hint": ":%norm runs Normal-mode keys on every line, starting at the beginning of each.",
       "solution": ":%norm wdw<CR>",
-      "teaches": [":norm"]
+      "teaches": [":norm"],
+      "web_demo": true
     },
     {
       "id": "ex-06",

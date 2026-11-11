@@ -18,12 +18,21 @@ describe("Demo", () => {
     expect(buttons[1]).toMatch(/^Today's daily: /)
   })
 
-  it("says how many of each pack's levels need the plugin", () => {
+  it("says how many of each pack's levels need the plugin, and nothing when none do", () => {
     const curriculum = loadPacks()
-    const pack = demoPacks(curriculum)[0]
-    const all = curriculum.find((p) => p.pack === pack?.pack)?.levels.length ?? 0
-    const more = render().querySelector(".level-list .more-levels")?.textContent
-    expect(more).toBe(`+${all - (pack?.levels.length ?? 0)} more in the plugin`)
+    const expected = demoPacks(curriculum)
+      .map((pack) => {
+        const all = curriculum.find((p) => p.pack === pack.pack)?.levels.length ?? 0
+        return all - pack.levels.length
+      })
+      .filter((more) => more > 0)
+      .map((more) => `+${more} more in the plugin`)
+    // The last item is the "Neovim only" list, which shares the note's style.
+    const packItems = ".level-list > li:not(:last-child)"
+    const notes = [...render().querySelectorAll(`${packItems} .more-levels`)].map(
+      (note) => note.textContent,
+    )
+    expect(notes).toEqual(expected)
   })
 
   it("lists the packs the browser can't play at all", () => {
