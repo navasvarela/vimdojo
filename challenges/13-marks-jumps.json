@@ -271,7 +271,8 @@
       "par_seconds": 22,
       "hint": "ma pins your spot before you leave, and `a brings you back to it. yi\" and vi\" work on a quoted string.",
       "solution": "ma20Gyi\"`avi\"p",
-      "teaches": ["m"]
+      "teaches": ["m"],
+      "web_demo": true
     },
     {
       "id": "marks-05",

@@ -280,7 +280,8 @@
       "par_seconds": 22,
       "hint": "The command :g runs can have its own range, starting at each match: ,/pattern/ runs to the next line matching it.",
       "solution": ":g/BEG/,/END/d<CR>",
-      "teaches": [":g/a/,/b/"]
+      "teaches": [":g/a/,/b/"],
+      "web_demo": true
     },
     {
       "id": "ex-ranges-05",
@@ -337,7 +338,8 @@
       "par_seconds": 18,
       "hint": "An address can be relative: -j joins the line above with the next one, so :g can pull each match up.",
       "solution": ":g/  els/-j<CR>",
-      "teaches": [":g/x/-j"]
+      "teaches": [":g/x/-j"],
+      "web_demo": true
     },
     {
       "id": "ex-ranges-06",

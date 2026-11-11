@@ -114,7 +114,8 @@
       "par_seconds": 5,
       "hint": "t followed by a character stops just before it.",
       "solution": "t)",
-      "teaches": ["t"]
+      "teaches": ["t"],
+      "web_demo": true
     },
     {
       "id": "find-and-jump-03",
@@ -150,7 +151,8 @@
       "par_seconds": 5,
       "hint": "} jumps to the next blank line, { to the previous one.",
       "solution": "}}",
-      "teaches": ["}", "{"]
+      "teaches": ["}", "{"],
+      "web_demo": true
     },
     {
       "id": "find-and-jump-05",
@@ -196,7 +198,8 @@
       "par_seconds": 5,
       "hint": "Most motions take a count: 7j moves down seven lines.",
       "solution": "7j",
-      "teaches": ["count"]
+      "teaches": ["count"],
+      "web_demo": true
     }
   ]
 }

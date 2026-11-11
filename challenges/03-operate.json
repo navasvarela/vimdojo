@@ -110,7 +110,8 @@
       "par_seconds": 6,
       "hint": "dd deletes the current line.",
       "solution": "jjdd",
-      "teaches": ["dd"]
+      "teaches": ["dd"],
+      "web_demo": true
     },
     {
       "id": "operate-03",
@@ -123,7 +124,8 @@
       "par_seconds": 10,
       "hint": "Get to the word, then cw deletes to the end of it and drops you into Insert mode. <Esc> when done.",
       "solution": "fmcwnaps<Esc>",
-      "teaches": ["cw"]
+      "teaches": ["cw"],
+      "web_demo": true
     },
     {
       "id": "operate-04",
@@ -150,7 +152,8 @@
       "par_seconds": 10,
       "hint": "ciw changes the whole word under the cursor, wherever the cursor is inside it.",
       "solution": "ciwanswer<Esc>",
-      "teaches": ["ciw"]
+      "teaches": ["ciw"],
+      "web_demo": true
     },
     {
       "id": "operate-06",
@@ -177,7 +180,8 @@
       "par_seconds": 5,
       "hint": "dap deletes a paragraph, including the blank line that follows it.",
       "solution": "dap",
-      "teaches": ["dap"]
+      "teaches": ["dap"],
+      "web_demo": true
     },
     {
       "id": "operate-08",
@@ -190,7 +194,8 @@
       "par_seconds": 6,
       "hint": "yy yanks the line, p puts it below. p takes a count too.",
       "solution": "yy2p",
-      "teaches": ["yy", "p"]
+      "teaches": ["yy", "p"],
+      "web_demo": true
     }
   ]
 }

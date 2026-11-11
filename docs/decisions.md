@@ -1085,3 +1085,22 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   more each pack has in the plugin and which packs the browser can't play.
 - **`/play/` share pages stay crawlable.** X's card crawler obeys `robots.txt`, so
   disallowing them would lose the cards; they're `noindex` instead.
+
+## More levels in the browser
+
+- **Every level that passes the emulation gate is a browser level.** The demo used to
+  flag three per pack (M4) so the site stayed a taste of the plugin. That left 19 of
+  135 levels for someone without Neovim. 26 more
+  passed the gate, recorded a name for every key and played their par route from code,
+  so they're flagged now: 45 in all. Basic Motions is playable in full, and Marks and
+  Jumps and Ex Ranges appear on the site for the first time.
+- **The daily grows with them.** The pool is still every `web_demo` level, now 45, so
+  a level comes round every 45 days rather than every 19. **Downside accepted:** the
+  schedule changes on the day this ships, and the site, the API's manifest and
+  installed plugins each pick from their own copy of the pool. Until all three carry
+  the 45-level pool they can name different dailies. The server's pick is what counts
+  for the board (see "Daily boards"), so ship the API deploy and a plugin release the
+  same day as the site, and expect plugins that haven't updated to disagree until
+  they do.
+- **No level hashes changed,** only the manifest's `daily` flags, so no board starts
+  over.

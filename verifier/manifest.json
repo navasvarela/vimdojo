@@ -37,7 +37,7 @@
       "ranked": true
     },
     "basic-motions-03": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:184956dd40559bc5d3e45cc7b2fbfa2dd8639e893bcd2618cda2f40dff5e8175",
       "par_keys": 3,
       "ranked": true
@@ -49,13 +49,13 @@
       "ranked": true
     },
     "basic-motions-05": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:c035ca55ef3ccb2292bf9e4170e185be16ccabe0cbf7a89fa18ce6d7caefd290",
       "par_keys": 2,
       "ranked": true
     },
     "basic-motions-06": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:4ac1738eff9e8bc592e2a43fe4d413e49483208ec95d8672dbdc0b25282c37e1",
       "par_keys": 3,
       "ranked": true
@@ -133,7 +133,7 @@
       "ranked": true
     },
     "ex-02": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:1c3da78933129f86a604ab02b1a1de2d42eedb5fbba57a1ce1b22847f3238c34",
       "par_keys": 15,
       "ranked": true
@@ -145,13 +145,13 @@
       "ranked": true
     },
     "ex-04": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:7c7b0d24c20890f3ccc1b2ea5b48e4a249f5ff6419502568ea9dea93b074181a",
       "par_keys": 7,
       "ranked": true
     },
     "ex-05": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:8fc282cf9882539b7a074d62d1d5947264954140ffa19dad355a062ae6d5064f",
       "par_keys": 11,
       "ranked": true
@@ -181,13 +181,13 @@
       "ranked": true
     },
     "ex-ranges-04": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:6bc45edc1cf2ff5985af5b4ee0a8c186417f51c0b674db473ac237a0cc15ede4",
       "par_keys": 15,
       "ranked": true
     },
     "ex-ranges-05": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:d161206e46c064d678b4a3730446da139fed7d1c7bd893a85441ace540502e4d",
       "par_keys": 12,
       "ranked": true
@@ -331,7 +331,7 @@
       "ranked": true
     },
     "find-and-jump-02": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:012170c5f2524f5cbce199f2af6ae9f0be8a7368b9a42b4111d484fdcb704781",
       "par_keys": 2,
       "ranked": true
@@ -343,7 +343,7 @@
       "ranked": true
     },
     "find-and-jump-04": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:9635b67c80ff8103edbe13c84c8950d6efe6a8e7416ef6e916adfd60f9f1257c",
       "par_keys": 2,
       "ranked": true
@@ -355,7 +355,7 @@
       "ranked": true
     },
     "find-and-jump-06": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:a27814359f60f30341a0e2b62c4747f4f04d82b64c79f7529986dd6350fb7edb",
       "par_keys": 2,
       "ranked": true
@@ -397,7 +397,7 @@
       "ranked": true
     },
     "macros-02": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:ba908f6620d3edcd0e3c2c9dc72e1d498d1d6c21bf1299a549eedaa24d1307b8",
       "par_keys": 38,
       "ranked": true
@@ -427,7 +427,7 @@
       "ranked": true
     },
     "marks-04": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:938d974dfe74964b13e9aced0473a71c3304996fca0a21bcf6f8c0cb85639945",
       "par_keys": 14,
       "ranked": true
@@ -475,13 +475,13 @@
       "ranked": true
     },
     "operate-02": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:e4c11cf4a54d96a3f32893578c3fbd6f314a97397141e6f68257fac204f73fba",
       "par_keys": 4,
       "ranked": true
     },
     "operate-03": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:ed643ae7f795a9a682ba0332f20eaaca9837cb1e903b2a5ac02c3429190949b7",
       "par_keys": 9,
       "ranked": true
@@ -493,7 +493,7 @@
       "ranked": true
     },
     "operate-05": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:3af0178b51f3827c91eed26752062fc1cfb84add55f4b70eaaccd60f7b7556d6",
       "par_keys": 10,
       "ranked": true
@@ -505,13 +505,13 @@
       "ranked": true
     },
     "operate-07": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:35e3e4aa71bb33383db980309214ad4ac0d82dd7f496e2dd34393a2f4b88a07e",
       "par_keys": 3,
       "ranked": true
     },
     "operate-08": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:f9b55a972e75908882b7e39286bb60728920b442e9367bbaee5635392985cbd2",
       "par_keys": 4,
       "ranked": true
@@ -637,7 +637,7 @@
       "ranked": true
     },
     "registers-02": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:3c6b45f4abdbb9c897016d973ef61be7532bd2c01d4ed4d240a61b8efca056e9",
       "par_keys": 27,
       "ranked": true
@@ -649,7 +649,7 @@
       "ranked": true
     },
     "search-02": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:d98bc83bb95a8bff0b888f127897bcb5ef169a8ada1b446a284f6e920e8a469a",
       "par_keys": 3,
       "ranked": true
@@ -661,7 +661,7 @@
       "ranked": true
     },
     "search-04": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:5f497d941a21a13091c52406e405870f3bbd820033c5b1f3439cd31123bec448",
       "par_keys": 15,
       "ranked": true
@@ -679,7 +679,7 @@
       "ranked": true
     },
     "textobj-02": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:61c7636ce5360db08e094366e6e1105ea6097acdad564024c6bc05bc86e9ddf1",
       "par_keys": 3,
       "ranked": true
@@ -703,13 +703,13 @@
       "ranked": true
     },
     "textobj-06": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:eb28be31809c5e85c681434fca3ad19deacd04adfb3bec33d482ba5d172a4a15",
       "par_keys": 3,
       "ranked": true
     },
     "transform-01": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:8071001e4b032c225e38cdb241cb5e72a989d0315dd818a67d226c6db27b7737",
       "par_keys": 4,
       "ranked": true
@@ -727,13 +727,13 @@
       "ranked": true
     },
     "transform-04": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:f072b9a450c63576a53a90b0e4b9ee677b0a11901af71c358d5961e8ed4efd69",
       "par_keys": 3,
       "ranked": true
     },
     "transform-05": {
-      "daily": false,
+      "daily": true,
       "hash": "sha256:9711d0b93a0607c77208a8e9e8a88e9d7eba14db365e21eeff579bb248f461e9",
       "par_keys": 3,
       "ranked": true

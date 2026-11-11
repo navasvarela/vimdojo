@@ -314,7 +314,7 @@ export class Demo {
     )
   }
 
-  /** The demo plays a few levels per pack; the rest need the plugin, and it says so. */
+  /** Levels the emulation can't play need the plugin, and the pack says how many. */
   private morePackLevels(pack: Pack): HTMLElement | undefined {
     const all = this.curriculum.find((p) => p.pack === pack.pack)?.levels.length ?? 0
     const more = all - pack.levels.length

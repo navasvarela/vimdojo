@@ -95,7 +95,8 @@
       "par_seconds": 8,
       "hint": "di[ deletes inside the square brackets around the cursor.",
       "solution": "di[",
-      "teaches": ["di["]
+      "teaches": ["di["],
+      "web_demo": true
     },
     {
       "id": "textobj-03",
@@ -170,7 +171,8 @@
       "par_seconds": 8,
       "hint": "as is 'a sentence', including the space after it.",
       "solution": "das",
-      "teaches": ["das"]
+      "teaches": ["das"],
+      "web_demo": true
     }
   ]
 }
