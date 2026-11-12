@@ -168,6 +168,20 @@ describe("playing a level", function()
     end)
 
     it("shows the player's keys beside the par route", function()
+      -- On a day when this level is the daily the card hides its par route, so pin the
+      -- clock to a day when it isn't.
+      player:lua([[
+        local daily = require("vimdojo.daily")
+        local challenges = require("vimdojo.challenges")
+        local pool = daily.pool(challenges.load_dir(challenges.default_dir()))
+        local day = 0
+        while daily.pick(pool, day) == "basic-motions-01" do
+          day = day + 1
+        end
+        os.time = function()
+          return day * 86400
+        end
+      ]])
       assert.is_true(player:start("basic-motions-01"))
       player:type("jjjlhll")
       player:wait_for_record("basic-motions-01")
@@ -399,6 +413,47 @@ describe("playing a level", function()
     it("shows no lesson for a pack without one", function()
       pick("12\\. Boss Levels", "Spreadsheet to docs")
       assert.is_true(player:wait_for("(" .. CURRENT .. " or {}).ready"))
+    end)
+  end)
+
+  describe("with the daily pack", function()
+    before_each(function()
+      player = player_mod.spawn()
+      -- Pins the clock to the daily pack's third day.
+      player:lua([[
+        local daily = require("vimdojo.daily")
+        local challenges = require("vimdojo.challenges")
+        local schedule = daily.schedule(challenges.load_dir(challenges.default_dir()))
+        os.time = function()
+          return (schedule.start + 2) * 86400
+        end
+      ]])
+    end)
+
+    it("lists the past dailies in the menu and keeps future ones locked", function()
+      local past = player:lua([[
+        local daily = require("vimdojo.daily")
+        local challenges = require("vimdojo.challenges")
+        local schedule = daily.schedule(challenges.load_dir(challenges.default_dir()))
+        return daily.archive(schedule, schedule.start + 2)
+      ]])
+      assert.are.equal(2, #past)
+      player:lua("vim.cmd('VimDojo')")
+      local menu =
+        table.concat(player:lua("return vim.api.nvim_buf_get_lines(0, 0, -1, false)"), "\n")
+      assert.is_truthy(menu:find("PAST DAILIES", 1, true))
+      assert.is_truthy(menu:find(past[1].date, 1, true))
+      assert.is_truthy(menu:find(past[2].date, 1, true))
+
+      local future = player:lua([[
+        local daily = require("vimdojo.daily")
+        local challenges = require("vimdojo.challenges")
+        local schedule = daily.schedule(challenges.load_dir(challenges.default_dir()))
+        return daily.level_for(schedule, schedule.start + 3)
+      ]])
+      player:lua("require('vimdojo.app').start(...)", future)
+      assert.is_nil(player:lua("return " .. CURRENT))
+      assert.is_true(player:start(past[1].level_id))
     end)
   end)
 

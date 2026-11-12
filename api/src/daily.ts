@@ -1,13 +1,13 @@
 // Which level is the daily challenge on a given UTC day. The picker itself is the
 // site's (web/src/daily.ts), so the API, the site and the plugin all agree: the
 // shared fixture pins it against the plugin's Lua port.
-import { dailyDate, dayNumber, pickDaily } from "../../web/src/daily"
-import { DAILY_POOL } from "./manifest"
+import { dailyDate, dailyLevel, dayNumber } from "../../web/src/daily"
+import { DAILY_SCHEDULE } from "./manifest"
 
 export type Daily = { readonly date: string; readonly levelId: string }
 
 function dailyOn(day: number): Daily | undefined {
-  const levelId = pickDaily(DAILY_POOL, day)
+  const levelId = dailyLevel(DAILY_SCHEDULE, day)
   return levelId === undefined ? undefined : { date: dailyDate(day), levelId }
 }
 

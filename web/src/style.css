@@ -448,6 +448,11 @@ h2::before {
   color: var(--muted);
 }
 
+.past-date {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .level-title {
   margin: 0;
   font-size: 1.2rem;

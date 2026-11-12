@@ -1,18 +1,21 @@
 // @vitest-environment node
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
-import { parsePacks } from "../src/challenges"
+import { curriculumPacks, parsePacks } from "../src/challenges"
+import { DAILY_TRACK } from "../src/daily"
 import { readPacks, renderCurriculum } from "./curriculum"
 
 const CHALLENGES_DIR = fileURLToPath(new URL("../../challenges", import.meta.url))
 
 describe("curriculum rendering", () => {
-  it("lists every shipped pack in order", () => {
+  it("lists every curriculum pack in order, and not the daily pack", () => {
     const packs = readPacks(CHALLENGES_DIR)
     const html = renderCurriculum(packs)
-    const positions = packs.map((pack) => html.indexOf(pack.title))
+    const positions = curriculumPacks(packs).map((pack) => html.indexOf(pack.title))
     expect(positions.every((position) => position >= 0)).toBe(true)
     expect(positions).toEqual([...positions].sort((a, b) => a - b))
+    const daily = packs.find((pack) => pack.track === DAILY_TRACK)
+    expect(daily?.levels.some((level) => html.includes(level.title))).toBe(false)
   })
 
   it("groups packs by track in curriculum order and badges Neovim-only tracks", () => {

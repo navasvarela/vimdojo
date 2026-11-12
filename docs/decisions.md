@@ -1104,3 +1104,26 @@ PLAN-v3.md records the full table. The two departures from the proposal:
   they do.
 - **No level hashes changed,** only the manifest's `daily` flags, so no board starts
   over.
+
+## The daily pool
+
+The design is in `docs/proposals/daily-pool.md`. Notes from building it:
+
+- **One picker, two eras.** `daily.level_for` (Lua) and `dailyLevel` (TS) keep the old
+  pick for days before the pack's `daily_start` and use the weekly ramp from it. The
+  start date lives in the pack, and the manifest carries it to the API, so no client
+  hard-codes it. The ramp reuses `pick` for each tier, counting the tier's days from
+  the start date: counted from 1970, a tier's cycle boundary fell mid-way through the
+  first weeks and brought a level back after two weeks instead of three.
+- **The old pool leaves the daily pack out.** Its levels are `web_demo`, so without that
+  the pool would have grown to 66 and reshuffled the days before the start too.
+- **`curriculum()` / `curriculumPacks()`** is every pack but the daily one. The menu,
+  unlocks, next level, the site's level list and its "Neovim only" note go through it,
+  so no route leads into a future daily. Today's and past dailies open whatever is
+  unlocked, as the daily always has.
+- **A link to a future daily is refused** on the site, saying so, rather than opened.
+- **Two levels didn't make it into the browser:** `ddP` on the last line lands
+  differently in the emulation, and `:m0` isn't emulated. Both were replaced.
+- **Past boards read their level from their entries.** The pool changed under past days
+  twice (45 levels, then the daily pack), and the API worked a past day's level out
+  from the current pool. A day with entries now names the level they were played on.

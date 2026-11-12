@@ -88,11 +88,14 @@ local function supports(level)
 end
 
 ---@return table<string, true>
+--- The daily pack never unlocks by progress: its levels open on their day, and from
+--- the archive after it (see `M.start_daily`), so a future daily can't be played
+--- early. `unlock_all` opens it too, for testing levels; a player sets it themselves.
 local function unlocked_levels()
   if config().unlock_all then
     return progress.unlocked_all(state.packs)
   end
-  return progress.unlocked_by_progress(state.progress, state.packs, supports)
+  return progress.unlocked_by_progress(state.progress, challenges.curriculum(state.packs), supports)
 end
 
 ---@param play vimdojo.Play
@@ -206,7 +209,36 @@ end
 ---@param level_id string
 ---@return boolean
 local function is_todays_daily(level_id)
-  return daily.pick(daily.pool(state.packs), daily.day_number(os.time())) == level_id
+  return daily.level_for(daily.schedule(state.packs), daily.day_number(os.time())) == level_id
+end
+
+--- The daily pack's past dailies, newest first, with their levels.
+---@return vimdojo.Daily[]
+local function past_dailies()
+  local schedule = daily.schedule(state.packs)
+  local past = {}
+  for _, entry in ipairs(daily.archive(schedule, daily.day_number(os.time()))) do
+    local level = challenges.find(state.packs, entry.level_id)
+    if level then
+      table.insert(past, { date = entry.date, level = level })
+    end
+  end
+  return past
+end
+
+--- What the player can open: the unlocked levels, plus today's daily and the past
+--- dailies, which ignore locks because everyone gets the same ones.
+---@return table<string, true>
+local function open_levels()
+  local open = unlocked_levels()
+  local todays = daily.level_for(daily.schedule(state.packs), daily.day_number(os.time()))
+  if todays then
+    open[todays] = true
+  end
+  for _, past in ipairs(past_dailies()) do
+    open[past.level.id] = true
+  end
+  return open
 end
 
 ---@return vimdojo.StreakView|nil
@@ -506,7 +538,7 @@ function M.start(level_id)
   if not check_supported(level) then
     return
   end
-  if not unlocked_levels()[level_id] then
+  if not open_levels()[level_id] then
     notify("that level is still locked", vim.log.levels.WARN)
     return
   end
@@ -522,7 +554,7 @@ end
 ---@return vimdojo.Daily|nil
 local function todays_daily()
   local day = daily.day_number(os.time())
-  local level_id = daily.pick(daily.pool(state.packs), day)
+  local level_id = daily.level_for(daily.schedule(state.packs), day)
   local level = level_id and challenges.find(state.packs, level_id)
   if level then
     return { date = daily.date(day), level = level }
@@ -545,8 +577,8 @@ function M.start_daily()
   end
 end
 
---- Plays a level with nothing recorded. Today's daily ignores locks here too, since it
---- can be played from the menu whatever the player has unlocked.
+--- Plays a level with nothing recorded. Today's daily and past dailies ignore locks
+--- here too, since they can be played from the menu whatever the player has unlocked.
 ---@param level_id string|nil
 function M.start_practice(level_id)
   if not level_id then
@@ -564,7 +596,7 @@ function M.start_practice(level_id)
   if not check_supported(level) then
     return
   end
-  if not unlocked_levels()[level_id] and not is_todays_daily(level_id) then
+  if not open_levels()[level_id] then
     notify("that level is still locked", vim.log.levels.WARN)
     return
   end
@@ -622,9 +654,10 @@ function M.open_menu()
   menu.open({
     packs = state.packs,
     progress = state.progress,
-    unlocked = unlocked_levels(),
+    unlocked = open_levels(),
     supports = supports,
     daily = todays_daily(),
+    archive = past_dailies(),
     streak = streak_view(),
   }, { level = start_from_menu, daily = M.start_daily, practice = M.start_practice })
 end

@@ -192,9 +192,14 @@ local packs = assert(challenges.load_dir())
 local taught = {}
 vim.api.nvim_set_current_buf(vim.api.nvim_create_buf(false, true))
 for _, pack in ipairs(packs) do
+  -- A daily isn't in the curriculum, so its par is the best route with any keys, and
+  -- what it uses isn't "taught" to the packs after it.
+  local is_daily = pack.track == challenges.DAILY_TRACK
   for _, level in ipairs(pack.levels) do
-    for _, key in ipairs(level.teaches) do
-      taught[key] = true
+    if not is_daily then
+      for _, key in ipairs(level.teaches) do
+        taught[key] = true
+      end
     end
     if level.goal.type == "cursor_at" then
       vim.api.nvim_buf_set_lines(0, 0, -1, false, level.start_text)
@@ -211,7 +216,8 @@ for _, pack in ipairs(packs) do
           return true
         end, level.start_text)
       )
-      local flag = (taught_cost ~= level.par_keys) and "  <-- par mismatch" or ""
+      local expected = is_daily and any_cost or taught_cost
+      local flag = (expected ~= level.par_keys) and "  <-- par mismatch" or ""
       print(
         ("%-18s par %2d | taught %2s %-10s | any %2s %-8s%s"):format(
           level.id,

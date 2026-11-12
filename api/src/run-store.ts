@@ -416,6 +416,18 @@ export class RunStore {
       .run()
   }
 
+  /**
+   * The level a day's entries were played on. Every entry of a day is on that day's
+   * level, since only it can be entered.
+   */
+  async dailyLevelOn(date: string): Promise<string | undefined> {
+    const row = await this.db
+      .prepare("SELECT level_id FROM daily_entries WHERE date = ? LIMIT 1")
+      .bind(date)
+      .first<{ level_id: string }>()
+    return row?.level_id
+  }
+
   /** Ordered like every board. Players without a handle aren't shown. */
   async dailyBoard(date: string, limit: number): Promise<readonly BoardRow[]> {
     const { results } = await this.db

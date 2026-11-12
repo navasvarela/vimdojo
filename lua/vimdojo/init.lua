@@ -1,7 +1,7 @@
 local M = {}
 
 ---@class vimdojo.Config
----@field unlock_all boolean Unlock every pack and level regardless of progress.
+---@field unlock_all boolean Unlock every pack and level regardless of progress, future dailies included.
 ---@field window "float"|"tab" Where a level is played.
 ---@field config "clean"|"mine" Run levels in a stock Neovim (`--clean`), or with your own config.
 ---@field progress_path string|nil Override for the progress file location (used by tests).
@@ -101,11 +101,12 @@ function M.complete(arg_lead, cmd_line)
     local online = require("vimdojo.online")
     candidates = vim.tbl_map(function(level)
       return level.id
-    end, online.ranked_levels())
+    end, online.browsable_levels())
     table.insert(candidates, 1, online.DAILY_BOARD)
   elseif cmd_line:match("^%S+%s+practice%s") then
     candidates = {}
-    for _, pack in ipairs(require("vimdojo.challenges").load_dir(M.config.challenges_dir) or {}) do
+    local challenges = require("vimdojo.challenges")
+    for _, pack in ipairs(challenges.curriculum(challenges.load_dir(M.config.challenges_dir) or {})) do
       for _, level in ipairs(pack.levels) do
         table.insert(candidates, level.id)
       end

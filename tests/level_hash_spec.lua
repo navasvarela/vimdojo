@@ -51,10 +51,16 @@ describe("verifier/manifest.json", function()
 
   it("lists every shipped level with its current hash (run `make manifest`)", function()
     local expected = {}
-    for _, pack in ipairs(assert(challenges.load_dir())) do
+    local packs = assert(challenges.load_dir())
+    local legacy = {}
+    for _, id in ipairs(require("vimdojo.daily").pool(packs)) do
+      legacy[id] = true
+    end
+    for _, pack in ipairs(packs) do
       for _, level in ipairs(pack.levels) do
         expected[level.id] = {
-          daily = level.web_demo == true,
+          daily = legacy[level.id] == true,
+          difficulty = level.difficulty,
           hash = level_hash.of(level),
           par_keys = level.par_keys,
           ranked = pack.track ~= "setup",

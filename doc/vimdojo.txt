@@ -87,6 +87,13 @@ https://vimdojo.org, picked from the date (UTC) with no network access. It
 sits at the top of the menu, or run `:VimDojo daily`. It ignores pack locks,
 and solving it counts toward that level's progress too.
 
+From 2026-11-16 the daily comes from a pack of its own: levels you won't find
+anywhere else in the game. They get harder through the week: easy on Monday,
+then tricky, then trickier on Wednesday and Thursday, harder on Friday, and the
+nastiest edge cases at the weekend. A daily stays playable after its day: past
+dailies are listed at the end of the menu, under PAST DAILIES. Playing one
+there counts for its own level, not for that day's board or your streak.
+
 Solving the daily on consecutive UTC days builds a streak, shown on the menu and
 on the results card. It's kept in your progress file, so it works offline. Hints
 don't break a streak, and practice doesn't extend one.
@@ -94,8 +101,8 @@ don't break a streak, and practice doesn't extend one.
                                                            *vimdojo-practice*
 Practice plays a level with nothing recorded: no progress, stars, streak, key
 log or submission, and hints cost nothing. Press `p` on a level in the menu, or
-run `:VimDojo practice {level}`. It only opens levels you've unlocked, and the
-daily. On today's daily the par route stays hidden in practice too. On
+run `:VimDojo practice {level}`. It only opens levels you've unlocked, today's
+daily and past dailies. On today's daily the par route stays hidden in practice too. On
 https://vimdojo.org, press `Alt+P` while playing a level to switch it to
 practice and back.
 
@@ -186,7 +193,8 @@ require("vimdojo").setup({opts})
     All fields are optional. The defaults: >lua
 
     require("vimdojo").setup({
-      -- Unlock every pack and level regardless of progress.
+      -- Unlock every pack and level regardless of progress, including
+      -- dailies that haven't come round yet (for testing levels).
       unlock_all = false,
       -- Where a level is played: "float" or "tab".
       window = "float",

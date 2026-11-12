@@ -4,6 +4,7 @@ import { z } from "zod"
 import fixture from "../../tests/fixtures/level_hash.json"
 import manifest from "../../verifier/manifest.json"
 import { loadPacks, parsePacks } from "./challenges"
+import { dailyPool } from "./daily"
 import { canonicalLevel, levelHash } from "./level-hash"
 
 const Case = z.object({
@@ -32,23 +33,31 @@ describe("levelHash (shared fixtures)", () => {
 
 const Manifest = z.record(
   z.string(),
-  z.object({ daily: z.boolean(), hash: z.string(), ranked: z.boolean() }),
+  z.object({
+    daily: z.boolean(),
+    difficulty: z.number().optional(),
+    hash: z.string(),
+    ranked: z.boolean(),
+  }),
 )
 
 describe("verifier/manifest.json", () => {
   it("agrees with this port on every shipped level's hash", async () => {
     const expected = Manifest.parse(manifest.levels)
-    const levels = loadPacks().flatMap((pack) =>
+    const packs = loadPacks()
+    const legacy = new Set(dailyPool(packs))
+    const levels = packs.flatMap((pack) =>
       pack.levels.map((level) => ({
         level,
-        daily: level.web_demo === true,
+        daily: legacy.has(level.id),
+        ...(level.difficulty === undefined ? {} : { difficulty: level.difficulty }),
         ranked: pack.track !== "setup",
       })),
     )
     const actual = await Promise.all(
       levels.map(
-        async ({ level, daily, ranked }) =>
-          [level.id, { daily, hash: await levelHash(level), ranked }] as const,
+        async ({ level, ...entry }) =>
+          [level.id, { ...entry, hash: await levelHash(level) }] as const,
       ),
     )
     expect(Object.fromEntries(actual)).toEqual(expected)

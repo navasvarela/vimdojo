@@ -48,9 +48,12 @@ function requireDaily(daily: Daily | undefined): Daily {
 export async function publicDaily(store: RunStore, now: number, date?: string) {
   const daily = requireDaily(date === undefined ? todaysDaily(now) : dailyForDate(date, now))
   const rows = await store.dailyBoard(daily.date, BOARD_SIZE)
+  // The schedule has changed under past days (the pool grew, then the daily pack took
+  // over), so a past day's own entries say which level it was, where it has any.
+  const playedOn = date === undefined ? undefined : await store.dailyLevelOn(daily.date)
   return {
     date: daily.date,
-    level_id: daily.levelId,
+    level_id: playedOn ?? daily.levelId,
     entries: rows.map((row, index) => ({
       rank: index + 1,
       handle: row.handle,
