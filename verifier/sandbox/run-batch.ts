@@ -13,7 +13,8 @@ import { readPacks } from "../src/packs"
 import { env, REGION, SANDBOX_PATHS } from "./config"
 
 const ROOT = fileURLToPath(new URL("../..", import.meta.url))
-const RANKED_TRACKS: ReadonlySet<string> = new Set(["motions", "usage"])
+// Setup levels aren't ranked yet (their probes would need to run out of process).
+const RANKED_TRACKS: ReadonlySet<string> = new Set(["motions", "usage", "daily"])
 const JOBS_PATH = "jobs.json"
 const BATCH_TIMEOUT_MS = 240_000
 const HOSTILE_LEVEL = "basic-motions-01"
