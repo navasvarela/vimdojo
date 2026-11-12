@@ -1,5 +1,23 @@
 # Changelog
 
+## v0.15.0 (2026-11-12)
+
+### Added
+
+- **A daily pool of its own.** From Monday 2026-11-16 the daily comes from 21 levels
+  you won't find anywhere else in the game, and it gets harder through the week: easy
+  on Monday, the nastiest edge cases at the weekend. Expect `xp` at the end of a line,
+  `:sort` against `:sort n`, and `&` in a `:s` replacement.
+- **Past dailies.** A daily stays playable after its day: under PAST DAILIES at the
+  end of the plugin's menu, and in the site's level list. Playing one counts for that
+  level, not for its day's board or your streak.
+
+### Changed
+
+- `unlock_all` also opens dailies that haven't come round yet, for testing levels.
+- **Fixed:** a past day's daily board named the wrong level after the daily's levels
+  changed. It now names the level its entries were played on.
+
 ## v0.14.0 (2026-11-11)
 
 ### Added
