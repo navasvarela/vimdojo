@@ -7,9 +7,9 @@ import { type App, handleRequest, sweep } from "../src/app"
 import type { Env } from "../src/config"
 import { sha256Hex } from "../src/crypto"
 import type { GitHub } from "../src/github"
-import { dayNumber, pickDaily } from "../../web/src/daily"
+import { dailyLevel, dayNumber } from "../../web/src/daily"
 import { todaysDaily } from "../src/daily"
-import { DAILY_POOL, manifestEntry } from "../src/manifest"
+import { DAILY_SCHEDULE, manifestEntry } from "../src/manifest"
 import { RunStore } from "../src/run-store"
 import { Store } from "../src/store"
 import {
@@ -515,11 +515,12 @@ describe("runs", () => {
     const dailyRun = (keys: readonly string[], claimed = keys.length) =>
       runBody(keys, claimed, today().levelId)
 
+    // 2026-10-31 is before the daily pack starts, so the old pool still picks.
     it("picks a level from the daily pool, the same way the site does", async () => {
       const board = await dailyBoard()
       expect(board.date).toBe("2026-10-31")
       expect(manifestEntry(board.level_id)?.daily).toBe(true)
-      expect(board.level_id).toBe(pickDaily(DAILY_POOL, dayNumber(now)))
+      expect(board.level_id).toBe(dailyLevel(DAILY_SCHEDULE, dayNumber(now)))
     })
 
     it("ranks today's verified runs, by keys then first to get there", async () => {
@@ -548,7 +549,7 @@ describe("runs", () => {
     })
 
     it("ignores runs on other levels", async () => {
-      const other = DAILY_POOL.find((id) => id !== today().levelId) ?? ""
+      const other = DAILY_SCHEDULE.legacy.find((id) => id !== today().levelId) ?? ""
       await submit(await named(1, "ana"), runBody(["a"], 1, other))
       await verify()
       expect((await dailyBoard()).entries).toEqual([])
@@ -561,6 +562,17 @@ describe("runs", () => {
       await verify()
       expect((await dailyBoard(date)).entries[0]).toMatchObject({ handle: "ana" })
       expect((await dailyBoard()).entries).toEqual([])
+    })
+
+    it("names a past day by the level its entries were played on", async () => {
+      const date = today().date
+      await submit(await named(1, "ana"), dailyRun(["a"]))
+      await verify()
+      // As if the schedule changed afterwards: the day's entries still say what it was.
+      await db.prepare("UPDATE daily_entries SET level_id = 'renamed-01'").run()
+      now += DAY_MS
+      expect((await dailyBoard(date)).level_id).toBe("renamed-01")
+      expect((await dailyBoard()).level_id).not.toBe("renamed-01")
     })
 
     it("starts empty each day", async () => {

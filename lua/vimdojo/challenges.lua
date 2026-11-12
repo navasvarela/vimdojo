@@ -23,8 +23,15 @@ M.TRACKS = {
   { id = "setup", title = "Setup" },
 }
 M.DEFAULT_TRACK = "motions"
+--- Holds the daily challenge's own levels (see daily.lua). It isn't in M.TRACKS
+--- because it has no menu section of its own: a daily is played on its day, and from
+--- the archive after that.
+M.DAILY_TRACK = "daily"
+M.DIFFICULTY_MAX = 5
 
-local TRACK_IDS = {}
+local daily_track_errors
+
+local TRACK_IDS = { [M.DAILY_TRACK] = true }
 for _, track in ipairs(M.TRACKS) do
   TRACK_IDS[track.id] = true
 end
@@ -346,6 +353,65 @@ local function level_errors(level)
   return errors
 end
 
+---@param value any
+---@return boolean
+local function is_date(value)
+  return type(value) == "string" and value:match("^%d%d%d%d%-%d%d%-%d%d$") ~= nil
+end
+
+--- A daily pack needs its start date, and each of its levels a difficulty and the
+--- browser, where anyone can play the day's level. Other packs carry neither field.
+---@param pack table
+---@return string[]
+daily_track_errors = function(pack)
+  local errors = {}
+  if pack.track ~= M.DAILY_TRACK then
+    if pack.daily_start ~= nil then
+      table.insert(errors, "daily_start is only for the daily track")
+    end
+    for _, level in ipairs(type(pack.levels) == "table" and pack.levels or {}) do
+      if type(level) == "table" and level.difficulty ~= nil then
+        table.insert(
+          errors,
+          ("%s: difficulty is only for the daily track"):format(tostring(level.id))
+        )
+      end
+    end
+    return errors
+  end
+  if not is_date(pack.daily_start) then
+    table.insert(errors, "daily_start must be a date, YYYY-MM-DD")
+  end
+  if pack.lesson ~= nil then
+    table.insert(errors, "a daily pack has no lesson")
+  end
+  for _, level in ipairs(type(pack.levels) == "table" and pack.levels or {}) do
+    if type(level) == "table" then
+      local difficulty = level.difficulty
+      if
+        not (check.is_integer(difficulty) and difficulty >= 1 and difficulty <= M.DIFFICULTY_MAX)
+      then
+        table.insert(
+          errors,
+          ("%s: difficulty must be an integer from 1 to %d"):format(
+            tostring(level.id),
+            M.DIFFICULTY_MAX
+          )
+        )
+      end
+      if level.web_demo ~= true then
+        table.insert(
+          errors,
+          ("%s: daily levels must be web_demo, so the site can play them"):format(
+            tostring(level.id)
+          )
+        )
+      end
+    end
+  end
+  return errors
+end
+
 --- Validates one decoded pack. Cross-pack rules (unique ids and orders) are
 --- checked by `load_dir`.
 ---@param pack any
@@ -367,9 +433,10 @@ function M.validate_pack(pack)
   if pack.track ~= nil and not TRACK_IDS[pack.track] then
     table.insert(
       errors,
-      ("track must be one of motions, usage, setup (got %q)"):format(tostring(pack.track))
+      ("track must be one of motions, usage, setup, daily (got %q)"):format(tostring(pack.track))
     )
   end
+  vim.list_extend(errors, daily_track_errors(pack))
   local pack_authors_err = authors_error(pack.authors)
   if pack_authors_err then
     table.insert(errors, pack_authors_err)
@@ -425,11 +492,32 @@ local function read_file(path)
   return content
 end
 
+--- The weekday picks a tier, so an empty tier would leave that day without a daily.
+---@param pack vimdojo.Pack
+---@return string[]
+local function tier_errors(pack)
+  local filled = {}
+  for _, level in ipairs(pack.levels) do
+    filled[level.difficulty] = true
+  end
+  local errors = {}
+  for difficulty = 1, M.DIFFICULTY_MAX do
+    if not filled[difficulty] then
+      table.insert(
+        errors,
+        ("daily pack %q has no level of difficulty %d"):format(pack.pack, difficulty)
+      )
+    end
+  end
+  return errors
+end
+
 ---@param packs vimdojo.Pack[]
 ---@return string[]
 local function cross_pack_errors(packs)
   local errors = {}
   local seen_levels, seen_packs, seen_orders = {}, {}, {}
+  local daily_pack
   for _, pack in ipairs(packs) do
     if seen_packs[pack.pack] then
       table.insert(errors, ("duplicate pack id %q"):format(pack.pack))
@@ -442,6 +530,13 @@ local function cross_pack_errors(packs)
     end
     seen_packs[pack.pack] = true
     seen_orders[pack.order] = pack.pack
+    if pack.track == M.DAILY_TRACK then
+      if daily_pack then
+        table.insert(errors, ("packs %q and %q are both daily packs"):format(daily_pack, pack.pack))
+      end
+      daily_pack = pack.pack
+      vim.list_extend(errors, tier_errors(pack))
+    end
     for _, level in ipairs(pack.levels) do
       if seen_levels[level.id] then
         table.insert(errors, ("duplicate level id %q"):format(level.id))
@@ -450,6 +545,26 @@ local function cross_pack_errors(packs)
     end
   end
   return errors
+end
+
+--- The packs the menu and progression show: every pack but the daily one, whose
+--- levels mustn't be reachable before their day.
+---@param packs vimdojo.Pack[]
+---@return vimdojo.Pack[]
+function M.curriculum(packs)
+  return vim.tbl_filter(function(pack)
+    return pack.track ~= M.DAILY_TRACK
+  end, packs)
+end
+
+---@param packs vimdojo.Pack[]
+---@return vimdojo.Pack|nil
+function M.daily_pack(packs)
+  for _, pack in ipairs(packs) do
+    if pack.track == M.DAILY_TRACK then
+      return pack
+    end
+  end
 end
 
 ---@param packs vimdojo.Pack[]
@@ -485,7 +600,7 @@ end
 ---@return vimdojo.Level|nil
 function M.next_level(packs, level_id)
   local found = false
-  for _, pack in ipairs(packs) do
+  for _, pack in ipairs(M.curriculum(packs)) do
     for _, level in ipairs(pack.levels) do
       if found then
         return level

@@ -78,6 +78,23 @@ A pack belongs to one `track`: `motions` (default), `usage` or `setup`.
 Tracks unlock independently, and packs unlock in `order` within their track.
 Pack `order` is unique across all packs.
 
+The `daily` track holds one pack, `challenges/90-daily.json`: the levels the daily
+challenge draws from. It isn't in the menu, and its levels never unlock: each is
+played on its day, and from the archive after it. Compared with other packs:
+
+- **Each level has a `difficulty`** from 1 to 5, and the weekday picks the tier:
+  Monday 1, Tuesday 2, Wednesday and Thursday 3, Friday 4, Saturday and Sunday 5.
+  A two-day tier needs twice the levels to last as long.
+- **Each level is `web_demo`,** so it must pass the emulation test: anyone can play
+  the day's level on the site.
+- **Par is the best known route with any keys,** not the taught-so-far rule: a daily
+  isn't in the curriculum. `make par` compares `cursor_at` dailies with the any-motion
+  optimum.
+- **The pack has a `daily_start` date.** Before it, the daily came from the demo
+  levels. Leave it alone once it has passed, because changing it reshuffles every day.
+- **Adding a level reshuffles its tier** from the day it ships. Ship it with an API
+  deploy and a plugin release, as for any change to the daily.
+
 The full contract is [`challenges/schema.json`](../challenges/schema.json).
 Point your editor's JSON support at it via `"$schema": "./schema.json"`.
 

@@ -1,7 +1,14 @@
 import type { EditorView } from "@codemirror/view"
-import { demoPacks, nextLevel, type Level, type Pack } from "../challenges"
+import { curriculumPacks, demoPacks, nextLevel, type Level, type Pack } from "../challenges"
 import { isMet, registersFor } from "../goals"
-import { dailyDate, dailyPool, dayNumber, pickDaily } from "../daily"
+import {
+  type DailySchedule,
+  dailyArchive,
+  dailyDate,
+  dailyLevel,
+  dailySchedule,
+  dayNumber,
+} from "../daily"
 import { BoardsApi } from "../boards/api"
 import { type Challenge, challengeResult } from "../challenge-link"
 import { keyNotation } from "../key-notation"
@@ -92,6 +99,9 @@ export class Demo {
   /** The levels the emulation can play; the rest of the curriculum is plugin-only. */
   private readonly packs: readonly Pack[]
   private readonly curriculum: readonly Pack[]
+  /** Every level by id, the daily pack's included: a daily is found here on its day. */
+  private readonly levels: ReadonlyMap<string, Level>
+  private readonly schedule: DailySchedule
   private progress: Progress
   private readonly runs = new RunsApi()
   private readonly boards = new BoardsApi()
@@ -99,15 +109,20 @@ export class Demo {
   private challenge: Challenge | undefined
   private readonly elements: DemoElements
 
-  /** @param curriculum Every pack; the demo plays its web_demo levels and points to the rest. */
+  /**
+   * @param curriculum Every pack; the demo plays its web_demo levels and points to the rest.
+   *   The daily pack's levels are only played on their day, and from the archive after it.
+   */
   constructor(
     private readonly root: HTMLElement,
     curriculum: readonly Pack[],
     private readonly storage: Storage | undefined,
     offer?: ChallengeOffer,
   ) {
-    this.curriculum = curriculum
+    this.curriculum = curriculumPacks(curriculum)
     this.packs = demoPacks(curriculum)
+    this.levels = new Map(curriculum.flatMap((pack) => pack.levels).map((l) => [l.id, l]))
+    this.schedule = dailySchedule(curriculum)
     const loaded = loadProgress(storage)
     this.progress = loaded.progress
     this.elements = this.render()
@@ -123,14 +138,15 @@ export class Demo {
 
   /** Challenges ignore locks, like the daily: the link is for one level. */
   private acceptChallenge({ challenge, title }: ChallengeOffer): void {
-    const inDemo = this.packs.some((pack) => pack.levels.some((l) => l.id === challenge.levelId))
-    if (inDemo) {
+    if (this.playable(challenge.levelId) !== undefined) {
       this.challenge = challenge
       this.start(challenge.levelId)
     } else {
       // In the stage, where a level would be: that's where the visitor is looking.
-      const text =
-        title === undefined
+      const upcoming = this.schedule.tiers.some((tier) => tier.includes(challenge.levelId))
+      const text = upcoming
+        ? "That link names a daily that isn't out yet. Come back on its day."
+        : title === undefined
           ? "That challenge link names a level this site doesn't have."
           : `"${title}" is a level in the Neovim plugin, not the demo. Install the plugin below, then beat ${challenge.keys} keys there.`
       this.elements.stage.replaceChildren(h("p", { className: "challenge" }, [text]))
@@ -226,8 +242,8 @@ export class Demo {
   /** Today's (UTC) daily challenge: the same level the plugin picks. */
   private todaysDaily(): Daily | undefined {
     const day = dayNumber(Date.now())
-    const levelId = pickDaily(dailyPool(this.packs), day)
-    const level = this.packs.flatMap((pack) => pack.levels).find((l) => l.id === levelId)
+    const levelId = dailyLevel(this.schedule, day)
+    const level = levelId === undefined ? undefined : this.levels.get(levelId)
     return level === undefined ? undefined : { date: dailyDate(day), level }
   }
 
@@ -310,8 +326,48 @@ export class Demo {
           this.morePackLevels(pack),
         ]),
       ),
+      ...this.archiveList(),
       ...this.pluginOnlyPacks(),
     )
+  }
+
+  /** Past dailies stay playable after their day, as ordinary levels. */
+  private archiveList(): HTMLLIElement[] {
+    const past = this.pastDailies()
+    if (past.length === 0) {
+      return []
+    }
+    return [
+      h("li", { className: "past-dailies" }, [
+        h("p", { className: "pack-title" }, ["Past dailies"]),
+        h(
+          "ol",
+          {},
+          past.map(({ date, level }) => {
+            const record = this.progress.levels[level.id]
+            const button = h(
+              "button",
+              {
+                className: "level-button",
+                attrs: {
+                  type: "button",
+                  "data-level": level.id,
+                  ...(this.play?.level.id === level.id ? { "aria-current": "true" } : {}),
+                },
+              },
+              [
+                h("span", { className: "stars", attrs: { "aria-hidden": "true" } }, [
+                  stars(record?.stars ?? 0),
+                ]),
+                h("span", {}, [h("span", { className: "past-date" }, [date]), " ", level.title]),
+              ],
+            )
+            button.addEventListener("click", () => this.start(level.id))
+            return h("li", {}, [button])
+          }),
+        ),
+      ]),
+    ]
   }
 
   /** Levels the emulation can't play need the plugin, and the pack says how many. */
@@ -383,8 +439,29 @@ export class Demo {
     this.revealStage()
   }
 
+  /** The daily pack's past dailies with their levels, newest first. */
+  private pastDailies(): Daily[] {
+    return dailyArchive(this.schedule, dayNumber(Date.now())).flatMap(({ date, levelId }) => {
+      const level = this.levels.get(levelId)
+      return level === undefined ? [] : [{ date, level }]
+    })
+  }
+
+  /**
+   * A level the site can open: a demo level, today's daily or a past one. A future daily
+   * isn't, so a link can't play it early.
+   */
+  private playable(levelId: string): Level | undefined {
+    const inDemo = this.packs.flatMap((pack) => pack.levels).find((l) => l.id === levelId)
+    if (inDemo !== undefined) {
+      return inDemo
+    }
+    const dailies = [this.todaysDaily(), ...this.pastDailies()]
+    return dailies.find((daily) => daily?.level.id === levelId)?.level
+  }
+
   start(levelId: string): void {
-    const level = this.packs.flatMap((pack) => pack.levels).find((l) => l.id === levelId)
+    const level = this.playable(levelId)
     if (level !== undefined) {
       this.open(level, undefined, Mode.Play)
     }

@@ -1,0 +1,402 @@
+{
+  "$schema": "./schema.json",
+  "pack": "daily",
+  "title": "Daily",
+  "description": "Levels that only appear as the daily challenge, from easy on Mondays to nasty edge cases at the weekend.",
+  "order": 90,
+  "track": "daily",
+  "daily_start": "2026-11-16",
+  "authors": ["navasvarela"],
+  "levels": [
+    {
+      "id": "daily-one-more-pixel",
+      "title": "One more pixel",
+      "description": "The design team wants the box one pixel wider. Make it 10px.",
+      "start_text": ["width: 9px;"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["width: 10px;"]
+      },
+      "par_keys": 1,
+      "par_seconds": 5,
+      "hint": "<C-a> adds one to the number under the cursor, or to the next number on the line.",
+      "solution": "<C-a>",
+      "teaches": ["<C-a>"],
+      "web_demo": true,
+      "difficulty": 1
+    },
+    {
+      "id": "daily-teh",
+      "title": "Teh classic",
+      "description": "Fix the typo before anyone notices.",
+      "start_text": ["Fix teh typo before anyone notices"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["Fix the typo before anyone notices"]
+      },
+      "par_keys": 4,
+      "par_seconds": 8,
+      "hint": "Jump to the e with fe, then xp swaps two letters.",
+      "solution": "fexp",
+      "teaches": ["xp"],
+      "web_demo": true,
+      "difficulty": 1
+    },
+    {
+      "id": "daily-dead-code",
+      "title": "Dead code",
+      "description": "Nothing runs after a return. Move the print above it.",
+      "start_text": ["def area(w, h):", "    return w * h", "    print(w, h)"],
+      "cursor_start": [2, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["def area(w, h):", "    print(w, h)", "    return w * h"]
+      },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "ddp swaps a line with the one below it.",
+      "solution": "ddp",
+      "teaches": ["ddp"],
+      "web_demo": true,
+      "difficulty": 1
+    },
+    {
+      "id": "daily-semicolons",
+      "title": "Semicolon season",
+      "description": "The linter wants a semicolon at the end of every line.",
+      "start_text": ["let a = 1", "let b = 2", "let c = 3"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["let a = 1;", "let b = 2;", "let c = 3;"]
+      },
+      "par_keys": 7,
+      "par_seconds": 12,
+      "hint": "Append once with A;<Esc>, then j. repeats it on the next line.",
+      "solution": "A;<Esc>j.j.",
+      "teaches": ["A", "."],
+      "web_demo": true,
+      "difficulty": 2
+    },
+    {
+      "id": "daily-caps-lock",
+      "title": "Caps lock strikes",
+      "description": "Someone left caps lock on. Fix the greeting and leave the rest alone.",
+      "start_text": ["hELLO there"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["Hello there"]
+      },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "~ flips the case of a character, and a count flips that many.",
+      "solution": "5~",
+      "teaches": ["~"],
+      "web_demo": true,
+      "difficulty": 2
+    },
+    {
+      "id": "daily-whole-path",
+      "title": "The whole path",
+      "description": "Replace the file path with notes.md. A word stops at the slash; a WORD doesn't.",
+      "start_text": ["open src/old.txt now"],
+      "cursor_start": [1, 5],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["open notes.md now"]
+      },
+      "par_keys": 11,
+      "par_seconds": 15,
+      "hint": "cW changes up to the next space, slashes and dots included.",
+      "solution": "cWnotes.md<Esc>",
+      "teaches": ["cW"],
+      "web_demo": true,
+      "difficulty": 2
+    },
+    {
+      "id": "daily-outer-bracket",
+      "title": "Outer bracket",
+      "description": "Land on the closing bracket of the outer condition. You don't have to be on a bracket to start.",
+      "start_text": ["if (a && (b || c)) {", "  run()", "}"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "cursor_at",
+        "line": 1,
+        "col": 17
+      },
+      "par_keys": 1,
+      "par_seconds": 4,
+      "hint": "% jumps to the match of the bracket under the cursor, or of the next one on the line.",
+      "solution": "%",
+      "teaches": ["%"],
+      "web_demo": true,
+      "difficulty": 3
+    },
+    {
+      "id": "daily-whole-word",
+      "title": "Whole words only",
+      "description": "Jump to the next total: not totals, not total_tax.",
+      "start_text": ["total = totals + total_tax + total"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "cursor_at",
+        "line": 1,
+        "col": 29
+      },
+      "par_keys": 1,
+      "par_seconds": 4,
+      "hint": "* searches for the word under the cursor, as a whole word.",
+      "solution": "*",
+      "teaches": ["*"],
+      "web_demo": true,
+      "difficulty": 3
+    },
+    {
+      "id": "daily-hug-the-bracket",
+      "title": "Hug the bracket",
+      "description": "Join the call onto one line, with no space after the bracket.",
+      "start_text": ["call(", "  arg)"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["call(arg)"]
+      },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "J joins the lines and leaves the cursor on the space it added.",
+      "solution": "Jx",
+      "teaches": ["J"],
+      "web_demo": true,
+      "difficulty": 3
+    },
+    {
+      "id": "daily-quote-unquote",
+      "title": "Quote unquote",
+      "description": "Change the greeting to hi. You don't need to reach the quotes first.",
+      "start_text": ["print(\"hello\")"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["print(\"hi\")"]
+      },
+      "par_keys": 6,
+      "par_seconds": 10,
+      "hint": "ci\" works from anywhere before the quotes on the line.",
+      "solution": "ci\"hi<Esc>",
+      "teaches": ["ci\""],
+      "web_demo": true,
+      "difficulty": 3
+    },
+    {
+      "id": "daily-one-word-too-many",
+      "title": "One word too many",
+      "description": "Drop please, and the space before it.",
+      "start_text": ["pass the salt please"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["pass the salt"]
+      },
+      "par_keys": 4,
+      "par_seconds": 8,
+      "hint": "At the end of a line, daw takes the space before the word instead.",
+      "solution": "$daw",
+      "teaches": ["daw"],
+      "web_demo": true,
+      "difficulty": 3
+    },
+    {
+      "id": "daily-cat-person",
+      "title": "Cat person",
+      "description": "This sentence was written by a dog person. Make every cat a dog, and leave the chase alone.",
+      "start_text": ["the cat saw a cat chase a cat"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["the dog saw a dog chase a dog"]
+      },
+      "par_keys": 13,
+      "par_seconds": 20,
+      "hint": ":s/cat/dog/g replaces every match on the line.",
+      "solution": ":s/cat/dog/g<CR>",
+      "teaches": [":s"],
+      "web_demo": true,
+      "difficulty": 3
+    },
+    {
+      "id": "daily-append-register",
+      "title": "Collect the keepers",
+      "description": "Put the first and third lines in register a, in that order.",
+      "start_text": ["first = 1", "second = 2", "third = 3"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "register_contains",
+        "register": "a",
+        "value": ["first = 1", "third = 3"],
+        "linewise": true
+      },
+      "par_keys": 9,
+      "par_seconds": 14,
+      "hint": "Yanking into an uppercase register, \"A, adds to register a instead of replacing it.",
+      "solution": "\"ayyG\"Ayy",
+      "teaches": ["\"A"],
+      "web_demo": true,
+      "difficulty": 4
+    },
+    {
+      "id": "daily-excitement",
+      "title": "Excitement",
+      "description": "That was close. Five exclamation marks close.",
+      "start_text": ["That was close"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["That was close!!!!!"]
+      },
+      "par_keys": 4,
+      "par_seconds": 6,
+      "hint": "A count before an insert types the text that many times.",
+      "solution": "5A!<Esc>",
+      "teaches": ["count"],
+      "web_demo": true,
+      "difficulty": 4
+    },
+    {
+      "id": "daily-not-so-blank",
+      "title": "Not so blank",
+      "description": "Go to the next real paragraph break. A line of spaces isn't one.",
+      "start_text": [
+        "first paragraph",
+        "still the first",
+        "    ",
+        "still the first, too",
+        "",
+        "second paragraph"
+      ],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "cursor_at",
+        "line": 5,
+        "col": 0
+      },
+      "par_keys": 1,
+      "par_seconds": 4,
+      "hint": "} stops only at truly empty lines.",
+      "solution": "}",
+      "teaches": ["}"],
+      "web_demo": true,
+      "difficulty": 4
+    },
+    {
+      "id": "daily-last-two-letters",
+      "title": "The last two letters",
+      "description": "Fix the typo at the very end of the line.",
+      "start_text": ["This is a gitf"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["This is a gift"]
+      },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "At the end of a line, x moves the cursor back, so xp swaps nothing. xP does.",
+      "solution": "$xP",
+      "teaches": ["xP"],
+      "web_demo": true,
+      "difficulty": 5
+    },
+    {
+      "id": "daily-alphabet-soup",
+      "title": "Alphabet soup",
+      "description": "Sort the shopping list.",
+      "start_text": ["pear", "apple", "fig", "banana"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["apple", "banana", "fig", "pear"]
+      },
+      "par_keys": 5,
+      "par_seconds": 8,
+      "hint": "Ex commands can be shortened: :sor is :sort.",
+      "solution": ":sor<CR>",
+      "teaches": [":sort"],
+      "web_demo": true,
+      "difficulty": 5
+    },
+    {
+      "id": "daily-ten-after-nine",
+      "title": "Ten comes after nine",
+      "description": "Sort by the numbers, smallest first.",
+      "start_text": ["10 apples", "9 pears", "100 plums"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["9 pears", "10 apples", "100 plums"]
+      },
+      "par_keys": 7,
+      "par_seconds": 10,
+      "hint": "Plain :sort compares text, so 10 comes before 9. :sort n compares numbers.",
+      "solution": ":sor n<CR>",
+      "teaches": [":sort n"],
+      "web_demo": true,
+      "difficulty": 5
+    },
+    {
+      "id": "daily-brackets",
+      "title": "Brackets everywhere",
+      "description": "Put every number in square brackets.",
+      "start_text": ["1, 2, 3"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["[1], [2], [3]"]
+      },
+      "par_keys": 13,
+      "par_seconds": 20,
+      "hint": "In a :s replacement, & is the whole match.",
+      "solution": ":s/\\d/[&]/g<CR>",
+      "teaches": ["&"],
+      "web_demo": true,
+      "difficulty": 5
+    },
+    {
+      "id": "daily-quote-them-all",
+      "title": "Quote them all",
+      "description": "Turn the list into strings for an array: quotes around each word, a comma after.",
+      "start_text": ["apples", "pears", "plums", "figs", "limes"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["\"apples\",", "\"pears\",", "\"plums\",", "\"figs\",", "\"limes\","]
+      },
+      "par_keys": 12,
+      "par_seconds": 20,
+      "hint": "In a :s replacement, & is the whole match, so .* can wrap a whole line.",
+      "solution": ":%s/.*/\"&\",<CR>",
+      "teaches": ["&"],
+      "web_demo": true,
+      "difficulty": 5
+    },
+    {
+      "id": "daily-mind-the-gaps",
+      "title": "Mind the gaps",
+      "description": "Delete every blank line.",
+      "start_text": ["one", "", "two", "", "", "three", "", "four"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["one", "two", "three", "four"]
+      },
+      "par_keys": 8,
+      "par_seconds": 14,
+      "hint": ":g runs a command on every line that matches: ^$ matches an empty one.",
+      "solution": ":g/^$/d<CR>",
+      "teaches": [":g"],
+      "web_demo": true,
+      "difficulty": 5
+    }
+  ]
+}

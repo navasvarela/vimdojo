@@ -410,6 +410,22 @@ function M.ranked_levels()
   return levels
 end
 
+--- The ranked levels a player can pick a board from by name: the daily pack's are left
+--- out, since listing them would show dailies before their day. Their boards still
+--- open by id, and `:VimDojo board daily` shows today's.
+---@return vimdojo.ScoreLevel[]
+function M.browsable_levels()
+  local daily_ids = {}
+  for _, level in
+    ipairs((challenges.daily_pack(challenges.load_dir() or {}) or { levels = {} }).levels)
+  do
+    daily_ids[level.id] = true
+  end
+  return vim.tbl_filter(function(level)
+    return not daily_ids[level.id]
+  end, M.ranked_levels())
+end
+
 ---@param level_id string
 ---@return vimdojo.ScoreLevel|nil
 local function ranked_level(level_id)
@@ -496,7 +512,7 @@ function M.board(level_id)
     end
     return
   end
-  deps.select(M.ranked_levels(), {
+  deps.select(M.browsable_levels(), {
     prompt = "Which level's board?",
     format_item = function(level)
       return level.title
@@ -573,7 +589,7 @@ end
 ---@return boolean
 local function is_todays_daily(level_id)
   local packs = challenges.load_dir()
-  return daily.pick(daily.pool(packs or {}), daily.day_number(deps.now())) == level_id
+  return daily.level_for(daily.schedule(packs or {}), daily.day_number(deps.now())) == level_id
 end
 
 --- Adds today's place to a verdict on the daily.

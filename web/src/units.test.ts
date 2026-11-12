@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { TRACKS, demoPacks, loadPacks, nextLevel, parsePacks } from "./challenges"
+import { curriculumPacks, demoPacks, loadPacks, nextLevel, parsePacks, TRACKS } from "./challenges"
 import { dailyPool, dayNumber, pickDaily } from "./daily"
 import { isCountableKeydown, pastedKeyCount, splitNotation } from "./keys"
 import { emptyProgress, hasSolvedAny, recordResult, unlockedByProgress } from "./progress"
@@ -98,7 +98,9 @@ describe("progress", () => {
       (track) => packs.find((pack) => pack.track === track)?.levels[0]?.id,
     ).filter((id): id is string => id !== undefined)
     const byId = (a: string, b: string): number => a.localeCompare(b)
-    expect([...unlockedByProgress(emptyProgress(), packs)].sort(byId)).toEqual(
+    // The daily pack never unlocks by progress: its levels open on their day.
+    const curriculum = curriculumPacks(packs)
+    expect([...unlockedByProgress(emptyProgress(), curriculum)].sort(byId)).toEqual(
       firstOfEachTrack.sort(byId),
     )
   })

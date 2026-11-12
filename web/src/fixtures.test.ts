@@ -7,7 +7,7 @@ import shareFixture from "../../tests/fixtures/share.json"
 import keyNotationFixture from "../../tests/fixtures/key_notation.json"
 import streakFixture from "../../tests/fixtures/streak.json"
 import tipsFixture from "../../tests/fixtures/tips.json"
-import { dailyDate, pickDaily } from "./daily"
+import { DAILY_TRACK, dailyArchive, dailyDate, dailyLevel, dailySchedule, pickDaily } from "./daily"
 import { isMet } from "./goals"
 import { currentStreak, emptyProgress, recordDaily } from "./progress"
 import { tip } from "./game/tips"
@@ -92,9 +92,20 @@ describe("goals.isMet (shared fixtures)", () => {
   })
 })
 
+const DailyPick = z.object({ day: z.number(), date: z.string(), level: z.string() })
 const DailyFixture = z.object({
   pool: z.array(z.string()),
-  picks: z.array(z.object({ day: z.number(), date: z.string(), level: z.string() })),
+  picks: z.array(DailyPick),
+  ramp: z.object({
+    legacy: z.array(z.string()),
+    start: z.string(),
+    tiers: z.array(z.array(z.string())),
+    picks: z.array(DailyPick),
+    archive: z.object({
+      today: z.number(),
+      dates: z.array(z.object({ date: z.string(), level: z.string() })),
+    }),
+  }),
 })
 
 describe("daily.pickDaily (shared fixtures)", () => {
@@ -106,6 +117,32 @@ describe("daily.pickDaily (shared fixtures)", () => {
       expect(dailyDate(p.day)).toBe(p.date)
     },
   )
+})
+
+describe("daily.dailyLevel (shared fixtures, weekly ramp)", () => {
+  const { ramp } = DailyFixture.parse(dailyFixture)
+  const schedule = dailySchedule([
+    { track: "motions", levels: ramp.legacy.map((id) => ({ id, web_demo: true })) },
+    {
+      track: DAILY_TRACK,
+      daily_start: ramp.start,
+      levels: ramp.tiers.flatMap((tier, index) =>
+        tier.map((id) => ({ id, web_demo: true, difficulty: index + 1 })),
+      ),
+    },
+  ])
+
+  it.each(ramp.picks.map((p) => [p.level, p.date, p] as const))("picks %s on %s", (_l, _d, p) => {
+    expect(dailyLevel(schedule, p.day)).toBe(p.level)
+  })
+
+  it("lists the past dailies since the start, newest first", () => {
+    const listed = dailyArchive(schedule, ramp.archive.today).map((past) => ({
+      date: past.date,
+      level: past.levelId,
+    }))
+    expect(listed).toEqual(ramp.archive.dates)
+  })
 })
 
 const ShareCase = z.object({

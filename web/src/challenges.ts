@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { DAILY_TRACK, DIFFICULTY_MAX } from "./daily"
 
 // Runtime mirror of challenges/schema.json. The JSON Schema is the contract
 // (validated in CI); this parses the bundled packs into typed data at the edge.
@@ -113,8 +114,10 @@ const Authors = z
   .min(1)
   .refine((handles) => new Set(handles).size === handles.length, "authors are listed twice")
 
+/** The curriculum's tracks, in menu order. */
 export const TRACKS = ["motions", "usage", "setup"] as const
 export type Track = (typeof TRACKS)[number]
+const DAILY_DATE = /^\d{4}-\d{2}-\d{2}$/
 
 const LevelData = z.object({
   id: z.string().min(1),
@@ -140,6 +143,8 @@ const LevelData = z.object({
   /** GitHub handles; replaces the pack's. */
   authors: Authors.optional(),
   web_demo: z.boolean().optional(),
+  /** Daily track only: 1 (easy) to 5, the tier the weekday picks (see daily.ts). */
+  difficulty: z.number().int().min(1).max(DIFFICULTY_MAX).optional(),
   requires: z.object({ nvim: z.string().regex(/^\d+\.\d+(\.\d+)?$/) }).optional(),
   options: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
   preset: Preset.optional(),
@@ -189,7 +194,9 @@ const Pack = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
   order: z.number().int().min(1),
-  track: z.enum(TRACKS).default("motions"),
+  track: z.enum([...TRACKS, DAILY_TRACK]).default("motions"),
+  /** Daily track only: the first UTC day the daily draws from this pack. */
+  daily_start: z.string().regex(DAILY_DATE).optional(),
   authors: Authors.optional(),
   lesson: Lesson.optional(),
   levels: z.array(Level).min(1),
@@ -222,15 +229,23 @@ export function loadPacks(): Pack[] {
   return parsePacks(Object.values(files))
 }
 
-/** Packs reduced to the levels flagged for the browser demo; empty packs are dropped. */
+/** Every pack but the daily one, whose levels mustn't be reachable before their day. */
+export function curriculumPacks(packs: readonly Pack[]): Pack[] {
+  return packs.filter((pack) => pack.track !== DAILY_TRACK)
+}
+
+/**
+ * The curriculum reduced to the levels flagged for the browser demo; empty packs are
+ * dropped. The daily pack's levels are all flagged, but they stay out of the level list.
+ */
 export function demoPacks(packs: readonly Pack[]): Pack[] {
-  return packs
+  return curriculumPacks(packs)
     .map((pack) => ({ ...pack, levels: pack.levels.filter((level) => level.web_demo === true) }))
     .filter((pack) => pack.levels.length > 0)
 }
 
 export function nextLevel(packs: readonly Pack[], levelId: string): Level | undefined {
-  const levels = packs.flatMap((pack) => pack.levels)
+  const levels = curriculumPacks(packs).flatMap((pack) => pack.levels)
   const index = levels.findIndex((level) => level.id === levelId)
   return index === -1 ? undefined : levels[index + 1]
 }

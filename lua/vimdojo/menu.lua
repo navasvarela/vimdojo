@@ -15,6 +15,7 @@ local TITLE_WIDTH = 28
 ---@field unlocked table<string, true>
 ---@field supports vimdojo.Supports Whether this Neovim can run a level.
 ---@field daily vimdojo.Daily|nil Today's daily challenge.
+---@field archive vimdojo.Daily[] The daily pack's past dailies, newest first.
 ---@field streak vimdojo.StreakView|nil
 
 ---@class vimdojo.MenuRows
@@ -123,6 +124,23 @@ local function add_pack_title(rows, pack)
   rows.pack_at[#rows.lines] = pack
 end
 
+--- Past dailies stay playable after their day, like any open level.
+---@param rows vimdojo.MenuRows
+---@param model vimdojo.MenuModel
+local function add_archive(rows, model)
+  if #model.archive == 0 then
+    return
+  end
+  add(rows, "  PAST DAILIES", "VimDojoMuted")
+  for _, past in ipairs(model.archive) do
+    local record = model.progress.levels[past.level.id]
+    local name = ui.pad(("%s %s"):format(past.date, past.level.title), TITLE_WIDTH)
+    add_open_level(rows, record and record.stars or 0, name, record)
+    rows.level_at[#rows.lines] = past.level.id
+  end
+  add(rows, "")
+end
+
 ---@param model vimdojo.MenuModel
 ---@return vimdojo.MenuRows
 function M.rows(model)
@@ -144,6 +162,7 @@ function M.rows(model)
       end
     end
   end
+  add_archive(rows, model)
   return rows
 end
 
