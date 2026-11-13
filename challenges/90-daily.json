@@ -397,6 +397,385 @@
       "teaches": [":g"],
       "web_demo": true,
       "difficulty": 5
+    },
+    {
+      "id": "daily-stop-shouting",
+      "title": "Stop shouting",
+      "description": "Nobody needs to read this in capitals. Make the whole line lowercase.",
+      "start_text": ["STOP SHOUTING AT THE COMPILER"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["stop shouting at the compiler"]
+      },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "V selects the line, and u makes a selection lowercase.",
+      "solution": "Vu",
+      "teaches": ["Vu"],
+      "web_demo": true,
+      "difficulty": 1
+    },
+    {
+      "id": "daily-copy-that",
+      "title": "Copy that",
+      "description": "The chores list needs this one twice.",
+      "start_text": ["- [ ] water the plants"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["- [ ] water the plants", "- [ ] water the plants"]
+      },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "yy copies the line and p puts it below.",
+      "solution": "yyp",
+      "teaches": ["yyp"],
+      "web_demo": true,
+      "difficulty": 1
+    },
+    {
+      "id": "daily-one-l-too-many",
+      "title": "One l too many",
+      "description": "Fix the greeting. You can start from the end.",
+      "start_text": ["Hello, worlld"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["Hello, world"]
+      },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "X deletes the character before the cursor.",
+      "solution": "$X",
+      "teaches": ["X"],
+      "web_demo": true,
+      "difficulty": 1
+    },
+    {
+      "id": "daily-drop-the-clause",
+      "title": "Drop the clause",
+      "description": "Keep only the part after the comma.",
+      "start_text": ["drop this, keep this"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["keep this"]
+      },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "A WORD runs to the next space, comma included: d2W deletes two of them.",
+      "solution": "d2W",
+      "teaches": ["dW"],
+      "web_demo": true,
+      "difficulty": 2
+    },
+    {
+      "id": "daily-middle-argument",
+      "title": "The middle argument",
+      "description": "Remove b, and the comma and space that come with it.",
+      "start_text": ["f(a, b, c)"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["f(a, c)"]
+      },
+      "par_keys": 4,
+      "par_seconds": 8,
+      "hint": "From b, dW deletes up to the next WORD.",
+      "solution": "fbdW",
+      "teaches": ["dW"],
+      "web_demo": true,
+      "difficulty": 2
+    },
+    {
+      "id": "daily-plural",
+      "title": "More than one",
+      "description": "There's more than one file. Make it plural.",
+      "start_text": ["open the file now"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["open the files now"]
+      },
+      "par_keys": 5,
+      "par_seconds": 8,
+      "hint": "3e lands on the end of the third word, and a appends after it.",
+      "solution": "3eas<Esc>",
+      "teaches": ["e", "a"],
+      "web_demo": true,
+      "difficulty": 2
+    },
+    {
+      "id": "daily-shout-the-error",
+      "title": "Shout the error",
+      "description": "Make the first word all capitals, and only that word.",
+      "start_text": ["Error: disk full"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["ERROR: disk full"]
+      },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "gU uppercases over a motion: gUe up to the end of the word.",
+      "solution": "gUe",
+      "teaches": ["gU"],
+      "web_demo": true,
+      "difficulty": 3
+    },
+    {
+      "id": "daily-null-and-void",
+      "title": "Null and void",
+      "description": "Drop the comparison and keep the condition.",
+      "start_text": ["if (x == null) return"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["if (x) return"]
+      },
+      "par_keys": 5,
+      "par_seconds": 8,
+      "hint": "t= stops just before the =, and dt) deletes up to the bracket.",
+      "solution": "t=dt)",
+      "teaches": ["t", "dt"],
+      "web_demo": true,
+      "difficulty": 3
+    },
+    {
+      "id": "daily-empty-the-list",
+      "title": "Empty the list",
+      "description": "Clear the list but keep its brackets.",
+      "start_text": ["{ tags: [1, 2, 3] }"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["{ tags: [] }"]
+      },
+      "par_keys": 5,
+      "par_seconds": 8,
+      "hint": "di[ only works on or inside the brackets, so get there first with f[.",
+      "solution": "f[di[",
+      "teaches": ["di["],
+      "web_demo": true,
+      "difficulty": 3
+    },
+    {
+      "id": "daily-look-back",
+      "title": "Look back",
+      "description": "Jump to where total was set, two lines up.",
+      "start_text": ["total = 1", "x = total", "print(total)"],
+      "cursor_start": [3, 6],
+      "goal": {
+        "type": "cursor_at",
+        "line": 2,
+        "col": 4
+      },
+      "par_keys": 1,
+      "par_seconds": 4,
+      "hint": "# searches backwards for the word under the cursor.",
+      "solution": "#",
+      "teaches": ["#"],
+      "web_demo": true,
+      "difficulty": 3
+    },
+    {
+      "id": "daily-fill-in-the-title",
+      "title": "Fill in the title",
+      "description": "Copy the name into the title.",
+      "start_text": ["name: vimdojo", "title: "],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["name: vimdojo", "title: vimdojo"]
+      },
+      "par_keys": 5,
+      "par_seconds": 8,
+      "hint": "W skips name: as one WORD. Yank the word, go down, and put it after the space.",
+      "solution": "Wywjp",
+      "teaches": ["yw", "p"],
+      "web_demo": true,
+      "difficulty": 3
+    },
+    {
+      "id": "daily-every-other-line",
+      "title": "Every other line",
+      "description": "Delete every line that says drop.",
+      "start_text": ["keep 1", "drop", "keep 2", "drop", "keep 3", "drop"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["keep 1", "keep 2", "keep 3"]
+      },
+      "par_keys": 7,
+      "par_seconds": 12,
+      "hint": ":g/pattern/d deletes every line that matches. The pattern only has to tell the lines apart.",
+      "solution": ":g/o/d<CR>",
+      "teaches": [":g"],
+      "web_demo": true,
+      "difficulty": 3
+    },
+    {
+      "id": "daily-title-case",
+      "title": "Title case",
+      "description": "Capitalise every word of the headline.",
+      "start_text": ["the quick brown fox"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["The Quick Brown Fox"]
+      },
+      "par_keys": 7,
+      "par_seconds": 12,
+      "hint": "~ flips a letter and steps past it, so w takes you to the next word.",
+      "solution": "~w~w~w~",
+      "teaches": ["~"],
+      "web_demo": true,
+      "difficulty": 4
+    },
+    {
+      "id": "daily-breathing-room",
+      "title": "Breathing room",
+      "description": "Put a space on each side of every =.",
+      "start_text": ["a=1", "b=2", "c=3", "d=4"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["a = 1", "b = 2", "c = 3", "d = 4"]
+      },
+      "par_keys": 10,
+      "par_seconds": 16,
+      "hint": ":%s runs a substitution on every line.",
+      "solution": ":%s/=/ = <CR>",
+      "teaches": [":%s"],
+      "web_demo": true,
+      "difficulty": 4
+    },
+    {
+      "id": "daily-one-sentence-less",
+      "title": "One sentence less",
+      "description": "Delete the middle sentence and its space.",
+      "start_text": ["One. Delete this one. Keep this."],
+      "cursor_start": [1, 5],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["One. Keep this."]
+      },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "das deletes a sentence and the space after it.",
+      "solution": "das",
+      "teaches": ["das"],
+      "web_demo": true,
+      "difficulty": 4
+    },
+    {
+      "id": "daily-trailing-spaces",
+      "title": "Hidden spaces",
+      "description": "End every line with a semicolon. Careful: some lines end in spaces you can't see, and they must go.",
+      "start_text": ["let a = 1  ", "let b = 2", "let c = 3   ", "let d = 4 ", "let e = 5"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["let a = 1;", "let b = 2;", "let c = 3;", "let d = 4;", "let e = 5;"]
+      },
+      "par_keys": 10,
+      "par_seconds": 15,
+      "hint": "A appends after the hidden spaces. :%s/ *$/;/ replaces any spaces at the end of a line, or none, with a semicolon.",
+      "solution": ":%s/ *$/;<CR>",
+      "teaches": [":%s"],
+      "web_demo": true,
+      "difficulty": 5
+    },
+    {
+      "id": "daily-inverted-caps",
+      "title": "Inverted caps",
+      "description": "Every letter has the wrong case. Fix them all.",
+      "start_text": ["tHE qUICK bROWN fOX"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["The Quick Brown Fox"]
+      },
+      "par_keys": 3,
+      "par_seconds": 6,
+      "hint": "g~~ flips the case of the whole line.",
+      "solution": "g~~",
+      "teaches": ["g~~"],
+      "web_demo": true,
+      "difficulty": 5
+    },
+    {
+      "id": "daily-dot-remembers",
+      "title": "The dot remembers",
+      "description": "Keep only the two KEEPs.",
+      "start_text": ["one two KEEP three four KEEP"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["KEEP KEEP"]
+      },
+      "par_keys": 5,
+      "par_seconds": 8,
+      "hint": ". repeats the last change with its count: d2w, then . deletes two more words.",
+      "solution": "d2ww.",
+      "teaches": ["."],
+      "web_demo": true,
+      "difficulty": 5
+    },
+    {
+      "id": "daily-fox-goes-last",
+      "title": "The fox goes last",
+      "description": "Move fox to the end of the line, with one space before it and none after.",
+      "start_text": ["fox the quick"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["the quick fox"]
+      },
+      "par_keys": 7,
+      "par_seconds": 12,
+      "hint": "dw takes the word and its space. Put it after a new space at the end, then tidy up.",
+      "solution": "dwA <Esc>px",
+      "teaches": ["p"],
+      "web_demo": true,
+      "difficulty": 5
+    },
+    {
+      "id": "daily-second-number",
+      "title": "The second number",
+      "description": "Add one to y, not x.",
+      "start_text": ["x: 1, y: 1"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["x: 1, y: 2"]
+      },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "<C-a> works on the first number from the cursor on, so start from the end.",
+      "solution": "$<C-a>",
+      "teaches": ["<C-a>"],
+      "web_demo": true,
+      "difficulty": 5
+    },
+    {
+      "id": "daily-below-zero",
+      "title": "Below zero",
+      "description": "Take the offset down to minus one.",
+      "start_text": ["offset: 1"],
+      "cursor_start": [1, 0],
+      "goal": {
+        "type": "buffer_equals",
+        "value": ["offset: -1"]
+      },
+      "par_keys": 2,
+      "par_seconds": 5,
+      "hint": "<C-x> takes a count, and numbers can go below zero.",
+      "solution": "2<C-x>",
+      "teaches": ["<C-x>"],
+      "web_demo": true,
+      "difficulty": 5
     }
   ]
 }
