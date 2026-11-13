@@ -27,6 +27,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       code: ${{ steps.diff.outputs.code }}
+      levels: ${{ steps.diff.outputs.levels }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -42,10 +43,18 @@ jobs:
           # would let untested code merge.
           if ! changed=$(git diff --name-only "$BASE" "$HEAD"); then
             echo "code=true" >>"$GITHUB_OUTPUT"
-          elif grep -qvE '\.md$|^docs/proposals/' <<<"$changed"; then
+            echo "levels=true" >>"$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if grep -qvE '\.md$|^docs/proposals/' <<<"$changed"; then
             echo "code=true" >>"$GITHUB_OUTPUT"
           else
             echo "code=false" >>"$GITHUB_OUTPUT"
+          fi
+          if grep -qE '^challenges/' <<<"$changed"; then
+            echo "levels=true" >>"$GITHUB_OUTPUT"
+          else
+            echo "levels=false" >>"$GITHUB_OUTPUT"
           fi
 
   lint:
@@ -213,6 +222,42 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  # What a pull request does to the levels, for the reviewer: boards that start over,
+  # par beside the par search, and fields that run code on players' machines. It's in
+  # the job summary; level-report.yml, which may write to the PR, posts it as a
+  # comment and labels the PR. Information only, so ci-passed doesn't wait on it.
+  level-report:
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.levels == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: rhysd/action-setup-vim@febef33995d6649302e9d88dda81e071b68f16a7 # v1
+        with:
+          neovim: true
+          version: stable
+      - env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          PR: ${{ github.event.pull_request.number }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/base" level-report
+          git archive "$BASE" challenges | tar -x -C "$RUNNER_TEMP/base"
+          nvim --headless --noplugin -u NONE -l scripts/level_report.lua \
+            "$RUNNER_TEMP/base/challenges" level-report
+          cat level-report/report.md >>"$GITHUB_STEP_SUMMARY"
+          echo "$PR" >level-report/pr
+          echo "$HEAD" >level-report/head
+      - uses: actions/upload-artifact@v4
+        with:
+          name: level-report
+          path: level-report/
+          retention-days: 7
 
   workflows:
     needs: changes
