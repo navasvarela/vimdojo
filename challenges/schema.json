@@ -320,7 +320,12 @@
       "required": ["type", "probes"],
       "properties": {
         "type": { "const": "config_probes" },
-        "probes": { "type": "array", "minItems": 1, "maxItems": 10, "items": { "$ref": "#/$defs/probe" } }
+        "probes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/probe" }
+        }
       }
     },
     "probe_description": {
