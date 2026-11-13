@@ -1,0 +1,75 @@
+name: Level report
+
+# Posts the level report from CI's level-report job on its pull request, and adds or
+# removes the needs-code-review label.
+#
+# Why a second workflow: CI runs a fork's pull request with a read-only token, so it
+# can't comment. This one runs from main's copy of this file, never the PR's, with a
+# token that may write to pull requests. Nothing from the PR is checked out or run
+# here: the artifact is only read as text, and is trusted no further than that.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+
+permissions: {}
+
+jobs:
+  comment:
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: read
+      issues: write
+      pull-requests: write
+    steps:
+      # No artifact means the PR didn't touch challenges/.
+      - id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: level-report
+          path: level-report
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+      - if: steps.download.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          TESTED: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          pr=$(cat level-report/pr)
+          if ! [[ "$pr" =~ ^[0-9]+$ ]]; then
+            echo "The artifact's PR number isn't a number." >&2
+            exit 1
+          fi
+          # The artifact was written by the PR's own run, so it could name any PR. Only
+          # comment on one whose head is the commit that run tested.
+          head=$(gh api "repos/$REPO/pulls/$pr" --jq .head.sha)
+          if [ "$head" != "$TESTED" ]; then
+            echo "PR #$pr has moved on from $TESTED, or isn't the PR that was tested."
+            exit 0
+          fi
+
+          marker="<!-- level-report -->"
+          # A comment holds up to 65,536 characters; the job summary has the rest.
+          {
+            echo "$marker"
+            head -c 60000 level-report/report.md
+          } >body.md
+          existing=$(gh api --paginate "repos/$REPO/issues/$pr/comments" \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id" |
+            head -n 1)
+          if [ -n "$existing" ]; then
+            gh api -X PATCH "repos/$REPO/issues/comments/$existing" -F body=@body.md >/dev/null
+          else
+            gh api "repos/$REPO/issues/$pr/comments" -F body=@body.md >/dev/null
+          fi
+
+          if [ "$(cat level-report/needs-code-review)" = "true" ]; then
+            gh api "repos/$REPO/issues/$pr/labels" -f "labels[]=needs-code-review" >/dev/null
+          else
+            # A PR without the label answers 404, which is the state we want.
+            gh api -X DELETE "repos/$REPO/issues/$pr/labels/needs-code-review" >/dev/null 2>&1 || true
+          fi

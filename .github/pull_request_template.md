@@ -18,6 +18,10 @@ Skip this section if the PR doesn't touch `challenges/`.
 `preset.commands`, a `lua` probe, or a Setup starter config. Those need a
 maintainer's review, not only green CI.
 
+CI posts a level report on the PR: each new or changed level, whether its board
+starts over, its par beside the par search, and the fields that run code (which
+also add the `needs-code-review` label).
+
 ## Licensing
 
 - [ ] I wrote this contribution (or have the right to submit it), and I license it under the project's MIT license.

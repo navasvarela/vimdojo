@@ -101,7 +101,9 @@
       "description": "Buffer contents as an array of lines, without trailing newlines. Avoids newline ambiguity between Lua and JS.",
       "type": "array",
       "minItems": 1,
-      "items": { "type": "string" }
+      "maxItems": 60,
+      "items": { "type": "string", "maxLength": 200 },
+      "$comment": "Sanity limits for a level file: the longest buffer has 30 lines, and the longest line 138 characters (filters-04, about reformatting long lines)."
     },
     "level": {
       "type": "object",
@@ -124,8 +126,18 @@
           "type": "string",
           "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
         },
-        "title": { "type": "string", "minLength": 1 },
-        "description": { "type": "string", "minLength": 1 },
+        "title": {
+          "$comment": "The plugin's menu shows a level as \"NN title\" in a 28-column title column (TITLE_WIDTH in menu.lua).",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 25
+        },
+        "description": {
+          "$comment": "Shown above the level in a 60-column room, so four lines at most. The longest is 199 characters.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
         "start_text": { "$ref": "#/$defs/lines" },
         "cursor_start": {
           "description": "[line, col]: 1-based line, 0-based byte column. Matches nvim_win_get_cursor().",
@@ -141,11 +153,18 @@
           "minimum": 1
         },
         "par_seconds": { "type": "number", "exclusiveMinimum": 0 },
-        "hint": { "type": "string", "minLength": 1 },
+        "hint": {
+          "$comment": "Shown in the room like the description. The longest is 206 characters.",
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        },
         "solution": {
           "description": "Reference solution in Vim key notation (e.g. \"ffdw\", \"ciwfoo<Esc>\"). Tests type it to prove the level, and the results card shows it as the par route (except on today's daily).",
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "maxLength": 160,
+          "$comment": "A sanity limit: the longest reference solution is 85 characters."
         },
         "authors": { "$ref": "#/$defs/authors" },
         "explain": {
@@ -213,6 +232,7 @@
               "description": "Ex commands run after the level is built, before the timer starts (splits, quickfix lists, a previous :s).",
               "type": "array",
               "minItems": 1,
+              "maxItems": 10,
               "items": { "type": "string", "minLength": 1 }
             }
           }
@@ -221,6 +241,8 @@
           "description": "Workspace files for levels about files and windows: written to a fresh directory that becomes the working directory. Use instead of start_text.",
           "type": "object",
           "minProperties": 1,
+          "maxProperties": 10,
+          "$comment": "A sanity limit: the most a level uses is 6.",
           "propertyNames": {
             "pattern": "^[A-Za-z0-9_.-]+(/[A-Za-z0-9_.-]+)*$",
             "not": { "pattern": "(^|/)\\.\\.?(/|$)" }
@@ -298,7 +320,12 @@
       "required": ["type", "probes"],
       "properties": {
         "type": { "const": "config_probes" },
-        "probes": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/probe" } }
+        "probes": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 10,
+          "items": { "$ref": "#/$defs/probe" }
+        }
       }
     },
     "probe_description": {

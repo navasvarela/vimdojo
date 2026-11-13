@@ -223,6 +223,19 @@ If a run seems to hang on a Mac, check that it isn't asleep before suspecting th
 level: every process stops while the lid is closed, even under `caffeinate -i`, and
 the log just stops at whichever level was running. `pmset -g log` shows the sleeps.
 
+On a pull request, CI comments a level report: for every level the PR adds, changes
+or removes, whether its board starts over, its par beside the reference solution and
+(for `cursor_at` levels) the par search, and whether it runs code on players'
+machines. Run it locally against another checkout's `challenges/`:
+
+```sh
+nvim --headless --noplugin -u NONE -l scripts/level_report.lua ../base/challenges /tmp/report
+```
+
+The schema also caps a level's size: titles at 25 characters (the menu's column),
+descriptions and hints at 240, buffers at 60 lines of 200 characters, and 10 files,
+probes or preset commands.
+
 To flag a level for the web demo, run the emulation test in real Chromium:
 
 ```sh
