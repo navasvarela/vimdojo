@@ -1127,3 +1127,25 @@ The design is in `docs/proposals/daily-pool.md`. Notes from building it:
 - **Past boards read their level from their entries.** The pool changed under past days
   twice (45 levels, then the daily pack), and the API worked a past day's level out
   from the current pool. A day with entries now names the level they were played on.
+
+## Checks for contributed levels
+
+- **A level report on every PR that touches `challenges/`** (`scripts/level_report.lua`):
+  which levels are new, changed or removed, whether a change starts a board over (the
+  level's hash moved), par beside the reference solution and, for `cursor_at` levels,
+  the par search. It's in CI's job summary, and posted as a comment.
+- **Two workflows, because of forks.** CI runs a fork's PR with a read-only token, so it
+  can't comment. It uploads the report as an artifact; `level-report.yml` runs on
+  `workflow_run` from main's copy, with write access to pull requests, and posts it.
+  It runs nothing from the PR, and it only trusts the artifact's PR number when that
+  PR's head is the commit CI tested. **Why not `pull_request_target`:** it would hand a
+  write token to a job that checks out and runs the PR's levels.
+- **`needs-code-review` is a label, not a required review.** CODEOWNERS works by path,
+  and every level lives in the same files, so it can't single out `preset.commands`,
+  `lua` probes or Setup starters. The label says which PRs touch them; every PR already
+  needs the maintainer to merge it.
+- **Size limits are in the schema,** so `make validate` enforces them in CI and in an
+  author's editor. They sit well above today's largest levels: they're there to stop a
+  level file that's huge by mistake or on purpose, not to shape levels.
+- **The par search moved into `scripts/par_search.lua`,** shared by `make par` and the
+  report. `make par`'s output is unchanged.
