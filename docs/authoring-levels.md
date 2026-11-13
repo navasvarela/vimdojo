@@ -92,8 +92,12 @@ played on its day, and from the archive after it. Compared with other packs:
   optimum.
 - **The pack has a `daily_start` date.** Before it, the daily came from the demo
   levels. Leave it alone once it has passed, because changing it reshuffles every day.
-- **Adding a level reshuffles its tier** from the day it ships. Ship it with an API
-  deploy and a plugin release, as for any change to the daily.
+- **Adding a level reshuffles its whole tier, past days included.** Each day's level is
+  worked out from the tier as it is now, so once dailies have been played, a new level
+  changes which level the archive shows for earlier days (a past board with entries still
+  names the level they were played on). Until the schedule can grow without that, add
+  daily levels only before `daily_start`, and ship them with an API deploy and a plugin
+  release, as for any change to the daily.
 
 The full contract is [`challenges/schema.json`](../challenges/schema.json).
 Point your editor's JSON support at it via `"$schema": "./schema.json"`.

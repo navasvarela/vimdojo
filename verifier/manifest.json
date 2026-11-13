@@ -141,11 +141,25 @@
       "par_keys": 9,
       "ranked": true
     },
+    "daily-below-zero": {
+      "daily": false,
+      "difficulty": 5,
+      "hash": "sha256:09be42a99f81531899264e58d44d04b2297af39b3a970eb7ee4c91513da6e0ba",
+      "par_keys": 2,
+      "ranked": true
+    },
     "daily-brackets": {
       "daily": false,
       "difficulty": 5,
       "hash": "sha256:77b34ed6e55857a88d547776830cb701b583b89c89ce550ff3cc8b6264c36298",
       "par_keys": 13,
+      "ranked": true
+    },
+    "daily-breathing-room": {
+      "daily": false,
+      "difficulty": 4,
+      "hash": "sha256:05ec997581e9d0a78e136494288d8fcc7e3c7840feab52c2aa4b0b30e4d856b0",
+      "par_keys": 10,
       "ranked": true
     },
     "daily-caps-lock": {
@@ -162,11 +176,46 @@
       "par_keys": 13,
       "ranked": true
     },
+    "daily-copy-that": {
+      "daily": false,
+      "difficulty": 1,
+      "hash": "sha256:957a6ce25f0a6547078055e99510f18c9fbdcea49ee80f1598ddfaeabb6457a3",
+      "par_keys": 3,
+      "ranked": true
+    },
     "daily-dead-code": {
       "daily": false,
       "difficulty": 1,
       "hash": "sha256:009af11c5ca9a57ca43d43853ef5de500d404c735b9d539b97b1bce4fd522927",
       "par_keys": 3,
+      "ranked": true
+    },
+    "daily-dot-remembers": {
+      "daily": false,
+      "difficulty": 5,
+      "hash": "sha256:a71e7b7da524b5334686558b9970200ec89177802b8f5b13e14ee4025f58fccd",
+      "par_keys": 5,
+      "ranked": true
+    },
+    "daily-drop-the-clause": {
+      "daily": false,
+      "difficulty": 2,
+      "hash": "sha256:4b0ba4f1cb1cbd609ba25812804ef385bde674f225ef2eb75315708f88fd18cb",
+      "par_keys": 3,
+      "ranked": true
+    },
+    "daily-empty-the-list": {
+      "daily": false,
+      "difficulty": 3,
+      "hash": "sha256:aa7e49a3d12e1850f53ae6f7d9aa641722d20dff78aac11e50a6ee506ee32df1",
+      "par_keys": 5,
+      "ranked": true
+    },
+    "daily-every-other-line": {
+      "daily": false,
+      "difficulty": 3,
+      "hash": "sha256:05a98bcbe09cac54e7b14bb5ad8f3379bb936d149648b5a7a0ce66f76461ee76",
+      "par_keys": 7,
       "ranked": true
     },
     "daily-excitement": {
@@ -176,6 +225,20 @@
       "par_keys": 4,
       "ranked": true
     },
+    "daily-fill-in-the-title": {
+      "daily": false,
+      "difficulty": 3,
+      "hash": "sha256:37307d037d67f9452474cefc2b8046ddf3eddb9575a6283fd63c96df3908ea39",
+      "par_keys": 5,
+      "ranked": true
+    },
+    "daily-fox-goes-last": {
+      "daily": false,
+      "difficulty": 5,
+      "hash": "sha256:090d7e51069e1940b080ca6deb4758ac3aecc323e9feebacd764e95f21db1d05",
+      "par_keys": 7,
+      "ranked": true
+    },
     "daily-hug-the-bracket": {
       "daily": false,
       "difficulty": 3,
@@ -183,11 +246,32 @@
       "par_keys": 2,
       "ranked": true
     },
+    "daily-inverted-caps": {
+      "daily": false,
+      "difficulty": 5,
+      "hash": "sha256:3e9fb1e9bca630e56c0f59526b7998dc4613f9c7878ca53ab7afb01e9e2aa55e",
+      "par_keys": 3,
+      "ranked": true
+    },
     "daily-last-two-letters": {
       "daily": false,
       "difficulty": 5,
       "hash": "sha256:647d9ecb76e9c443ee2ead97d0f6007384eb067d8235a3dd3b7fdec3de6b3401",
       "par_keys": 3,
+      "ranked": true
+    },
+    "daily-look-back": {
+      "daily": false,
+      "difficulty": 3,
+      "hash": "sha256:3b99db7fd7a4b66cccd65ea425b0bbb6ef8ac646cc4d88f920e961817eea5e4e",
+      "par_keys": 1,
+      "ranked": true
+    },
+    "daily-middle-argument": {
+      "daily": false,
+      "difficulty": 2,
+      "hash": "sha256:75285f5225e7668de31f097f18aa5133afdf6b540f3f76cebf4ed5ad2b0ba536",
+      "par_keys": 4,
       "ranked": true
     },
     "daily-mind-the-gaps": {
@@ -204,11 +288,32 @@
       "par_keys": 1,
       "ranked": true
     },
+    "daily-null-and-void": {
+      "daily": false,
+      "difficulty": 3,
+      "hash": "sha256:ea4d5f8408ccba376a928ff3b2937a3198022742db0b5aba48adeaadd78b7649",
+      "par_keys": 5,
+      "ranked": true
+    },
+    "daily-one-l-too-many": {
+      "daily": false,
+      "difficulty": 1,
+      "hash": "sha256:6caaf78bbf4c080f62008f6ecbe58b698cebe49dfe8d5f768c6ff86a8e672e74",
+      "par_keys": 2,
+      "ranked": true
+    },
     "daily-one-more-pixel": {
       "daily": false,
       "difficulty": 1,
       "hash": "sha256:04e5332be8b3071604c5fd55ba77d4b1b8dc809550484344b477c00c994043f8",
       "par_keys": 1,
+      "ranked": true
+    },
+    "daily-one-sentence-less": {
+      "daily": false,
+      "difficulty": 4,
+      "hash": "sha256:1333bc5b03d5130edaf289522adc800b7571ca864c30b041b7ab67fd522708f5",
+      "par_keys": 3,
       "ranked": true
     },
     "daily-one-word-too-many": {
@@ -225,6 +330,13 @@
       "par_keys": 1,
       "ranked": true
     },
+    "daily-plural": {
+      "daily": false,
+      "difficulty": 2,
+      "hash": "sha256:a3297551ec23ea44b3b65785c0a756a2c33f7d7ccd8d4829ae6f12c18ff6810c",
+      "par_keys": 5,
+      "ranked": true
+    },
     "daily-quote-them-all": {
       "daily": false,
       "difficulty": 5,
@@ -239,11 +351,32 @@
       "par_keys": 6,
       "ranked": true
     },
+    "daily-second-number": {
+      "daily": false,
+      "difficulty": 5,
+      "hash": "sha256:b059c1cfd92032ae0b9427b662b265fe2ea043b58998cff17b68ec1398d00bca",
+      "par_keys": 2,
+      "ranked": true
+    },
     "daily-semicolons": {
       "daily": false,
       "difficulty": 2,
       "hash": "sha256:c1c2ff05f326ceb3ae41621e1dd57756292aa97ce6f44046a7ac1459846a277f",
       "par_keys": 7,
+      "ranked": true
+    },
+    "daily-shout-the-error": {
+      "daily": false,
+      "difficulty": 3,
+      "hash": "sha256:1f7360fcd97faa50346837f1607907380243716eed63af13ba26e419d0d31e29",
+      "par_keys": 3,
+      "ranked": true
+    },
+    "daily-stop-shouting": {
+      "daily": false,
+      "difficulty": 1,
+      "hash": "sha256:2215244890aacb6159c2be541831d0eaaf2666952cbcd6f6691124a31d93c2fd",
+      "par_keys": 2,
       "ranked": true
     },
     "daily-teh": {
@@ -258,6 +391,20 @@
       "difficulty": 5,
       "hash": "sha256:a7f8f675dc08468f847db1c3dae14166b2871e593253260b687eadbab149df33",
       "par_keys": 7,
+      "ranked": true
+    },
+    "daily-title-case": {
+      "daily": false,
+      "difficulty": 4,
+      "hash": "sha256:204b8ac5e90952e70c4755a2e14df12708fb4aeae3e42f43c7affccbe8301128",
+      "par_keys": 7,
+      "ranked": true
+    },
+    "daily-trailing-spaces": {
+      "daily": false,
+      "difficulty": 5,
+      "hash": "sha256:6c250200fe17f00fbd366f136bfdf078ea42e96b19499878841dd32cf0075cad",
+      "par_keys": 10,
       "ranked": true
     },
     "daily-whole-path": {

@@ -1149,3 +1149,16 @@ The design is in `docs/proposals/daily-pool.md`. Notes from building it:
   level file that's huge by mistake or on purpose, not to shape levels.
 - **The par search moved into `scripts/par_search.lua`,** shared by `make par` and the
   report. `make par`'s output is unchanged.
+
+## The second batch of dailies
+
+- **21 more, before the start date.** Each tier's order is worked out from the whole
+  tier, so a level added after dailies have been played would change which level the
+  archive shows for past days. Shipping before 2026-11-16 means no day has been played
+  yet. Each tier now lasts six weeks before anything repeats.
+- **TODO: let the pool grow after the start.** One way: give each level the first cycle
+  it can appear in, and let a cycle draw only from the levels it already had, so past
+  cycles never change. Needed before the first batch after launch.
+- **"Trailing spaces" became "Hidden spaces".** Neovim accepts `:%s/ *$` with the
+  replacement left off, one key shorter than the emulation allows, so its par couldn't be
+  honest on the site. Ending each line with `;` needs a replacement in both.
