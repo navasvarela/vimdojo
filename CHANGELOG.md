@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.16.0 (2026-11-14)
+
+### Added
+
+- **21 more dailies,** so the daily pool has 42 levels and each comes round every six
+  weeks. New this time: `$X`, `di[` that only works inside the brackets, `#`, `das`,
+  spaces you can't see at the ends of lines, and `2<C-x>` going below zero.
+- **A level report on pull requests.** CI comments on every PR that changes levels:
+  which boards start over, par beside the par search, and fields that run code on
+  players' machines, which also add a `needs-code-review` label.
+
+### Changed
+
+- Level files have size limits: titles up to 25 characters, descriptions and hints up
+  to 240, and buffers up to 60 lines.
+
 ## v0.15.0 (2026-11-12)
 
 ### Added
