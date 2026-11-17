@@ -20,6 +20,9 @@ Type ":VimDojo"
 Sleep 400ms
 Enter
 Sleep 1.8s
+# The first level of a pack opens its lesson first; Enter starts the level.
+Enter
+Sleep 3.5s
 Enter
 Sleep 2.2s
 Type "jjjll"
