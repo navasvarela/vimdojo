@@ -51,6 +51,7 @@ end
 ---@field explain vimdojo.ExplainStep[]|nil The solution in steps, shown after a solve.
 ---@field authors string[]|nil GitHub handles; replaces the pack's.
 ---@field web_demo boolean|nil
+---@field difficulty integer|nil Daily track only: 1 (easy) to 5, the tier the weekday picks.
 ---@field requires { nvim: string }|nil Minimum Neovim version, e.g. "0.11".
 ---@field options table<string, string|number|boolean>|nil Set (like :set) before the level starts.
 ---@field preset vimdojo.Preset|nil
@@ -67,7 +68,8 @@ end
 ---@field title string
 ---@field description string|nil
 ---@field order integer
----@field track string One of M.TRACKS; defaults to "motions".
+---@field track string One of M.TRACKS or M.DAILY_TRACK; defaults to "motions".
+---@field daily_start string|nil Daily track only: the first day, "YYYY-MM-DD", the daily draws from it.
 ---@field authors string[]|nil GitHub handles credited for the pack.
 ---@field lesson vimdojo.Lesson|nil Read before the pack's first level.
 ---@field levels vimdojo.Level[]

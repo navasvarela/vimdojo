@@ -50,6 +50,18 @@ const TIER_OF_WEEKDAY: readonly number[] = [1, 2, 3, 3, 4, 5, 5]
 const DAYS_PER_WEEK = 7
 // 1970-01-01, day 0, was a Thursday: weekday 3 counting Monday as 0.
 const EPOCH_WEEKDAY = 3
+const WEEKDAY_NAMES = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+] as const
+
+/** How a difficulty reads in a shared result, easiest first. Must match daily.lua. */
+export const DIFFICULTY_NAMES = ["easy", "medium", "tricky", "hard", "fiendish"] as const
 
 // Park-Miller MINSTD: products stay below 2^47, so JavaScript numbers and
 // Lua's doubles compute them exactly. Must match daily.lua.
@@ -206,4 +218,14 @@ export function dailyArchive(schedule: DailySchedule, today: number): PastDaily[
     }
   }
   return past
+}
+
+/** "Tuesday" for a "YYYY-MM-DD" date, in UTC like every daily. */
+export function weekdayName(date: string): string {
+  const day = dayNumber(Date.parse(`${date}T00:00:00Z`))
+  const name = WEEKDAY_NAMES[(day + EPOCH_WEEKDAY) % DAYS_PER_WEEK]
+  if (name === undefined) {
+    throw new Error(`unreachable: a weekday is 0 to 6 (${date})`)
+  }
+  return name
 }

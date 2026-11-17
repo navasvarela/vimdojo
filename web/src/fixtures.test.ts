@@ -152,6 +152,7 @@ const ShareCase = z.object({
     level_title: z.string(),
     par_keys: z.number(),
     daily_date: z.string().optional(),
+    difficulty: z.number().optional(),
     outcome: z.object({
       keys: z.number(),
       seconds: z.number(),
@@ -171,6 +172,7 @@ describe("share.shareText (shared fixtures)", () => {
         levelTitle: view.level_title,
         parKeys: view.par_keys,
         dailyDate: view.daily_date,
+        difficulty: view.difficulty,
         outcome: view.outcome,
       }),
     ).toBe(expected)

@@ -42,9 +42,11 @@ describe("Demo", () => {
     expect(last).toContain("Visual Mode")
   })
 
-  it("keeps the daily pack's levels out of the level list", () => {
+  it("keeps the daily pack's levels out of the packs in the level list", () => {
     const daily = loadPacks().find((pack) => pack.track === DAILY_TRACK)
-    const listed = [...render().querySelectorAll(".level-list [data-level]")].map((button) =>
+    // Past dailies have their own list (tested below), which today may already show.
+    const packLevels = ".level-list > li:not(.past-dailies) [data-level]"
+    const listed = [...render().querySelectorAll(packLevels)].map((button) =>
       button.getAttribute("data-level"),
     )
     expect(daily?.levels.some((level) => listed.includes(level.id))).toBe(false)
