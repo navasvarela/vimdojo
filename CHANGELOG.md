@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.17.0 (2026-11-18)
+
+### Changed
+
+- **A shared daily says its day and how hard it is:**
+  `vimdojo daily 2026-11-17 (Tuesday, medium) ★★★ 2 keys (par 2) 1.3s`. Dailies get
+  harder through the week, from easy on Monday to fiendish at the weekend, and now the
+  result you paste says so. Dailies from before the daily pool share as before.
+- The README and its demo cover the browser levels, the daily pool, pack lessons and
+  practice.
+
 ## v0.16.0 (2026-11-14)
 
 ### Added
