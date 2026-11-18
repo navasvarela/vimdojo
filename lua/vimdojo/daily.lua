@@ -14,6 +14,11 @@ local TIER_OF_WEEKDAY = { 1, 2, 3, 3, 4, 5, 5 }
 local DAYS_PER_WEEK = 7
 -- 1970-01-01, day 0, was a Thursday: weekday 3 counting Monday as 0.
 local EPOCH_WEEKDAY = 3
+local WEEKDAY_NAMES =
+  { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" }
+
+--- How a difficulty reads in a shared result, easiest first. Must match daily.ts.
+M.DIFFICULTY_NAMES = { "easy", "medium", "tricky", "hard", "fiendish" }
 
 -- Park-Miller "minimal standard" generator (MINSTD), chosen because its
 -- products stay below 2^47, so Lua's doubles and JavaScript numbers compute
@@ -47,7 +52,7 @@ end
 
 ---@param date string "YYYY-MM-DD"
 ---@return integer day Days since 1970-01-01.
-local function day_of_date(date)
+function M.day_of_date(date)
   local year, month, day = date:match("^(%d+)-(%d+)-(%d+)$")
   year, month, day = tonumber(year), tonumber(month), tonumber(day)
   -- Howard Hinnant's days_from_civil, so no time zone is involved:
@@ -72,7 +77,7 @@ function M.schedule(packs)
   end
   local pack = challenges.daily_pack(packs)
   if pack then
-    schedule.start = day_of_date(pack.daily_start)
+    schedule.start = M.day_of_date(pack.daily_start)
     for _, level in ipairs(pack.levels) do
       table.insert(schedule.tiers[level.difficulty], level.id)
     end
@@ -151,6 +156,13 @@ local function tier_days_before(day, tier)
     end
   end
   return week * per_week + earlier_this_week
+end
+
+--- "Tuesday" for a date: no locale involved, unlike `%A`.
+---@param date string "YYYY-MM-DD"
+---@return string
+function M.weekday_name(date)
+  return WEEKDAY_NAMES[(M.day_of_date(date) + EPOCH_WEEKDAY) % DAYS_PER_WEEK + 1]
 end
 
 ---@param day integer
