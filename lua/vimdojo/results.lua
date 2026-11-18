@@ -163,6 +163,7 @@ local function copy_result(view)
     level_title = view.level.title,
     par_keys = view.level.par_keys,
     daily_date = view.daily_date,
+    difficulty = view.level.difficulty,
     outcome = view.outcome,
   })
   vim.fn.setreg('"', text)

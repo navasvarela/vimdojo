@@ -137,9 +137,10 @@ ends (00:00 UTC):
               |vimdojo-online|)
   b           Show this level's leaderboard, or today's on a daily
   y           Copy a spoiler-free result to share, such as
-              `vimdojo daily 2026-10-30 ★★★ 7 keys (par 7) 4.3s`, and a link
-              that challenges others to beat your count, to the
-              clipboard (and the unnamed register)
+              `vimdojo daily 2026-11-16 (Monday, easy) ★★★ 3 keys (par 3) 2.1s`,
+              and a link that challenges others to beat your count, to
+              the clipboard (and the unnamed register). A daily says its
+              day and how hard it is: dailies get harder through the week.
   m           Back to the menu
   ?           Show the help (see |vimdojo-help|)
   q or <Esc>  Quit

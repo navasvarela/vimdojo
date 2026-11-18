@@ -712,6 +712,7 @@ export class Demo {
       levelTitle: play.level.title,
       parKeys: play.level.par_keys,
       dailyDate: play.dailyDate,
+      difficulty: play.level.difficulty,
       outcome,
     })
     const log = play.session.keyLog()

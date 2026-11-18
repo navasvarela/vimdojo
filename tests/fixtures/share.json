@@ -18,6 +18,40 @@
       "expected": "vimdojo daily 2026-10-30 ★★★ 7 keys (par 7) 4.3s\nBeat it: https://vimdojo.org/play/macros-01/?beat=7"
     },
     {
+      "name": "daily from the daily pack, with its day and difficulty",
+      "view": {
+        "level_title": "Caps lock strikes",
+        "par_keys": 2,
+        "daily_date": "2026-11-17",
+        "difficulty": 2,
+        "outcome": {
+          "keys": 2,
+          "seconds": 1.3,
+          "stars": 3,
+          "hinted": false
+        },
+        "level_id": "daily-caps-lock"
+      },
+      "expected": "vimdojo daily 2026-11-17 (Tuesday, medium) ★★★ 2 keys (par 2) 1.3s\nBeat it: https://vimdojo.org/play/daily-caps-lock/?beat=2"
+    },
+    {
+      "name": "weekend daily",
+      "view": {
+        "level_title": "Hidden spaces",
+        "par_keys": 10,
+        "daily_date": "2026-11-22",
+        "difficulty": 5,
+        "outcome": {
+          "keys": 14,
+          "seconds": 31.04,
+          "stars": 2,
+          "hinted": false
+        },
+        "level_id": "daily-trailing-spaces"
+      },
+      "expected": "vimdojo daily 2026-11-22 (Sunday, fiendish) ★★☆ 14 keys (par 10) 31.0s\nBeat it: https://vimdojo.org/play/daily-trailing-spaces/?beat=14"
+    },
+    {
       "name": "level with a hint",
       "view": {
         "level_title": "Again and again",
