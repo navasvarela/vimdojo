@@ -4,15 +4,15 @@
 
 Learn Vim motions by solving tiny puzzles, right inside Neovim.
 
-![vimdojo: open the menu, solve a level in five keys, and move on to the next](docs/demo.gif)
+![vimdojo: open the menu, read the pack's lesson, solve a level in five keys, and move on to the next](docs/demo.gif)
 
 Each level gives you a snippet of text and a goal ("delete the typo", "put the
 cursor on the last word"). Solve it with Vim keys. You're scored on keystrokes,
 time and the level's par. Every key counts, so finding the short way is the
 game.
 
-**[Try the browser demo](https://vimdojo.org)**, then
-install the plugin for the real thing.
+**[Play in your browser](https://vimdojo.org)**: 45 levels and the daily run on the
+site with nothing to install. Then install the plugin for the rest.
 
 - 135 levels in twenty-two packs across three tracks. **Motions** covers basic
   motions through macros and Ex commands, then regex power, the expression
@@ -22,9 +22,14 @@ install the plugin for the real thing.
   defaults. **Setup** teaches writing (and fixing) an `init.lua`: options,
   keymaps, autocommands and user commands, checked by running your config in
   a sandboxed Neovim.
+- Each pack opens with a short lesson: the idea, each command with an example, and
+  the `:help` to read next
+- A daily puzzle from 42 levels you won't find anywhere else. It gets harder through
+  the week, from easy on Monday to fiendish edge cases at the weekend, with streaks
+  and an archive of past dailies
 - A live timer and key counter, with stars and points against par
-- Hints, instant reset, and progress saved across sessions
-- A daily challenge with streaks, and a practice mode that records nothing
+- Hints, instant reset, progress saved across sessions, and a practice mode that
+  records nothing
 - Every level runs in a clean, isolated Neovim (or with your own config, if
   you prefer)
 - No dependencies, and near-zero startup cost (only the command is defined
@@ -70,6 +75,8 @@ Then run `:VimDojo`. Full documentation: `:help vimdojo`.
 | `<leader>h` | Show the hint (caps the attempt at 2 stars) |
 | `<leader>r` | Restart the level |
 | `<Esc><Esc>` | Leave the level |
+| `p` on the menu, or `:VimDojo practice {level}` | Practice a level: nothing recorded, hints free |
+| `L` on the menu | Read a pack's lesson |
 | `n` / `r` / `y` / `m` | On the results card: next level, retry, copy a spoiler-free result to share, menu |
 
 The timer starts on your first key. Every physical key counts (`d2w` is 3
@@ -78,7 +85,8 @@ solved as soon as its goal holds in Normal mode.
 
 **Stars:** 3 for matching par on both keys and time, 2 for up to 1.5× par
 keys, and 1 for solving it. Par is the shortest solution that uses only the
-motions taught so far, so if you know more Vim, you can beat it.
+motions taught so far, so if you know more Vim, you can beat it. A daily isn't
+part of the curriculum, so its par is the shortest route known, with any keys.
 
 ## Configuration
 
